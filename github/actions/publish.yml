@@ -28,4 +28,4 @@ jobs:
       - name: publish
         run: python -m nox -s publish
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}

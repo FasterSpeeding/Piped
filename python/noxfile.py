@@ -33,6 +33,7 @@ from __future__ import annotations
 __all__: typing.List[str] = [
     "build",
     "cleanup",
+    "copy_actions",
     "flake8",
     "freeze_dev_deps",
     "generate_docs",
@@ -66,6 +67,9 @@ class _Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
     default_sessions: typing.List[str]
+    github_actions: typing.Union[typing.Dict[str, typing.Dict[str, str]], typing.List[str]] = pydantic.Field(
+        default_factory=list
+    )
     hide: typing.List[str] = pydantic.Field(default_factory=list)
 
     if typing.TYPE_CHECKING:
@@ -208,6 +212,53 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
+_ACTIONS: typing.Dict[str, typing.FrozenSet[str]] = {
+    "freeze-for-pr": frozenset(),
+    "lint": frozenset(),
+    "pr-docs": frozenset(),
+    "py-lint": frozenset(),
+    "reformat": frozenset(),
+    "release-docs": frozenset(),
+    "py-test": frozenset(("CODECLIMATE_TOKEN", "PYTHON_VERSION")),
+    "type-check": frozenset(),
+    "upgrade-dev-deps": frozenset(),
+    "verify-frozen-deps": frozenset(),
+    "verify-types": frozenset(),
+}
+
+
+@nox.session(name="copy-actions")
+def copy_actions(session: nox.Session) -> None:
+    """Resync the github actions."""
+    to_write: typing.Dict[pathlib.Path, str] = {}
+    if isinstance(_config.github_actions, dict):
+        actions = iter(_config.github_actions.items())
+
+    else:
+        actions: typing.Iterable[typing.Tuple[str, typing.Dict[str, str]]] = (
+            (name, {}) for name in _config.github_actions
+        )
+
+    for file_name, config in actions:
+        config = {"{{" + key.upper() + "}}": value for key, value in config.items()}
+        file_name = file_name.replace("_", "-")
+        if missing := _ACTIONS[file_name].difference(config.keys()):
+            raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
+
+        file_name = f"{file_name}.yml"
+        with (pathlib.Path(__file__).parent.parent / "github" / "actions" / file_name).open("r") as file:
+            data = file.read()
+
+        for name, value in config.items():
+            data = data.replace(name, value)
+
+        to_write[pathlib.Path("./.github/workflows") / file_name] = data
+
+    for path, value in to_write.items():
+        with path.open("w+") as file:
+            file.write(value)
+
+
 def _to_valid_urls(session: nox.Session) -> set[pathlib.Path] | None:
     if session.posargs:
         return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
@@ -328,10 +379,10 @@ def _publish(session: nox.Session, env: dict[str, str] | None = None) -> None:
     _install_deps(session, ".", *_deps(constrain=True), first_call=False)
 
     env = env or session.env.copy()
-    if target := session.env.get("PYPI_TARGET"):
+    if target := session.env.get("PUBLISH_TARGET"):
         env["FLIT_INDEX_URL"] = target
 
-    if token := session.env.get("PYPI_TOKEN"):
+    if token := session.env.get("PUBLISH_TOKEN"):
         env["FLIT_PASSWORD"] = token
 
     env.setdefault("FLIT_USERNAME", "__token__")
