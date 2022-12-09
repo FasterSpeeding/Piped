@@ -351,6 +351,7 @@ def flake8(session: nox.Session) -> None:
 def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
     project_name = _config.assert_project_name()
+    # TODO: don't require installing .?
     _install_deps(session, ".", *_deps("lint", constrain=True))
     session.run("slotscheck", "-m", project_name)
 
@@ -374,7 +375,7 @@ def build(session: nox.Session) -> None:
 @_filtered_session(name="verify-markup", reuse_venv=True)
 def verify_markup(session: nox.Session):
     """Verify the syntax of the repo's markup files."""
-    _install_deps(session, ".", *_deps("lint", constrain=True))
+    _install_deps(session, *_deps("lint"))
     tracked_files = list(_tracked_files(session))
 
     session.log("Running pre_commit_hooks.check_toml")
@@ -400,6 +401,7 @@ def verify_markup(session: nox.Session):
 
 def _publish(session: nox.Session, env: typing.Optional[typing.Dict[str, str]] = None) -> None:
     _install_deps(session, *_deps("publish"))
+    # TODO: does this need to install .?
     _install_deps(session, ".", *_deps(constrain=True), first_call=False)
 
     env = env or session.env.copy()
@@ -453,7 +455,7 @@ def reformat(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    _install_deps(session, ".", *_deps("tests", constrain=True))
+    _install_deps(session, *_deps("tests"))
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -462,7 +464,7 @@ def test(session: nox.Session) -> None:
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _config.assert_project_name()
-    _install_deps(session, ".", *_deps("tests", constrain=True))
+    _install_deps(session, *_deps("tests"))
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -485,7 +487,7 @@ def _run_pyright(session: nox.Session, *args: str) -> None:
 @_filtered_session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    _install_deps(session, ".", *_deps("nox", "tests", "type-checking", constrain=True))
+    _install_deps(session, *_deps("type-checking"))
     _run_pyright(session)
     # TODO: add allowed to fail MyPy call once it stops giving an insane amount of false-positives
 
@@ -494,5 +496,6 @@ def type_check(session: nox.Session) -> None:
 def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
     project_name = _config.assert_project_name()
+    # TODO is installing . necessary here?
     _install_deps(session, ".", *_deps("type-checking", constrain=True))
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
