@@ -97,14 +97,9 @@ default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-
 hide = ["build", "publish", "slot-check", "test-publish", "test", "test-coverage"]
 path_ignore = "github\\/actions\\/py-test.yml"
 top_level_targets = ["./noxfile.py", "./python"]
-
-[tool.piped.github_actions]
-verify-frozen_deps = {}
-upgrade_dev_deps = {}
-type_check = {}
-reformat = {}
-lint = {}
-freeze_for_pr = {}
+github_actions = [
+    "freeze_for_pr", "lint", "reformat", "type_check", "upgrade_dev_deps", "verify_frozen_deps"
+]
 
 [tool.slotscheck]
 strict-imports = true
