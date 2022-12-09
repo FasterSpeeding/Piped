@@ -232,7 +232,7 @@ _ACTIONS: typing.Dict[str, _Action] = {
     "reformat": _Action(),
     "release-docs": _Action(),
     "py-test": _Action(
-        required=["PYTHON_VERSION"],
+        required=["PYTHONS_VERSION"],
         defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
     ),
     "type-check": _Action(),
@@ -255,7 +255,7 @@ def copy_actions(_: nox.Session) -> None:
         )
 
     for file_name, config in actions:
-        config = {"{{" + key.upper() + "}}": value for key, value in config.items()}
+        config = {key.upper(): value for key, value in config.items()}
         file_name = file_name.replace("_", "-")
         action = _ACTIONS[file_name]
         if missing := action.required_names.difference(config.keys()):
@@ -266,11 +266,11 @@ def copy_actions(_: nox.Session) -> None:
             data = file.read()
 
         for name, value in config.items():
-            data = data.replace(name, value)
+            data = data.replace("{{" + name + "}}", value)
 
         for name, value in action.defaults:
             if name not in config:
-                data.replace(name, value)
+                data.replace("{{" + name + "}}", value)
 
         to_write[pathlib.Path("./.github/workflows") / file_name] = data
 
