@@ -67,6 +67,7 @@ class _Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
     default_sessions: typing.List[str]
+    extra_test_installs: typing.List[str] = pydantic.Field(default_factory=list)
     github_actions: typing.Union[typing.Dict[str, typing.Dict[str, str]], typing.List[str]] = pydantic.Field(
         default_factory=list
     )
@@ -455,7 +456,7 @@ def reformat(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    _install_deps(session, *_deps("tests"))
+    _install_deps(session, *_config.extra_test_installs, *_deps("tests", constrain=True))
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -464,7 +465,7 @@ def test(session: nox.Session) -> None:
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _config.assert_project_name()
-    _install_deps(session, *_deps("tests"))
+    _install_deps(session, *_config.extra_test_installs, *_deps("tests", constrain=True))
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
