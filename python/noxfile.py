@@ -214,18 +214,31 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
-_ACTIONS: typing.Dict[str, typing.FrozenSet[str]] = {
-    "freeze-for-pr": frozenset(),
-    "lint": frozenset(),
-    "pr-docs": frozenset(),
-    "py-lint": frozenset(),
-    "reformat": frozenset(),
-    "release-docs": frozenset(),
-    "py-test": frozenset(("CODECLIMATE_TOKEN", "PYTHON_VERSION")),
-    "type-check": frozenset(),
-    "upgrade-dev-deps": frozenset(),
-    "verify-frozen-deps": frozenset(),
-    "verify-types": frozenset(),
+class _Action:
+    __slots__ = ("defaults", "required_names")
+
+    def __init__(
+        self, *, required: typing.Sequence[str] = (), defaults: typing.Optional[dict[str, str]] = None
+    ) -> None:
+        self.defaults = defaults or {}
+        self.required_names = frozenset(required or ())
+
+
+_ACTIONS: typing.Dict[str, _Action] = {
+    "freeze-for-pr": _Action(),
+    "lint": _Action(),
+    "pr-docs": _Action(),
+    "py-lint": _Action(),
+    "reformat": _Action(),
+    "release-docs": _Action(),
+    "py-test": _Action(
+        required=["PYTHON_VERSION"],
+        defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
+    ),
+    "type-check": _Action(),
+    "upgrade-dev-deps": _Action(),
+    "verify-frozen-deps": _Action(),
+    "verify-types": _Action(),
 }
 
 
@@ -244,7 +257,8 @@ def copy_actions(_: nox.Session) -> None:
     for file_name, config in actions:
         config = {"{{" + key.upper() + "}}": value for key, value in config.items()}
         file_name = file_name.replace("_", "-")
-        if missing := _ACTIONS[file_name].difference(config.keys()):
+        action = _ACTIONS[file_name]
+        if missing := action.required_names.difference(config.keys()):
             raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
 
         file_name = f"{file_name}.yml"
@@ -253,6 +267,10 @@ def copy_actions(_: nox.Session) -> None:
 
         for name, value in config.items():
             data = data.replace(name, value)
+
+        for name, value in action.defaults:
+            if name not in config:
+                data.replace(name, value)
 
         to_write[pathlib.Path("./.github/workflows") / file_name] = data
 

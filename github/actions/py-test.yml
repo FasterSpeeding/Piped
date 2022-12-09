@@ -20,11 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-        python-version: {{PYTHON_VERSION}}
+        os: {{OSES}}
+        python-version: {{PYTHON_VERSIONS}}
 
     runs-on: ${{ matrix.os }}
 
@@ -49,6 +46,7 @@ jobs:
   # the result once https://github.com/nedbat/coveragepy/issues/1002 is fixed?
   upload-coverage:
     # needs: [test]
+    if: {{CODECLIMATE_TOKEN}} != ''
     runs-on: ubuntu-latest
 
     steps:
