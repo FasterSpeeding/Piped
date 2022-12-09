@@ -67,7 +67,7 @@ profile = "black"
 force_single_line = true
 
 [tool.pyright]
-include = ["noxfile.py"]
+include = ["noxfile.py", "python"]
 
 pythonVersion = "3.8"
 typeCheckingMode = "strict"
@@ -102,7 +102,7 @@ disable_error_code = ["type-abstract"]
 [tool.piped]
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
 hide = ["build", "publish", "slot-check", "test-publish", "test", "test-coverage"]
-top_level_targets = ["./noxfile.py"]
+top_level_targets = ["./noxfile.py", "./python"]
 
 [tool.slotscheck]
 strict-imports = true

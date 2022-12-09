@@ -30,6 +30,25 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
+__all__: typing.List[str] = [
+    "build",
+    "cleanup",
+    "flake8",
+    "freeze_dev_deps",
+    "generate_docs",
+    "publish",
+    "reformat",
+    "slot_check",
+    "spell_check",
+    "test",
+    "test_coverage",
+    "test_publish",
+    "type_check",
+    "verify_dev_deps",
+    "verify_markup",
+    "verify_types",
+]
+
 import itertools
 import pathlib
 import re
@@ -195,7 +214,6 @@ def _to_valid_urls(session: nox.Session) -> set[pathlib.Path] | None:
 
 
 _CONSTRAINTS_IN = pathlib.Path("./dev-requirements/constraints.in")
-
 
 
 @_filtered_session(name="freeze-dev-deps", reuse_venv=True)
