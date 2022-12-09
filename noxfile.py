@@ -98,7 +98,7 @@ def _tracked_files(session: nox.Session) -> typing.Iterable[str]:
     assert isinstance(output, str)
 
     if config.path_ignore:
-        return (path for path in output.splitlines() if not config.path_ignore.match(path))
+        return (path for path in output.splitlines() if not config.path_ignore.search(path))
 
     return output.splitlines()
 
