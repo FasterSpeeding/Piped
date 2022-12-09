@@ -228,13 +228,14 @@ _ACTIONS: typing.Dict[str, _Action] = {
     "freeze-for-pr": _Action(),
     "lint": _Action(),
     "pr-docs": _Action(),
+    "publish": _Action(),
     "py-lint": _Action(),
-    "reformat": _Action(),
-    "release-docs": _Action(),
     "py-test": _Action(
-        required=["PYTHONS_VERSION"],
+        required=["PYTHON_VERSIONS"],
         defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
     ),
+    "reformat": _Action(),
+    "release-docs": _Action(),
     "type-check": _Action(),
     "upgrade-dev-deps": _Action(),
     "verify-frozen-deps": _Action(),
@@ -268,9 +269,9 @@ def copy_actions(_: nox.Session) -> None:
         for name, value in config.items():
             data = data.replace("{{" + name + "}}", value)
 
-        for name, value in action.defaults:
+        for name, value in action.defaults.items():
             if name not in config:
-                data.replace("{{" + name + "}}", value)
+                data = data.replace("{{" + name + "}}", value)
 
         to_write[pathlib.Path("./.github/workflows") / file_name] = data
 
