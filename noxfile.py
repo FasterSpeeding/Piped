@@ -73,7 +73,7 @@ def _dev_path(value: str) -> pathlib.Path:
     if path.exists():
         return path
 
-    return pathlib.Path(__file__).parent / "dev-requirements" / value
+    return pathlib.Path(__file__).parent / "dev-requirements" / f"{value}.txt"
 
 
 _CONSTRAINT_DIR = _dev_path("constraints")

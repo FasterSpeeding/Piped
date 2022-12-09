@@ -96,12 +96,12 @@ warn_redundant_casts = false
 allow_redefinition = true
 disable_error_code = ["type-abstract"]
 
-[tool.slotscheck]
-strict-imports = true
-require-superclass = true
-require-subclass = true
-
 [tool.piped]
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
 hide = ["build", "publish", "slot-check", "test-publish", "test", "test-coverage"]
 top_level_targets = ["noxfile.py"]
+
+[tool.slotscheck]
+strict-imports = true
+require-superclass = true
+require-subclass = true
