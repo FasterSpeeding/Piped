@@ -94,11 +94,12 @@ def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
 
 
 def _tracked_files(session: nox.Session) -> typing.Iterable[str]:
-    if config.path_ignore:
-        return (path for path in _tracked_files(session) if not config.path_ignore.match(path))
-
     output = session.run("git", "ls-files", external=True, log=False, silent=True)
     assert isinstance(output, str)
+
+    if config.path_ignore:
+        return (path for path in output.splitlines() if not config.path_ignore.match(path))
+
     return output.splitlines()
 
 
