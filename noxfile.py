@@ -46,10 +46,17 @@ _CallbackT = typing.TypeVar("_CallbackT", bound=typing.Callable[..., typing.Any]
 class Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
-    default_sessions: list[str]
-    hide: list[str] = pydantic.Field(default_factory=list)
+    default_sessions: typing.List[str]
+    hide: typing.List[str] = pydantic.Field(default_factory=list)
+
+    if typing.TYPE_CHECKING:
+        path_ignore: typing.Optional[typing.Pattern[str]] = None
+
+    else:
+        path_ignore: typing.Optional[typing.Pattern] = None
+
     project_name: typing.Optional[str] = None
-    top_level_targets: list[str]
+    top_level_targets: typing.List[str]
     vendor_dir: typing.Optional[str] = None
 
     def assert_project_name(self) -> str:
@@ -87,8 +94,8 @@ def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
 
 
 def _tracked_files(session: nox.Session, *, ignore_vendor: bool = False) -> typing.Iterable[str]:
-    if ignore_vendor and config.vendor_dir:
-        return (path for path in _tracked_files(session) if config.vendor_dir not in path)
+    if ignore_vendor and config.path_ignore:
+        return (path for path in _tracked_files(session) if not config.path_ignore.match(path))
 
     output = session.run("git", "ls-files", external=True, log=False, silent=True)
     assert isinstance(output, str)
@@ -125,7 +132,7 @@ def filtered_session(
     name: str | None = None,
     venv_backend: typing.Any = None,
     venv_params: typing.Any = None,
-    tags: list[str] | None = None,
+    tags: typing.List[str] | None = None,
 ) -> typing.Callable[[_CallbackT], typing.Union[_CallbackT, None]]:
     """Filtering version of `nox.session`."""
 

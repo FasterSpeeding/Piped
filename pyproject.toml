@@ -58,6 +58,9 @@ ignore = [
     "E203",    # whitespace before ':'
     "E231",    # missing whitespace after ','
 ]
+per-file-ignores = [
+    "noxfile.py: D100, INP001"
+]
 
 [tool.isort]
 profile = "black"
@@ -99,7 +102,7 @@ disable_error_code = ["type-abstract"]
 [tool.piped]
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
 hide = ["build", "publish", "slot-check", "test-publish", "test", "test-coverage"]
-top_level_targets = ["noxfile.py"]
+top_level_targets = ["./noxfile.py"]
 
 [tool.slotscheck]
 strict-imports = true
