@@ -93,8 +93,8 @@ def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
     return itertools.chain.from_iterable(("-r", str(_dev_path(value))) for value in dev_deps)
 
 
-def _tracked_files(session: nox.Session, *, ignore_vendor: bool = False) -> typing.Iterable[str]:
-    if ignore_vendor and config.path_ignore:
+def _tracked_files(session: nox.Session) -> typing.Iterable[str]:
+    if config.path_ignore:
         return (path for path in _tracked_files(session) if not config.path_ignore.match(path))
 
     output = session.run("git", "ls-files", external=True, log=False, silent=True)
@@ -261,9 +261,7 @@ def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
     _install_deps(session, *_deps("lint"))
     session.log("Running codespell")
-    session.run(
-        "codespell", *_tracked_files(session, ignore_vendor=True), "--ignore-regex", "TimeSchedule|Nd", log=False
-    )
+    session.run("codespell", *_tracked_files(session), "--ignore-regex", "TimeSchedule|Nd", log=False)
 
 
 @filtered_session(reuse_venv=True)
@@ -338,7 +336,7 @@ def reformat(session: nox.Session) -> None:
     session.run("isort", *config.top_level_targets)
     session.run("pycln", *config.top_level_targets)
 
-    tracked_files = list(_tracked_files(session, ignore_vendor=True))
+    tracked_files = list(_tracked_files(session))
     py_files = [path for path in tracked_files if re.fullmatch(r".+\.pyi?$", path)]
 
     session.log("Running sort-all")
