@@ -31,18 +31,7 @@
 
 import pathlib
 import sys
-import typing
-
-import nox
 
 sys.path.insert(1, str(pathlib.Path("./python").absolute()))
 
 from noxfile import *
-
-
-@nox.session(name="freeze-dev-deps", reuse_venv=True)
-def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib.Path] = ()) -> None:
-    """Upgrade the dev dependencies."""
-    import noxfile
-
-    noxfile.freeze_dev_deps(session, other_dirs=[pathlib.Path("./python/base-requirements")])

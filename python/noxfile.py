@@ -116,14 +116,14 @@ def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
     return itertools.chain.from_iterable(("-r", str(_dev_path(value))) for value in dev_deps)
 
 
-def _tracked_files(session: nox.Session) -> typing.Iterable[str]:
+def _tracked_files(session: nox.Session, *, force_all: bool = False) -> typing.Iterable[str]:
     output = session.run("git", "ls-files", external=True, log=False, silent=True)
     assert isinstance(output, str)
 
-    if _config.path_ignore:
+    if _config.path_ignore and not force_all:
         return (path for path in output.splitlines() if not _config.path_ignore.search(path))
 
-    return output.splitlines()
+    return (path for path in output.splitlines() if not pathlib.Path(path).is_symlink())
 
 
 def _install_deps(session: nox.Session, *requirements: str, first_call: bool = True) -> None:
@@ -139,7 +139,9 @@ def _install_deps(session: nox.Session, *requirements: str, first_call: bool = T
         session.install("--upgrade", "--force-reinstall", "--no-dependencies", ".")
 
 
-def _try_find_option(session: nox.Session, name: str, *other_names: str, when_empty: str | None = None) -> str | None:
+def _try_find_option(
+    session: nox.Session, name: str, *other_names: str, when_empty: typing.Optional[str] = None
+) -> typing.Optional[str]:
     args_iter = iter(session.posargs)
     names = {name, *other_names}
 
@@ -152,11 +154,11 @@ def _filtered_session(
     *,
     python: typing.Union[str, typing.Sequence[str], bool, None] = None,
     py: typing.Union[str, typing.Sequence[str], bool, None] = None,
-    reuse_venv: bool | None = None,
-    name: str | None = None,
+    reuse_venv: typing.Optional[bool] = None,
+    name: typing.Optional[str] = None,
     venv_backend: typing.Any = None,
     venv_params: typing.Any = None,
-    tags: typing.List[str] | None = None,
+    tags: typing.Optional[typing.List[str]] = None,
 ) -> typing.Callable[[_CallbackT], typing.Union[_CallbackT, None]]:
     """Filtering version of `nox.session`."""
 
@@ -228,7 +230,7 @@ _ACTIONS: typing.Dict[str, typing.FrozenSet[str]] = {
 
 
 @nox.session(name="copy-actions")
-def copy_actions(session: nox.Session) -> None:
+def copy_actions(_: nox.Session) -> None:
     """Resync the github actions."""
     to_write: typing.Dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
@@ -259,7 +261,7 @@ def copy_actions(session: nox.Session) -> None:
             file.write(value)
 
 
-def _to_valid_urls(session: nox.Session) -> set[pathlib.Path] | None:
+def to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.Path]]:
     if session.posargs:
         return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
 
@@ -268,10 +270,10 @@ _CONSTRAINTS_IN = pathlib.Path("./dev-requirements/constraints.in")
 
 
 @_filtered_session(name="freeze-dev-deps", reuse_venv=True)
-def freeze_dev_deps(session: nox.Session) -> None:
+def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib.Path] = ()) -> None:
     """Upgrade the dev dependencies."""
     _install_deps(session, *_deps("freeze-deps"))
-    valid_urls = _to_valid_urls(session)
+    valid_urls = to_valid_urls(session)
 
     if not valid_urls:
         with pathlib.Path("./pyproject.toml").open("rb") as file:
@@ -288,17 +290,20 @@ def freeze_dev_deps(session: nox.Session) -> None:
             _CONSTRAINTS_IN.unlink(missing_ok=True)
             pathlib.Path("./dev-requirements/constraints.txt").unlink(missing_ok=True)
 
-    for path in pathlib.Path("./dev-requirements/").glob("*.in"):
-        if not valid_urls or path.resolve() in valid_urls:
-            target = path.with_name(path.name[:-3] + ".txt")
-            target.unlink(missing_ok=True)
-            session.run("pip-compile-cross-platform", "-o", str(target), "--min-python-version", "3.9,<3.12", str(path))
+    for dir_path in itertools.chain((pathlib.Path("./dev-requirements/"),), other_dirs):
+        for path in dir_path.glob("*.in"):
+            if not valid_urls or path.resolve() in valid_urls:
+                target = path.with_name(path.name[:-3] + ".txt")
+                target.unlink(missing_ok=True)
+                session.run(
+                    "pip-compile-cross-platform", "-o", str(target), "--min-python-version", "3.9,<3.12", str(path)
+                )
 
 
 @_filtered_session(name="verify-dev-deps", reuse_venv=True)
 def verify_dev_deps(session: nox.Session) -> None:
     """Verify the dev deps by installing them."""
-    valid_urls = _to_valid_urls(session)
+    valid_urls = to_valid_urls(session)
 
     for path in pathlib.Path("./dev-requirements/").glob("*.txt"):
         if not valid_urls or path.resolve() in valid_urls:
@@ -374,7 +379,7 @@ def verify_markup(session: nox.Session):
     )
 
 
-def _publish(session: nox.Session, env: dict[str, str] | None = None) -> None:
+def _publish(session: nox.Session, env: typing.Optional[typing.Dict[str, str]] = None) -> None:
     _install_deps(session, *_deps("publish"))
     _install_deps(session, ".", *_deps(constrain=True), first_call=False)
 
@@ -411,7 +416,7 @@ def reformat(session: nox.Session) -> None:
     session.run("isort", *_config.top_level_targets)
     session.run("pycln", *_config.top_level_targets)
 
-    tracked_files = list(_tracked_files(session))
+    tracked_files = list(_tracked_files(session, force_all=True))
     py_files = [path for path in tracked_files if re.fullmatch(r".+\.pyi?$", path)]
 
     session.log("Running sort-all")
