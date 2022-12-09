@@ -117,13 +117,13 @@ def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
 
 
 def _tracked_files(session: nox.Session, *, force_all: bool = False) -> typing.Iterable[str]:
-    output = session.run("git", "ls-files", external=True, log=False, silent=True)
+    output = session.run("git", "--no-pager", "grep", "--threads=1", "-l", "", external=True, log=False, silent=True)
     assert isinstance(output, str)
 
     if _config.path_ignore and not force_all:
         return (path for path in output.splitlines() if not _config.path_ignore.search(path))
 
-    return (path for path in output.splitlines() if not pathlib.Path(path).is_symlink())
+    return output.splitlines()
 
 
 def _install_deps(session: nox.Session, *requirements: str, first_call: bool = True) -> None:
