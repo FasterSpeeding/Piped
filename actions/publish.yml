@@ -28,6 +28,4 @@ jobs:
       - name: publish
         run: python -m nox -s publish
         env:
-          FLIT_INDEX_URL: ${{ secrets.PYPI_TARGET }}
-          FLIT_USERNAME: __token__
-          FLIT_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
