@@ -69,7 +69,11 @@ _SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
 
 
 def _dev_path(value: str) -> pathlib.Path:
-    return _DEPS_DIR / f"{value}.txt"
+    path = _DEPS_DIR / f"{value}.txt"
+    if path.exists():
+        return path
+
+    return pathlib.Path(__file__).parent / "dev-requirements" / value
 
 
 _CONSTRAINT_DIR = _dev_path("constraints")
