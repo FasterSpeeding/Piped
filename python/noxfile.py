@@ -320,7 +320,7 @@ def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib
 
     for dir_path in itertools.chain((pathlib.Path("./dev-requirements/"),), other_dirs):
         for path in dir_path.glob("*.in"):
-            if not valid_urls or path.resolve() in valid_urls:
+            if not path.is_symlink() and (not valid_urls or path.resolve() in valid_urls):
                 target = path.with_name(path.name[:-3] + ".txt")
                 target.unlink(missing_ok=True)
                 session.run(
@@ -359,10 +359,11 @@ def flake8(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True, name="slot-check")
 def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
-    project_name = _config.assert_project_name()
-    # TODO: don't require installing .?
-    _install_deps(session, *_config.extra_test_installs, *_deps("lint", constrain=True))
-    session.run("slotscheck", "-m", project_name)
+    # TODO: better system for deciding whether this runs
+    if _config.project_name:
+        # TODO: don't require installing .?
+        _install_deps(session, *_config.extra_test_installs, *_deps("lint", constrain=True))
+        session.run("slotscheck", "-m", _config.project_name)
 
 
 @_filtered_session(reuse_venv=True, name="spell-check")
