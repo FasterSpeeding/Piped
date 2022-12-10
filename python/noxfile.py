@@ -320,7 +320,7 @@ def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib
 
     for dir_path in itertools.chain((pathlib.Path("./dev-requirements/"),), other_dirs):
         for path in dir_path.glob("*.in"):
-            if not valid_urls or path.resolve() in valid_urls:
+            if not path.is_symlink() and (not valid_urls or path.resolve() in valid_urls):
                 target = path.with_name(path.name[:-3] + ".txt")
                 target.unlink(missing_ok=True)
                 session.run(
