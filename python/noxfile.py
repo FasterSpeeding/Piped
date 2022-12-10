@@ -247,8 +247,7 @@ _ACTIONS: typing.Dict[str, _Action] = {
 }
 
 
-@nox.session(name="copy-actions")
-def copy_actions(_: nox.Session) -> None:
+def _copy_actions() -> None:
     """Resync the github actions."""
     to_write: typing.Dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
@@ -287,6 +286,11 @@ def copy_actions(_: nox.Session) -> None:
     for path, value in to_write.items():
         with path.open("w+") as file:
             file.write(value)
+
+
+@nox.session(name="copy-actions")
+def copy_actions(_: nox.Session) -> None:
+    _copy_actions()
 
 
 def to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.Path]]:
@@ -509,3 +513,10 @@ def verify_types(session: nox.Session) -> None:
     # TODO is installing . necessary here?
     _install_deps(session, *_config.extra_test_installs, *_deps("type-checking", constrain=True))
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
+
+
+@nox.session(name="sync-piped")
+def sync_piped(session: nox.Session) -> None:
+    """Sync piped from upstream."""
+    session.run("git", "submodule", "update", "--remote", "piped", external=True)
+    _copy_actions()
