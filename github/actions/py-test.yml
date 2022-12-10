@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  py-test:
     strategy:
       fail-fast: false
       matrix:
