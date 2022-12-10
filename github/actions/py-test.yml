@@ -34,11 +34,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: install prerequisites
-        shell: bash
         run: |
-          source ./piped/python/find_nox_deps.sh
           python -m pip install --upgrade pip wheel
-          python -m pip install -r $NOX_DEP
+          python -m pip install -r {{NOX_DEP_PATH}}
 
       - name: Run tests
         run: |
@@ -60,11 +58,9 @@ jobs:
           python-version: "3.9"  # 10
 
       - name: install prerequisites
-        shell: bash
         run: |
-          source ./piped/python/find_nox_deps.sh
           python -m pip install --upgrade pip wheel
-          python -m pip install -r $NOX_DEP
+          python -m pip install -r {{NOX_DEP_PATH}}
 
       - name: Record coverage
         run: |

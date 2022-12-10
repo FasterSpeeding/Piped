@@ -97,9 +97,16 @@ default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-
 hide = ["build", "publish", "slot-check", "test-publish", "test", "test-coverage"]
 path_ignore = "github\\/actions\\/py-test.yml"
 top_level_targets = ["./noxfile.py", "./python"]
-github_actions = [
-    "freeze_for_pr", "lint", "reformat", "type_check", "upgrade_dev_deps", "verify_frozen_deps"
-]
+
+[tool.piped.github_actions."*"]
+nox_dep_path = "./python/base-requirements/nox.txt"
+
+[tool.piped.github_actions.freeze_for_pr]
+[tool.piped.github_actions.lint]
+[tool.piped.github_actions.reformat]
+[tool.piped.github_actions.type_check]
+[tool.piped.github_actions.upgrade_dev_deps]
+[tool.piped.github_actions.verify_frozen_deps]
 
 [tool.slotscheck]
 strict-imports = true

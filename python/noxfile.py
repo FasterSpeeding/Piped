@@ -225,22 +225,25 @@ class _Action:
         self.required_names = frozenset(required or ())
 
 
+_NOX_DEP_DEFAULT = {"NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
+
+
 _ACTIONS: typing.Dict[str, _Action] = {
-    "freeze-for-pr": _Action(),
-    "lint": _Action(),
-    "pr-docs": _Action(),
-    "publish": _Action(),
-    "py-lint": _Action(),
+    "freeze-for-pr": _Action(defaults=_NOX_DEP_DEFAULT),
+    "lint": _Action(defaults=_NOX_DEP_DEFAULT),
+    "pr-docs": _Action(defaults=_NOX_DEP_DEFAULT),
+    "publish": _Action(defaults=_NOX_DEP_DEFAULT),
+    "py-lint": _Action(defaults=_NOX_DEP_DEFAULT),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
-        defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
+        defaults={**_NOX_DEP_DEFAULT, "CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
     ),
-    "reformat": _Action(),
-    "release-docs": _Action(),
-    "type-check": _Action(),
-    "upgrade-dev-deps": _Action(),
-    "verify-frozen-deps": _Action(),
-    "verify-types": _Action(),
+    "reformat": _Action(defaults=_NOX_DEP_DEFAULT),
+    "release-docs": _Action(defaults=_NOX_DEP_DEFAULT),
+    "type-check": _Action(defaults=_NOX_DEP_DEFAULT),
+    "upgrade-dev-deps": _Action(defaults=_NOX_DEP_DEFAULT),
+    "verify-frozen-deps": _Action(defaults=_NOX_DEP_DEFAULT),
+    "verify-types": _Action(defaults=_NOX_DEP_DEFAULT),
 }
 
 
@@ -250,14 +253,19 @@ def copy_actions(_: nox.Session) -> None:
     to_write: typing.Dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())
+        wild_card: typing.ItemsView[str, str] = (_config.github_actions.get("*") or {}).items()
 
     else:
         actions: typing.Iterable[typing.Tuple[str, typing.Dict[str, str]]] = (
             (name, {}) for name in _config.github_actions
         )
+        wild_card = {}.items()
 
     for file_name, config in actions:
-        config = {key.upper(): value for key, value in config.items()}
+        if file_name == "*":
+            continue
+
+        config = {key.upper(): value for key, value in itertools.chain(wild_card, config.items())}
         file_name = file_name.replace("_", "-")
         action = _ACTIONS[file_name]
         if missing := action.required_names.difference(config.keys()):

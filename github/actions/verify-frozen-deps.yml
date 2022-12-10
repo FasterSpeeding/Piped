@@ -31,11 +31,9 @@ jobs:
           python-version: 3.9
 
       - name: install prerequisites
-        shell: bash
         run: |
-          source ./piped/python/find_nox_deps.sh
           python -m pip install --upgrade pip wheel
-          python -m pip install -r $NOX_DEP
+          python -m pip install -r {{NOX_DEP_PATH}}
 
       - name: Verify dev dependencies
         run: python -m nox -s verify-dev-deps
