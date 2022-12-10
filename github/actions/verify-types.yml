@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  verify-types:
     runs-on: ubuntu-latest
 
     steps:
