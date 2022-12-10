@@ -35,7 +35,7 @@ import typing
 
 import nox
 
-sys.path.insert(1, str(pathlib.Path("./python").absolute()))
+sys.path.insert(0, str(pathlib.Path(__file__).parent / "python"))
 
 from noxfile import *
 

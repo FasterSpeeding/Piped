@@ -94,7 +94,7 @@ disable_error_code = ["type-abstract"]
 
 [tool.piped]
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
-hide = ["build", "publish", "slot-check", "test-publish", "test", "test-coverage"]
+hide = ["build", "publish", "slot-check", "test", "test-publish", "test-coverage"]
 path_ignore = "github\\/actions\\/py-test.yml"
 top_level_targets = ["./noxfile.py", "./python"]
 
