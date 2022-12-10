@@ -353,7 +353,7 @@ def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
     project_name = _config.assert_project_name()
     # TODO: don't require installing .?
-    _install_deps(session, ".", *_deps("lint", constrain=True))
+    _install_deps(session, *_config.extra_test_installs, *_deps("lint", constrain=True))
     session.run("slotscheck", "-m", project_name)
 
 
@@ -498,5 +498,5 @@ def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
     project_name = _config.assert_project_name()
     # TODO is installing . necessary here?
-    _install_deps(session, ".", *_deps("type-checking", constrain=True))
+    _install_deps(session, *_config.extra_test_installs, *_deps("type-checking", constrain=True))
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
