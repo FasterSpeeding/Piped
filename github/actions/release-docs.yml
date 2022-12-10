@@ -16,9 +16,11 @@ jobs:
           python-version: 3.9
 
       - name: Install prerequisites
+        shell: bash
         run: |
+          source ./piped/python/find_nox_deps.sh
           python -m pip install --upgrade pip wheel
-          python -m pip install -r ./dev-requirements/nox.txt
+          python -m pip install -r $NOX_DEP
 
       - name: Build docs
         id: doc_info
