@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
+  py-lint:
     runs-on: ubuntu-latest
 
     steps:
