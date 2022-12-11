@@ -72,6 +72,8 @@ class _Config(pydantic.BaseModel):
         default_factory=lambda: ["resync-piped"]
     )
     hide: typing.List[str] = pydantic.Field(default_factory=list)
+    mypy_allowed_to_fail: bool = False
+    mypy_targets: typing.List[str] = pydantic.Field(default_factory=list)
 
     # Right now pydantic fails to recognise Pattern[str] so we have to hide this
     # at runtime.
@@ -507,7 +509,13 @@ def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
     _install_deps(session, *_deps("type-checking"))
     _run_pyright(session)
-    # TODO: add allowed to fail MyPy call once it stops giving an insane amount of false-positives
+
+    if _config.mypy_targets:
+        success_codes = [0]
+        if _config.mypy_allowed_to_fail:
+            success_codes.append(1)
+
+        session.run("python", "-m", "mypy", *_config.mypy_targets, "--show-error-codes", success_codes=success_codes)
 
 
 @_filtered_session(name="verify-types", reuse_venv=True)
