@@ -358,7 +358,7 @@ def _freeze_deps(session: nox.Session) -> None:
         tl_requirements = pathlib.Path("./requirements.in")
         if tl_requirements.exists():
             with tl_requirements.open("r") as file:
-                deps.extend(file.readlines())
+                deps.extend(file.read().splitlines())
 
         if deps:
             with _CONSTRAINTS_IN.open("w+") as file:
