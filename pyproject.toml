@@ -105,7 +105,6 @@ nox_dep_path = "./python/base-requirements/nox.txt"
 [tool.piped.github_actions.lint]
 [tool.piped.github_actions.py_lint]
 [tool.piped.github_actions.reformat]
-[tool.piped.github_actions.resync_piped]
 [tool.piped.github_actions.type_check]
 [tool.piped.github_actions.upgrade_dev_deps]
 [tool.piped.github_actions.verify_frozen_deps]
