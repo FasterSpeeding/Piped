@@ -430,8 +430,9 @@ def slot_check(session: nox.Session) -> None:
     # TODO: better system for deciding whether this runs
     if _config.project_name:
         # TODO: don't require installing .?
-        _install_deps(session, *_deps("lint"))
-        _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
+        # https://github.com/pypa/pip/issues/10362
+        _install_deps(session, *_deps("constraints", "lint"))
+        _install_deps(session, "--no-deps", *_config.extra_test_installs, first_call=False)
         session.run("slotscheck", "-m", _config.project_name)
 
 
@@ -479,9 +480,10 @@ def verify_markup(session: nox.Session):
 
 
 def _publish(session: nox.Session, env: typing.Optional[typing.Dict[str, str]] = None) -> None:
-    _install_deps(session, *_deps("publish"))
+    # https://github.com/pypa/pip/issues/10362
+    _install_deps(session, *_deps("constraints"), *_deps("publish"))
     # TODO: does this need to install .?
-    _install_deps(session, ".", *_deps(constrain=True), first_call=False)
+    _install_deps(session, "--no-deps", ".", first_call=False)
 
     env = env or session.env.copy()
     if target := session.env.get("PUBLISH_TARGET"):
@@ -534,8 +536,9 @@ def reformat(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    _install_deps(session, *_deps("tests", constrain=True))
-    _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
+    # https://github.com/pypa/pip/issues/10362
+    _install_deps(session, *_deps("constraints", "tests"))
+    _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -544,8 +547,9 @@ def test(session: nox.Session) -> None:
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _config.assert_project_name()
-    _install_deps(session, *_deps("tests", constrain=True))
-    _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
+    # https://github.com/pypa/pip/issues/10362
+    _install_deps(session, *_deps("constraints", "tests"))
+    _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -584,8 +588,9 @@ def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
     project_name = _config.assert_project_name()
     # TODO is installing . necessary here?
-    _install_deps(session, *_deps("type-checking", constrain=True))
-    _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
+    # https://github.com/pypa/pip/issues/10362
+    _install_deps(session, *_deps("constraints", "type-checking"))
+    _install_deps(session, *_config.extra_test_installs, first_call=False)
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
