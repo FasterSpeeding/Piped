@@ -24,10 +24,10 @@ jobs:
           submodules: "true"
           token: ${{ secrets.ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python 3.9
+      - name: Set up Python {{DEFAULT_PY_VER}}
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: {{DEFAULT_PY_VER}}
 
       - name: install prerequisites
         run: |

@@ -86,6 +86,9 @@ class _Config(pydantic.BaseModel):
 
     project_name: typing.Optional[str] = None
     top_level_targets: typing.List[str]
+    version_constraint: str = pydantic.Field(
+        default_factory=lambda: (_pyproject_toml.get("project") or {}).get("requires-python") or "3.9,<3.12"
+    )
 
     def assert_project_name(self) -> str:
         if not self.project_name:
@@ -95,7 +98,8 @@ class _Config(pydantic.BaseModel):
 
 
 with pathlib.Path("pyproject.toml").open("rb") as _file:
-    _config = _Config.parse_obj(tomli.load(_file)["tool"]["piped"])
+    _pyproject_toml = tomli.load(_file)
+    _config = _Config.parse_obj(_pyproject_toml["tool"]["piped"])
 
 
 nox.options.sessions = _config.default_sessions
@@ -219,17 +223,7 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
-class _Action:
-    __slots__ = ("defaults", "required_names")
-
-    def __init__(
-        self, *, required: typing.Sequence[str] = (), defaults: typing.Optional[dict[str, str]] = None
-    ) -> None:
-        self.defaults = defaults or {}
-        self.required_names = frozenset(required or ())
-
-
-_NOX_DEP_DEFAULT = {"NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
+_ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
 _resync_filter: typing.Union[typing.List[str], str] = []
 
 
@@ -250,23 +244,34 @@ if _config.dep_locks:
 _resync_filter = ", ".join(map('"{}"'.format, _resync_filter))  # noqa: FS002
 
 
+class _Action:
+    __slots__ = ("defaults", "required_names")
+
+    def __init__(
+        self, *, required: typing.Sequence[str] = (), defaults: typing.Optional[dict[str, str]] = None
+    ) -> None:
+        self.defaults = _ACTION_DEFAULTS.copy()
+        self.defaults.update(defaults or ())
+        self.required_names = frozenset(required or ())
+
+
 _ACTIONS: typing.Dict[str, _Action] = {
-    "freeze-for-pr": _Action(defaults={**_NOX_DEP_DEFAULT, "FILTERS": f"[{_resync_filter}]"}),
-    "lint": _Action(defaults=_NOX_DEP_DEFAULT),
-    "pr-docs": _Action(defaults=_NOX_DEP_DEFAULT),
-    "publish": _Action(defaults=_NOX_DEP_DEFAULT),
-    "py-lint": _Action(defaults=_NOX_DEP_DEFAULT),
+    "freeze-for-pr": _Action(defaults={"FILTERS": f"[{_resync_filter}]"}),
+    "lint": _Action(),
+    "pr-docs": _Action(),
+    "publish": _Action(),
+    "py-lint": _Action(),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
-        defaults={**_NOX_DEP_DEFAULT, "CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
+        defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
     ),
-    "reformat": _Action(defaults=_NOX_DEP_DEFAULT),
-    "release-docs": _Action(defaults=_NOX_DEP_DEFAULT),
-    "resync-piped": _Action(defaults=_NOX_DEP_DEFAULT),
-    "type-check": _Action(defaults=_NOX_DEP_DEFAULT),
-    "upgrade-locks": _Action(defaults=_NOX_DEP_DEFAULT),
-    "verify-locks": _Action(defaults=_NOX_DEP_DEFAULT),
-    "verify-types": _Action(defaults=_NOX_DEP_DEFAULT),
+    "reformat": _Action(),
+    "release-docs": _Action(),
+    "resync-piped": _Action(),
+    "type-check": _Action(),
+    "upgrade-locks": _Action(),
+    "verify-locks": _Action(),
+    "verify-types": _Action(),
 }
 
 
@@ -325,6 +330,20 @@ def _to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.P
 _CONSTRAINTS_IN = pathlib.Path("./dev-requirements/constraints.in")
 
 
+def _freeze_file(session: nox.Session, path: pathlib.Path) -> None:
+    if not path.is_symlink():
+        target = path.with_name(path.name[:-3] + ".txt")
+        target.unlink(missing_ok=True)
+        session.run(
+            "pip-compile-cross-platform",
+            "-o",
+            str(target),
+            "--min-python-version",
+            _config.version_constraint,
+            str(path),
+        )
+
+
 def _freeze_deps(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, *_deps("freeze-locks"))
@@ -352,13 +371,6 @@ def _freeze_deps(session: nox.Session) -> None:
 
         for path in itertools.filterfalse(pathlib.Path.is_symlink, lock_path.glob("*.in")):
             _freeze_file(session, path)
-
-
-def _freeze_file(session: nox.Session, path: pathlib.Path) -> None:
-    if not path.is_symlink():
-        target = path.with_name(path.name[:-3] + ".txt")
-        target.unlink(missing_ok=True)
-        session.run("pip-compile-cross-platform", "-o", str(target), "--min-python-version", "3.9,<3.12", str(path))
 
 
 @_filtered_session(name="freeze-locks", reuse_venv=True)
