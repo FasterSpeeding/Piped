@@ -1,2 +1,0 @@
-pip-compile-cross-platform==1.0.1
-cachecontrol==0.12.11  # Temporarily locked due to bug.
