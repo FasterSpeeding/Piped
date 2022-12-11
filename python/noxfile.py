@@ -66,6 +66,7 @@ _CallbackT = typing.TypeVar("_CallbackT", bound=typing.Callable[..., typing.Any]
 class _Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
+    codespell_ignore: typing.Optional[str] = None
     default_sessions: typing.List[str]
     dep_locks: typing.List[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
     extra_test_installs: typing.List[str] = pydantic.Field(default_factory=list)
@@ -95,6 +96,12 @@ class _Config(pydantic.BaseModel):
             raise RuntimeError("This CI cannot run without project_name")
 
         return self.project_name
+
+    def codespell_ignore_args(self) -> list[str]:
+        if self.codespell_ignore:
+            return ["--ignore-regex", self.codespell_ignore]
+
+        return []
 
 
 with pathlib.Path("pyproject.toml").open("rb") as _file:
@@ -423,7 +430,7 @@ def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
     _install_deps(session, *_deps("lint"))
     session.log("Running codespell")
-    session.run("codespell", *_tracked_files(session), "--ignore-regex", "TimeSchedule|Nd", log=False)
+    session.run("codespell", *_tracked_files(session), *_config.codespell_ignore_args(), log=False)
 
 
 @_filtered_session(reuse_venv=True)
