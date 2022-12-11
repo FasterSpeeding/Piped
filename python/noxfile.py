@@ -350,11 +350,15 @@ def _freeze_deps(session: nox.Session) -> None:
     valid_urls = _to_valid_urls(session)
 
     if not valid_urls:
-        with pathlib.Path("./pyproject.toml").open("rb") as file:
-            project = tomli.load(file).get("project") or {}
-            deps = project.get("dependencies") or []
-            if optional := project.get("optional-dependencies"):
-                deps.extend(itertools.chain(*optional.values()))
+        project = _pyproject_toml.get("project") or {}
+        deps: typing.List[str] = project.get("dependencies") or []
+        if optional := project.get("optional-dependencies"):
+            deps.extend(itertools.chain(*optional.values()))
+
+        tl_requirements = pathlib.Path("./requirements.in")
+        if tl_requirements.exists():
+            with tl_requirements.open("r") as file:
+                deps.extend(file.readlines())
 
         if deps:
             with _CONSTRAINTS_IN.open("w+") as file:
