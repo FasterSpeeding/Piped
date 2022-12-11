@@ -94,7 +94,7 @@ disable_error_code = ["type-abstract"]
 
 [tool.piped]
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
-hide = ["build", "publish", "test", "test-publish", "test-coverage"]
+hide = ["build", "publish", "sync-piped", "test", "test-publish", "test-coverage"]
 path_ignore = "github\\/actions\\/py-test.yml"
 top_level_targets = ["./noxfile.py", "./python"]
 
@@ -105,6 +105,7 @@ nox_dep_path = "./python/base-requirements/nox.txt"
 [tool.piped.github_actions.lint]
 [tool.piped.github_actions.py_lint]
 [tool.piped.github_actions.reformat]
+[tool.piped.github_actions.resync_piped]
 [tool.piped.github_actions.type_check]
 [tool.piped.github_actions.upgrade_dev_deps]
 [tool.piped.github_actions.verify_frozen_deps]

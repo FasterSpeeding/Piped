@@ -69,10 +69,12 @@ class _Config(pydantic.BaseModel):
     default_sessions: typing.List[str]
     extra_test_installs: typing.List[str] = pydantic.Field(default_factory=list)
     github_actions: typing.Union[typing.Dict[str, typing.Dict[str, str]], typing.List[str]] = pydantic.Field(
-        default_factory=list
+        default_factory=lambda: ["resync-piped"]
     )
     hide: typing.List[str] = pydantic.Field(default_factory=list)
 
+    # Right now pydantic fails to recognise Pattern[str] so we have to hide this
+    # at runtime.
     if typing.TYPE_CHECKING:
         path_ignore: typing.Optional[typing.Pattern[str]] = None
 
@@ -240,6 +242,7 @@ _ACTIONS: typing.Dict[str, _Action] = {
     ),
     "reformat": _Action(defaults=_NOX_DEP_DEFAULT),
     "release-docs": _Action(defaults=_NOX_DEP_DEFAULT),
+    "resync-piped": _Action(defaults=_NOX_DEP_DEFAULT),
     "type-check": _Action(defaults=_NOX_DEP_DEFAULT),
     "upgrade-dev-deps": _Action(defaults=_NOX_DEP_DEFAULT),
     "verify-frozen-deps": _Action(defaults=_NOX_DEP_DEFAULT),
@@ -248,7 +251,7 @@ _ACTIONS: typing.Dict[str, _Action] = {
 
 
 def _copy_actions() -> None:
-    """Resync the github actions."""
+    """Copy over the github actions from Piped without updating the git reference."""
     to_write: typing.Dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())
@@ -290,10 +293,11 @@ def _copy_actions() -> None:
 
 @nox.session(name="copy-actions")
 def copy_actions(_: nox.Session) -> None:
+    """Copy over the github actions from Piped without updating the git reference."""
     _copy_actions()
 
 
-def to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.Path]]:
+def _to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.Path]]:
     if session.posargs:
         return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
 
@@ -305,7 +309,7 @@ _CONSTRAINTS_IN = pathlib.Path("./dev-requirements/constraints.in")
 def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib.Path] = ()) -> None:
     """Upgrade the dev dependencies."""
     _install_deps(session, *_deps("freeze-deps"))
-    valid_urls = to_valid_urls(session)
+    valid_urls = _to_valid_urls(session)
 
     if not valid_urls:
         with pathlib.Path("./pyproject.toml").open("rb") as file:
@@ -335,7 +339,7 @@ def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib
 @_filtered_session(name="verify-dev-deps", reuse_venv=True)
 def verify_dev_deps(session: nox.Session) -> None:
     """Verify the dev deps by installing them."""
-    valid_urls = to_valid_urls(session)
+    valid_urls = _to_valid_urls(session)
 
     for path in pathlib.Path("./dev-requirements/").glob("*.txt"):
         if not valid_urls or path.resolve() in valid_urls:
@@ -515,8 +519,8 @@ def verify_types(session: nox.Session) -> None:
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
-@nox.session(name="sync-piped")
+@_filtered_session(name="sync-piped")
 def sync_piped(session: nox.Session) -> None:
-    """Sync piped from upstream."""
+    """Sync Piped from upstream."""
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
     _copy_actions()
