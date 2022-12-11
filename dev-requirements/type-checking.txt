@@ -10,7 +10,7 @@ nox==2022.11.21
 packaging==22.0 ; python_version >= "3.7"
 platformdirs==2.6.0 ; python_version >= "3.7"
 pydantic==1.10.2
-pyright==1.1.282
+pyright==1.1.283
 setuptools==65.6.3 ; python_version >= "3.7"
 tomli==2.0.1
 typing-extensions==4.4.0 ; python_version >= "3.7"
