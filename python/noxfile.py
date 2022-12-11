@@ -85,7 +85,6 @@ class _Config(pydantic.BaseModel):
 
     project_name: typing.Optional[str] = None
     top_level_targets: typing.List[str]
-    vendor_dir: typing.Optional[str] = None
 
     def assert_project_name(self) -> str:
         if not self.project_name:
