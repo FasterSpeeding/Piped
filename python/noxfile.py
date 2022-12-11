@@ -131,6 +131,13 @@ def _dev_path(value: str) -> pathlib.Path:
 _CONSTRAINT_DIR = _dev_path("constraints")
 
 
+def _runtime_deps() -> typing.List[str]:
+    if _CONSTRAINT_DIR.exists():
+        return ["-r", _CONSTRAINT_DIR]
+
+    return []
+
+
 def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
     if constrain and _CONSTRAINT_DIR.exists():
         return itertools.chain(["-c", str(_CONSTRAINT_DIR)], _deps(*dev_deps))
@@ -291,7 +298,8 @@ _ACTIONS: typing.Dict[str, _Action] = {
 }
 
 
-def _copy_actions() -> None:
+@nox.session(name="copy-actions")
+def copy_actions(_: nox.Session) -> None:
     """Copy over the github actions from Piped without updating the git reference."""
     to_write: typing.Dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
@@ -332,12 +340,6 @@ def _copy_actions() -> None:
             file.write(value)
 
 
-@nox.session(name="copy-actions")
-def copy_actions(_: nox.Session) -> None:
-    """Copy over the github actions from Piped without updating the git reference."""
-    _copy_actions()
-
-
 def _to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.Path]]:
     if session.posargs:
         return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
@@ -360,7 +362,8 @@ def _freeze_file(session: nox.Session, path: pathlib.Path) -> None:
         )
 
 
-def _freeze_deps(session: nox.Session) -> None:
+@_filtered_session(name="freeze-locks", reuse_venv=True)
+def freeze_deps(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, *_deps("freeze-locks"))
     valid_urls = _to_valid_urls(session)
@@ -391,12 +394,6 @@ def _freeze_deps(session: nox.Session) -> None:
 
         for path in itertools.filterfalse(pathlib.Path.is_symlink, lock_path.glob("*.in")):
             _freeze_file(session, path)
-
-
-@_filtered_session(name="freeze-locks", reuse_venv=True)
-def freeze_deps(session: nox.Session) -> None:
-    """Upgrade the dependency locks."""
-    _freeze_deps(session)
 
 
 @_filtered_session(name="verify-deps", reuse_venv=True)
@@ -431,7 +428,7 @@ def slot_check(session: nox.Session) -> None:
     if _config.project_name:
         # TODO: don't require installing .?
         # https://github.com/pypa/pip/issues/10362
-        _install_deps(session, *_deps("constraints", "lint"))
+        _install_deps(session, *_runtime_deps(), *_deps("lint"))
         _install_deps(session, "--no-deps", *_config.extra_test_installs, first_call=False)
         session.run("slotscheck", "-m", _config.project_name)
 
@@ -481,7 +478,7 @@ def verify_markup(session: nox.Session):
 
 def _publish(session: nox.Session, env: typing.Optional[typing.Dict[str, str]] = None) -> None:
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_deps("constraints"), *_deps("publish"))
+    _install_deps(session, *_runtime_deps(), *_deps("publish"))
     # TODO: does this need to install .?
     _install_deps(session, "--no-deps", ".", first_call=False)
 
@@ -537,7 +534,7 @@ def reformat(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_deps("constraints", "tests"))
+    _install_deps(session, *_runtime_deps(), *_deps("tests"))
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
@@ -548,7 +545,7 @@ def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _config.assert_project_name()
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_deps("constraints", "tests"))
+    _install_deps(session, *_runtime_deps(), *_deps("tests"))
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
@@ -589,7 +586,7 @@ def verify_types(session: nox.Session) -> None:
     project_name = _config.assert_project_name()
     # TODO is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_deps("constraints", "type-checking"))
+    _install_deps(session, *_runtime_deps(), *_deps("type-checking"))
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
@@ -598,5 +595,7 @@ def verify_types(session: nox.Session) -> None:
 def sync_piped(session: nox.Session) -> None:
     """Sync Piped from upstream."""
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
-    _copy_actions()
-    _freeze_deps(session)
+    # We call these through nox's CLI like this to ensure that the updated version
+    # of these sessions are called.
+    session.run("nox", "-s", "copy-actions")
+    session.run("nox", "-s", "freeze-locks")
