@@ -569,7 +569,7 @@ def verify_types(session: nox.Session) -> None:
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
-@_filtered_session(name="sync-piped")
+@_filtered_session(name="sync-piped", reuse_venv=True)
 def sync_piped(session: nox.Session) -> None:
     """Sync Piped from upstream."""
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
