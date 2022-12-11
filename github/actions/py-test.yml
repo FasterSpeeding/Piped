@@ -48,7 +48,7 @@ jobs:
   # the result once https://github.com/nedbat/coveragepy/issues/1002 is fixed?
   upload-coverage:
     # needs: [test]
-    if: '{{CODECLIMATE_TOKEN}}' != ''
+    if: "'{{CODECLIMATE_TOKEN}}' != ''"
     runs-on: ubuntu-latest
 
     steps:
