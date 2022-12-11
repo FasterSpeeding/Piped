@@ -8,11 +8,7 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - "dev-requirements/*.in"
-      - "!dev-requirements/constraints.in"
-      - "python/base-requirements/*.in"
-      - "!python/base-requirements/constraints.in"
+    paths: {{FILTERS}}
 
 permissions:
   contents: write

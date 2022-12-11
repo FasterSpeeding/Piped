@@ -67,6 +67,7 @@ class _Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
     default_sessions: typing.List[str]
+    dep_locks: typing.List[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
     extra_test_installs: typing.List[str] = pydantic.Field(default_factory=list)
     github_actions: typing.Union[typing.Dict[str, typing.Dict[str, str]], typing.List[str]] = pydantic.Field(
         default_factory=lambda: ["resync-piped"]
@@ -74,7 +75,6 @@ class _Config(pydantic.BaseModel):
     hide: typing.List[str] = pydantic.Field(default_factory=list)
     mypy_allowed_to_fail: bool = False
     mypy_targets: typing.List[str] = pydantic.Field(default_factory=list)
-    other_dep_locks: typing.List[pathlib.Path] = pydantic.Field(default_factory=list)
 
     # Right now pydantic fails to recognise Pattern[str] so we have to hide this
     # at runtime.
@@ -230,10 +230,28 @@ class _Action:
 
 
 _NOX_DEP_DEFAULT = {"NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
+_resync_filter: typing.Union[typing.List[str], str] = []
+
+
+if _config.dep_locks:
+    for _path in _config.dep_locks:
+        if _path.is_absolute():
+            _path = _path.relative_to(pathlib.Path.cwd())
+
+        _str_path = str(_path).replace("\\", "/").strip("/")
+
+        if _path.is_file():
+            _resync_filter.append(f"{(_str_path)}")
+
+        else:
+            _resync_filter.append(f"{_str_path}/*.in")
+            _resync_filter.append(f"!{_str_path}/constraints.in")
+
+_resync_filter = ", ".join(map('"{}"'.format, _resync_filter))  # noqa: FS002
 
 
 _ACTIONS: typing.Dict[str, _Action] = {
-    "freeze-for-pr": _Action(defaults=_NOX_DEP_DEFAULT),
+    "freeze-for-pr": _Action(defaults={**_NOX_DEP_DEFAULT, "FILTERS": f"[{_resync_filter}]"}),
     "lint": _Action(defaults=_NOX_DEP_DEFAULT),
     "pr-docs": _Action(defaults=_NOX_DEP_DEFAULT),
     "publish": _Action(defaults=_NOX_DEP_DEFAULT),
@@ -327,7 +345,7 @@ def _freeze_deps(session: nox.Session) -> None:
             _CONSTRAINTS_IN.unlink(missing_ok=True)
             pathlib.Path("./dev-requirements/constraints.txt").unlink(missing_ok=True)
 
-    for lock_path in itertools.chain((pathlib.Path("./dev-requirements/"),), _config.other_dep_locks):
+    for lock_path in _config.dep_locks:
         if lock_path.is_file():
             _freeze_file(session, lock_path)
             continue
