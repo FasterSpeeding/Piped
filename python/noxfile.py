@@ -594,6 +594,7 @@ def verify_types(session: nox.Session) -> None:
 @_filtered_session(name="sync-piped", reuse_venv=True)
 def sync_piped(session: nox.Session) -> None:
     """Sync Piped from upstream."""
+    _install_deps(session, *_deps("nox"))
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
     # We call these through nox's CLI like this to ensure that the updated version
     # of these sessions are called.
