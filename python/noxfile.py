@@ -149,6 +149,9 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> typing.I
 
 
 def _install_deps(session: nox.Session, *requirements: str, first_call: bool = True) -> None:
+    if not requirements:
+        return
+
     # --no-install --no-venv leads to it trying to install in the global venv
     # as --no-install only skips "reused" venvs and global is not considered reused.
     if not _try_find_option(session, "--skip-install", when_empty="True"):
@@ -427,7 +430,8 @@ def slot_check(session: nox.Session) -> None:
     # TODO: better system for deciding whether this runs
     if _config.project_name:
         # TODO: don't require installing .?
-        _install_deps(session, *_config.extra_test_installs, *_deps("lint", constrain=True))
+        _install_deps(session, *_deps("lint"))
+        _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
         session.run("slotscheck", "-m", _config.project_name)
 
 
@@ -530,7 +534,8 @@ def reformat(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
-    _install_deps(session, *_config.extra_test_installs, *_deps("tests", constrain=True))
+    _install_deps(session, *_deps("tests", constrain=True))
+    _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -539,7 +544,8 @@ def test(session: nox.Session) -> None:
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _config.assert_project_name()
-    _install_deps(session, *_config.extra_test_installs, *_deps("tests", constrain=True))
+    _install_deps(session, *_deps("tests", constrain=True))
+    _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -578,7 +584,8 @@ def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
     project_name = _config.assert_project_name()
     # TODO is installing . necessary here?
-    _install_deps(session, *_config.extra_test_installs, *_deps("type-checking", constrain=True))
+    _install_deps(session, *_deps("type-checking", constrain=True))
+    _install_deps(session, *_config.extra_test_installs, *_deps(constrain=True), first_call=False)
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
