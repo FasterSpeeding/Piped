@@ -63,6 +63,14 @@ import tomli
 _CallbackT = typing.TypeVar("_CallbackT", bound=typing.Callable[..., typing.Any])
 
 
+def _default_version():
+    requires: typing.Optional[str]
+    if (project := _pyproject_toml.get("project")) and (requires := project.get("requires-python")):
+        return requires.lstrip(">=")
+
+    return "3.9,<3.12"
+
+
 class _Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
@@ -87,9 +95,7 @@ class _Config(pydantic.BaseModel):
 
     project_name: typing.Optional[str] = None
     top_level_targets: typing.List[str]
-    version_constraint: str = pydantic.Field(
-        default_factory=lambda: (_pyproject_toml.get("project") or {}).get("requires-python") or "3.9,<3.12"
-    )
+    version_constraint: str = pydantic.Field(default_factory=_default_version)
 
     def assert_project_name(self) -> str:
         if not self.project_name:
