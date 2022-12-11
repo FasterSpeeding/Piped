@@ -35,7 +35,7 @@ __all__: typing.List[str] = [
     "cleanup",
     "copy_actions",
     "flake8",
-    "freeze_dev_deps",
+    "freeze_deps",
     "generate_docs",
     "publish",
     "reformat",
@@ -45,7 +45,7 @@ __all__: typing.List[str] = [
     "test_coverage",
     "test_publish",
     "type_check",
-    "verify_dev_deps",
+    "verify_deps",
     "verify_markup",
     "verify_types",
 ]
@@ -74,6 +74,7 @@ class _Config(pydantic.BaseModel):
     hide: typing.List[str] = pydantic.Field(default_factory=list)
     mypy_allowed_to_fail: bool = False
     mypy_targets: typing.List[str] = pydantic.Field(default_factory=list)
+    other_dep_locks: typing.List[pathlib.Path] = pydantic.Field(default_factory=list)
 
     # Right now pydantic fails to recognise Pattern[str] so we have to hide this
     # at runtime.
@@ -245,8 +246,8 @@ _ACTIONS: typing.Dict[str, _Action] = {
     "release-docs": _Action(defaults=_NOX_DEP_DEFAULT),
     "resync-piped": _Action(defaults=_NOX_DEP_DEFAULT),
     "type-check": _Action(defaults=_NOX_DEP_DEFAULT),
-    "upgrade-dev-deps": _Action(defaults=_NOX_DEP_DEFAULT),
-    "verify-frozen-deps": _Action(defaults=_NOX_DEP_DEFAULT),
+    "upgrade-locks": _Action(defaults=_NOX_DEP_DEFAULT),
+    "verify-locks": _Action(defaults=_NOX_DEP_DEFAULT),
     "verify-types": _Action(defaults=_NOX_DEP_DEFAULT),
 }
 
@@ -306,10 +307,9 @@ def _to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.P
 _CONSTRAINTS_IN = pathlib.Path("./dev-requirements/constraints.in")
 
 
-@_filtered_session(name="freeze-dev-deps", reuse_venv=True)
-def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib.Path] = ()) -> None:
-    """Upgrade the dev dependencies."""
-    _install_deps(session, *_deps("freeze-deps"))
+def _freeze_deps(session: nox.Session) -> None:
+    """Freeze the dependency locks."""
+    _install_deps(session, *_deps("freeze-locks"))
     valid_urls = _to_valid_urls(session)
 
     if not valid_urls:
@@ -327,24 +327,33 @@ def freeze_dev_deps(session: nox.Session, *, other_dirs: typing.Sequence[pathlib
             _CONSTRAINTS_IN.unlink(missing_ok=True)
             pathlib.Path("./dev-requirements/constraints.txt").unlink(missing_ok=True)
 
-    for dir_path in itertools.chain((pathlib.Path("./dev-requirements/"),), other_dirs):
-        for path in dir_path.glob("*.in"):
-            if not path.is_symlink() and (not valid_urls or path.resolve() in valid_urls):
-                target = path.with_name(path.name[:-3] + ".txt")
-                target.unlink(missing_ok=True)
-                session.run(
-                    "pip-compile-cross-platform", "-o", str(target), "--min-python-version", "3.9,<3.12", str(path)
-                )
+    for lock_path in itertools.chain((pathlib.Path("./dev-requirements/"),), _config.other_dep_locks):
+        if lock_path.is_file():
+            _freeze_file(session, lock_path)
+            continue
+
+        for path in itertools.filterfalse(pathlib.Path.is_symlink, lock_path.glob("*.in")):
+            _freeze_file(session, path)
 
 
-@_filtered_session(name="verify-dev-deps", reuse_venv=True)
-def verify_dev_deps(session: nox.Session) -> None:
-    """Verify the dev deps by installing them."""
-    valid_urls = _to_valid_urls(session)
+def _freeze_file(session: nox.Session, path: pathlib.Path) -> None:
+    if not path.is_symlink():
+        target = path.with_name(path.name[:-3] + ".txt")
+        target.unlink(missing_ok=True)
+        session.run("pip-compile-cross-platform", "-o", str(target), "--min-python-version", "3.9,<3.12", str(path))
 
+
+@_filtered_session(name="freeze-locks", reuse_venv=True)
+def freeze_deps(session: nox.Session) -> None:
+    """Upgrade the dependency locks."""
+    _freeze_deps(session)
+
+
+@_filtered_session(name="verify-deps", reuse_venv=True)
+def verify_deps(session: nox.Session) -> None:
+    """Verify the dependency locks by installing them."""
     for path in pathlib.Path("./dev-requirements/").glob("*.txt"):
-        if not valid_urls or path.resolve() in valid_urls:
-            session.install("--dry-run", "-r", str(path))
+        session.install("--dry-run", "-r", str(path))
 
 
 @_filtered_session(name="generate-docs", reuse_venv=True)
@@ -531,3 +540,4 @@ def sync_piped(session: nox.Session) -> None:
     """Sync Piped from upstream."""
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
     _copy_actions()
+    _freeze_deps(session)
