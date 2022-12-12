@@ -120,27 +120,37 @@ _DEPS_DIR = pathlib.Path("./dev-requirements")
 _SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
 
 
-def _dev_path(value: str) -> pathlib.Path:
-    path = _DEPS_DIR / f"{value}.txt"
-    if path.exists():
-        return path
-
-    return pathlib.Path(__file__).parent / "base-requirements" / f"{value}.txt"
+def _exists(path: pathlib.Path) -> typing.Optional[pathlib.Path]:
+    return path if path.exists() else None
 
 
-_CONSTRAINT_DIR = _dev_path("constraints")
+def _dev_path(value: str, /) -> pathlib.Path:
+    return _exists(_DEPS_DIR / f"{value}.txt") or pathlib.Path(__file__).parent / "base-requirements" / f"{value}.txt"
+
+
+def _constraints_txt() -> typing.Optional[pathlib.Path]:
+    return _exists(_DEPS_DIR / "constraints.txt")
+
+
+def _constraints_in() -> typing.Optional[pathlib.Path]:
+    return _exists(pathlib.Path("./constraints.in")) or _exists(_DEPS_DIR / "constraints.in")
 
 
 def _runtime_deps() -> typing.List[str]:
-    if _CONSTRAINT_DIR.exists():
-        return ["-r", _CONSTRAINT_DIR]
+    path = _constraints_txt()
+    if path:
+        actual_file = _constraints_in()
+        if not actual_file:
+            raise RuntimeError("Couldn't find constraints.in")
+
+        return ["-r", str(actual_file), "-c", str(path)]
 
     return []
 
 
 def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
-    if constrain and _CONSTRAINT_DIR.exists():
-        return itertools.chain(["-c", str(_CONSTRAINT_DIR)], _deps(*dev_deps))
+    if constrain and (path := _constraints_txt()):
+        return itertools.chain(["-c", str(path)], _deps(*dev_deps))
 
     return itertools.chain.from_iterable(("-r", str(_dev_path(value))) for value in dev_deps)
 
@@ -172,7 +182,7 @@ def _install_deps(session: nox.Session, *requirements: str, first_call: bool = T
 
 
 def _try_find_option(
-    session: nox.Session, name: str, *other_names: str, when_empty: typing.Optional[str] = None
+    session: nox.Session, name: str, /, *other_names: str, when_empty: typing.Optional[str] = None
 ) -> typing.Optional[str]:
     args_iter = iter(session.posargs)
     names = {name, *other_names}
@@ -345,10 +355,7 @@ def _to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.P
         return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
 
 
-_CONSTRAINTS_IN = pathlib.Path("./dev-requirements/constraints.in")
-
-
-def _freeze_file(session: nox.Session, path: pathlib.Path) -> None:
+def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
     if not path.is_symlink():
         target = path.with_name(path.name[:-3] + ".txt")
         target.unlink(missing_ok=True)
@@ -379,12 +386,13 @@ def freeze_deps(session: nox.Session) -> None:
             with tl_requirements.open("r") as file:
                 deps.extend(file.read().splitlines())
 
+        constraints_in = pathlib.Path("./dev-requirements/constraints.in")
         if deps:
-            with _CONSTRAINTS_IN.open("w+") as file:
+            with constraints_in.open("w+") as file:
                 file.write("\n".join(deps) + "\n")
 
         else:
-            _CONSTRAINTS_IN.unlink(missing_ok=True)
+            constraints_in.unlink(missing_ok=True)
             pathlib.Path("./dev-requirements/constraints.txt").unlink(missing_ok=True)
 
     for lock_path in _config.dep_locks:
@@ -476,7 +484,7 @@ def verify_markup(session: nox.Session):
     )
 
 
-def _publish(session: nox.Session, env: typing.Optional[typing.Dict[str, str]] = None) -> None:
+def _publish(session: nox.Session, /, *, env: typing.Optional[typing.Dict[str, str]] = None) -> None:
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, *_runtime_deps(), *_deps("publish"))
     # TODO: does this need to install .?
@@ -561,7 +569,7 @@ def test_coverage(session: nox.Session) -> None:
     )
 
 
-def _run_pyright(session: nox.Session, *args: str) -> None:
+def _run_pyright(session: nox.Session, /, *args: str) -> None:
     session.run("python", "-m", "pyright", "--version")
     session.run("python", "-m", "pyright", *args)
 
