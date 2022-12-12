@@ -133,7 +133,7 @@ def _constraints_txt() -> typing.Optional[pathlib.Path]:
 
 
 def _constraints_in() -> typing.Optional[pathlib.Path]:
-    return _exists(pathlib.Path("./constraints.in")) or _exists(_DEPS_DIR / "constraints.in")
+    return _exists(_DEPS_DIR / "constraints.in")
 
 
 def _runtime_deps() -> typing.List[str]:
