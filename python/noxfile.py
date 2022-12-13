@@ -132,16 +132,12 @@ def _constraints_txt() -> typing.Optional[pathlib.Path]:
     return _exists(_DEPS_DIR / "constraints.txt")
 
 
-def _constraints_in() -> typing.Optional[pathlib.Path]:
-    return _exists(_DEPS_DIR / "constraints.in")
-
-
 def _runtime_deps() -> typing.List[str]:
     path = _constraints_txt()
     if path:
-        actual_file = _constraints_in()
+        actual_file = _exists(_DEPS_DIR / "constraints.txt")
         if not actual_file:
-            raise RuntimeError("Couldn't find constraints.in")
+            raise RuntimeError("Couldn't find constraints.txt")
 
         return ["-r", str(actual_file), "-c", str(path)]
 
@@ -541,7 +537,7 @@ def reformat(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_runtime_deps(), *_deps("tests"))
+    _install_deps(session, *_deps("tests"))
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
@@ -552,7 +548,7 @@ def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _config.assert_project_name()
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_runtime_deps(), *_deps("tests"))
+    _install_deps(session, *_deps("tests"))
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
