@@ -311,6 +311,13 @@ _ACTIONS: typing.Dict[str, _Action] = {
 @nox.session(name="copy-actions")
 def copy_actions(_: nox.Session) -> None:
     """Copy over the github actions from Piped without updating the git reference."""
+    import jinja2
+
+    env = jinja2.Environment(  # noqa: S701
+        keep_trailing_newline=True,
+        loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions"),
+    )
+
     to_write: typing.Dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())
@@ -333,17 +340,11 @@ def copy_actions(_: nox.Session) -> None:
             raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
 
         file_name = f"{file_name}.yml"
-        with (pathlib.Path(__file__).parent.parent / "github" / "actions" / file_name).open("r") as file:
-            data = file.read()
+        template = env.get_template(file_name)
 
-        for name, value in config.items():
-            data = data.replace("{{" + name + "}}", value)
-
-        for name, value in action.defaults.items():
-            if name not in config:
-                data = data.replace("{{" + name + "}}", value)
-
-        to_write[pathlib.Path("./.github/workflows") / file_name] = data
+        full_config = action.defaults.copy()
+        full_config.update(**config)
+        to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_config)
 
     for path, value in to_write.items():
         with path.open("w+") as file:
@@ -432,13 +433,11 @@ def flake8(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True, name="slot-check")
 def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
-    # TODO: better system for deciding whether this runs
-    if _config.project_name:
-        # TODO: don't require installing .?
-        # https://github.com/pypa/pip/issues/10362
-        _install_deps(session, *_runtime_deps(), *_deps("lint"))
-        _install_deps(session, "--no-deps", *_config.extra_test_installs, first_call=False)
-        session.run("slotscheck", "-m", _config.project_name)
+    # TODO: don't require installing .?
+    # https://github.com/pypa/pip/issues/10362
+    _install_deps(session, *_runtime_deps(), *_deps("lint"))
+    _install_deps(session, "--no-deps", *_config.extra_test_installs, first_call=False)
+    session.run("slotscheck", "-m", _config.assert_project_name())
 
 
 @_filtered_session(reuse_venv=True, name="spell-check")
