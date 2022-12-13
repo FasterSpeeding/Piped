@@ -10,6 +10,7 @@ on:
       - master
     paths:
       - piped
+      - pyproject.toml
 
 jobs:
   resync-piped:
