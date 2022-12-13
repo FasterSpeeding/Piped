@@ -366,11 +366,15 @@ def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
         )
 
 
+_EXTRAS_FILTER = re.compile(r"\[.+\]")
+
+
 @_filtered_session(name="freeze-locks", reuse_venv=True)
 def freeze_deps(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, *_deps("freeze-locks"))
     valid_urls = _to_valid_urls(session)
+    constraints_lock = pathlib.Path("./dev-requirements/constraints.txt")
 
     if not valid_urls:
         project = _pyproject_toml.get("project") or {}
@@ -390,7 +394,7 @@ def freeze_deps(session: nox.Session) -> None:
 
         else:
             constraints_in.unlink(missing_ok=True)
-            pathlib.Path("./dev-requirements/constraints.txt").unlink(missing_ok=True)
+            constraints_lock.unlink(missing_ok=True)
 
     for lock_path in _config.dep_locks:
         if lock_path.is_file():
@@ -399,6 +403,16 @@ def freeze_deps(session: nox.Session) -> None:
 
         for path in itertools.filterfalse(pathlib.Path.is_symlink, lock_path.glob("*.in")):
             _freeze_file(session, path)
+
+    # We use this file as a constraints file and constraint files can't have extra
+    # params according to the spec so these must be removed.
+    # See https://github.com/pypa/pip/issues/8210 for more information.
+    if constraints_lock.exists():
+        with constraints_lock.open("r") as file:
+            constraints_value = file.read()
+
+        with constraints_lock.open("w") as file:
+            file.write(_EXTRAS_FILTER.sub("", constraints_value))
 
 
 @_filtered_session(name="verify-deps", reuse_venv=True)
