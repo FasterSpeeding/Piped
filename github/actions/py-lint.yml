@@ -32,10 +32,10 @@ jobs:
       - name: install prerequisites
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install -r {{ NOX_DEP_PATH }}
+          python -m pip install -r {{ NOX_DEP_PATH }}{% if "flake8" not in config.hide %}
 
-      {% if "flake8" not in config.hide %}- name: Lint with flake8
-        run: python -m nox -s flake8{% endif %}
+      - name: Lint with flake8
+        run: python -m nox -s flake8{% endif %}{% if "slot-check" not in config.hide %}
 
-      {% if "slot-check" not in config.hide %}- name: Check slotting
+      - name: Check slotting
         run: python -m nox -s slot-check{% endif %}

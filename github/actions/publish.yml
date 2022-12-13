@@ -6,10 +6,10 @@ on:
     types:
       - published
 
-jobs:
-  {% if "publish" in config.github_actions %}publish-docs:
-    uses: ./.github/workflows/release-docs.yml{% endif %}
-
+jobs:{% if "release_docs" in config.github_actions %}
+  publish-docs:
+    uses: ./.github/workflows/release-docs.yml
+{% endif %}
   publish:
     runs-on: ubuntu-latest
 

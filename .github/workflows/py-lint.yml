@@ -36,5 +36,3 @@ jobs:
 
       - name: Lint with flake8
         run: python -m nox -s flake8
-
-      

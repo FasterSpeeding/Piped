@@ -43,8 +43,8 @@ jobs:
       - name: Run tests
         run: |
           python -m nox -s test
-
-  {% if CODECLIMATE_TOKEN %}# TODO: Could we switch over to gather coverage from the normal test runs and combining
+{% if CODECLIMATE_TOKEN %}
+  # TODO: Could we switch over to gather coverage from the normal test runs and combining
   # the result once https://github.com/nedbat/coveragepy/issues/1002 is fixed?
   upload-coverage:
     # needs: [test]
@@ -81,4 +81,5 @@ jobs:
         with:
           name: coverage
           path: ./coverage_html
-          if-no-files-found: error{% endif %}
+          if-no-files-found: error
+{% endif %}
