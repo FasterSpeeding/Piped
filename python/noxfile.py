@@ -368,7 +368,7 @@ def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
 _EXTRAS_FILTER = re.compile(r"\[.+\]")
 
 
-@_filtered_session(name="freeze-locks", reuse_venv=True)
+@nox.session(name="freeze-locks", reuse_venv=True)
 def freeze_deps(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, *_deps("freeze-locks"))
@@ -607,12 +607,18 @@ def verify_types(session: nox.Session) -> None:
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
-@_filtered_session(name="sync-piped", reuse_venv=True)
+@nox.session(name="sync-piped", reuse_venv=True)
 def sync_piped(session: nox.Session) -> None:
-    """Sync Piped from upstream."""
+    """Sync Piped's configuration without fetching."""
+    copy_actions(session)
+    freeze_deps(session)
+
+
+@_filtered_session(name="fetch-piped", reuse_venv=True)
+def fetch_piped(session: nox.Session) -> None:
+    """Fetch Piped from upstream and resync."""
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
     _install_deps(session, *_deps("nox"))
-    # We call these through nox's CLI like this to ensure that the updated version
+    # We call this through nox's CLI like this to ensure that the updated version
     # of these sessions are called.
-    session.run("nox", "-s", "copy-actions")
-    session.run("nox", "-s", "freeze-locks")
+    session.run("nox", "-s", "sync-piped")
