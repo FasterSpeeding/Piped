@@ -289,7 +289,6 @@ _ACTIONS: typing.Dict[str, _Action] = {
     "lint": _Action(),
     "pr-docs": _Action(),
     "publish": _Action(),
-    "py-lint": _Action(),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
         defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
