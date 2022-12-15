@@ -8,3 +8,4 @@ verify-markup isn't actually failing when it fails
 Verify piper config (that all the names work)
 random idea could i add license handling to me CI
 Allow for multiple constraint files
+PR in a fix for Starlette's uses of typing.Callable without args in type hints.

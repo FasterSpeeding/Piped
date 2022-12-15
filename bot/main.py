@@ -41,6 +41,8 @@ import fastapi
 import httpx
 import jwt
 import pydantic
+import starlette.middleware
+from asgiref import typing as asgiref
 
 if sys.version_info < (3, 10):
     raise RuntimeError("Only supports Python 3.10+")
@@ -48,11 +50,88 @@ if sys.version_info < (3, 10):
 dotenv.load_dotenv()
 
 APP_ID = os.environ["app_id"]
-CLIENT_SECRET = os.environ["client_secret"].encode("UTF-8")
+CLIENT_SECRET = os.environ["client_secret"].encode()
 PRIVATE_KEY = jwt.jwk_from_pem(os.environ["private_key"].encode())
 WEBHOOK_SECRET = os.environ["webhook_secret"]
 
-app = fastapi.FastAPI()
+
+class _CachedReceive:
+    __slots__ = ("_data", "_receive")
+
+    def __init__(self, data: bytearray, receive: asgiref.ASGIReceiveCallable) -> None:
+        self._data: typing.Optional[bytearray] = data  # TODO: should this be chunked?
+        self._receive = receive  # TODO: check this behaviour
+
+    async def __call__(self) -> asgiref.ASGIReceiveEvent:
+        if not self._data:
+            return await self._receive()
+
+        data = self._data
+        self._data = None
+        return {"type": "http.request", "body": data, "more_body": False}
+
+
+async def _error_response(send: asgiref.ASGISendCallable, body: bytes, /, *, status_code: int = 400) -> None:
+    await send(
+        {
+            "type": "http.response.start",
+            "status": status_code,
+            "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+        }
+    )
+    await send({"type": "http.response.body", "body": body, "more_body": False})
+
+
+# TODO: check user agent header starts with "GitHub-Hookshot/"?
+class AuthMiddleware:
+    __slots__ = ("app",)
+
+    # starlette.types.ASGIApp is more appropriate but less concise than this callable type.
+    def __init__(
+        self,
+        app: collections.Callable[
+            [asgiref.Scope, asgiref.ASGIReceiveCallable, asgiref.ASGISendCallable], collections.Awaitable[None]
+        ],
+    ) -> None:
+        self.app = app
+
+    async def __call__(
+        self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
+    ) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        for header_name, header_value in scope["headers"]:
+            if header_name.lower() == b"x-hub-signature-256":
+                signature = header_value
+                break
+
+        else:
+            await _error_response(send, b"Missing signature header")
+            return
+
+        more_body = True
+        payload = bytearray()
+        while more_body:
+            event = await receive()
+            match event:
+                case {"type": "http.request"}:
+                    more_body = event.get("more_body", False)
+                    payload.extend(event.get("body") or b"")
+                case _:
+                    raise NotImplementedError
+
+        digest = "sha256=" + hmac.new(CLIENT_SECRET, payload, digestmod="sha256").hexdigest()
+
+        if not hmac.compare_digest(signature.decode(), digest):
+            await _error_response(send, b"Invalid signature", status_code=401)
+            return
+
+        await self.app(scope, _CachedReceive(payload, receive), send)
+
+
+app = fastapi.FastAPI(middleware=[starlette.middleware.Middleware(AuthMiddleware)])
 http = httpx.AsyncClient()
 
 jwt_instance = jwt.JWT()
@@ -81,30 +160,12 @@ def auth_request() -> str:
     )
 
 
-# TODO: fix starlette's decorator type hints
-@app.middleware("http")  # pyright: ignore [ reportUntypedFunctionDecorator ]
-async def auth_middleware(
-    request: fastapi.Request, call_next: collections.Callable[..., collections.Awaitable[typing.Any]]
-) -> fastapi.Response:
-    user_agent = request.headers.get("User-Agent", "")
-    signature = request.headers.get("X-Hub-Signature-256")
-    if not user_agent.startswith("GitHub-Hookshot/") or not signature:
-        return fastapi.Response(content="Missing or invalid required header", status_code=404)
-
-    digest = "sha256=" + hmac.new(CLIENT_SECRET, await request.body(), digestmod="sha256").hexdigest()
-
-    if not hmac.compare_digest(signature, digest):
-        return fastapi.Response(content="Signature invalid", status_code=401)
-
-    return await call_next(request)
-
-
-@app.post("/")
-async def get(
-    body: typing.Dict[str, str], request: fastapi.Request, x_github_event: str = fastapi.Header()
+@app.post("/webhook")
+async def post_webhook(
+    body: typing.Dict[str, typing.Any], request: fastapi.Request, x_github_event: str = fastapi.Header()
 ) -> fastapi.Response:
     match x_github_event:
         case _:
-            print(x_github_event, body)
+            pass
 
     return fastapi.Response(status_code=204)
