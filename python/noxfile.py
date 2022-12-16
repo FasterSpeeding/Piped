@@ -35,7 +35,7 @@ __all__: typing.List[str] = [
     "cleanup",
     "copy_actions",
     "flake8",
-    "freeze_deps",
+    "freeze_locks",
     "generate_docs",
     "publish",
     "reformat",
@@ -369,7 +369,7 @@ _EXTRAS_FILTER = re.compile(r"\[.+\]")
 
 
 @nox.session(name="freeze-locks", reuse_venv=True)
-def freeze_deps(session: nox.Session) -> None:
+def freeze_locks(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, *_deps("freeze-locks"))
     valid_urls = _to_valid_urls(session)
@@ -611,7 +611,7 @@ def verify_types(session: nox.Session) -> None:
 def sync_piped(session: nox.Session) -> None:
     """Sync Piped's configuration without fetching."""
     copy_actions(session)
-    freeze_deps(session)
+    freeze_locks(session)
 
 
 @_filtered_session(name="fetch-piped", reuse_venv=True)

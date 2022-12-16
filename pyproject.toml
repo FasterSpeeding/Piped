@@ -2,7 +2,7 @@
 include = ".*pyi?$"
 line-length = 120
 skip-magic-trailing-comma = true
-target-version = ["py310"]
+target-version = ["py311"]
 
 [tool.coverage.run]
 concurrency = ["multiprocessing"]
@@ -85,7 +85,7 @@ path_ignore = "github\\/actions\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]
 
 [tool.piped.github_actions."*"]
-default_py_ver = '"3.10"'
+default_py_ver = '"3.11"'
 nox_dep_path = "./python/base-requirements/nox.txt"
 
 [tool.piped.github_actions.freeze_for_pr]
@@ -99,8 +99,8 @@ nox_dep_path = "./python/base-requirements/nox.txt"
 [tool.pyright]
 include = ["bot/main.py", "noxfile.py", "python"]
 
-# TODO: only the bot logic is 3.10+, everything else is 3.8+
-pythonVersion = "3.10"
+# TODO: only the bot logic is 3.11+, everything else is 3.8+
+pythonVersion = "3.11"
 typeCheckingMode = "strict"
 reportMissingModuleSource = "error"
 reportMissingTypeStubs = "error"
