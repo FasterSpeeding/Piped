@@ -77,7 +77,7 @@ allow_redefinition = true
 disable_error_code = ["type-abstract"]
 
 [tool.piped]
-bot_sessions = ["copy-actions", "reformat"]
+bot_sessions = ["sync-piped", "reformat"]
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
 hide = ["build", "publish", "slot-check", "sync-piped", "test", "test-publish", "test-coverage"]
 dep_locks = ["./dev-requirements", "./python/base-requirements/"]
@@ -95,7 +95,7 @@ nox_dep_path = "./python/base-requirements/nox.txt"
 [tool.piped.github_actions.type_check]
 [tool.piped.github_actions.upgrade_locks]
 [tool.piped.github_actions.verify_locks]
-[tool.piped.github_actions.publish]
+# [tool.piped.github_actions.publish]
 
 [tool.pyright]
 include = ["noxfile.py", "python"]
