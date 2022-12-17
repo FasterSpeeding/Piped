@@ -29,6 +29,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import contextlib
+import datetime
 import hmac
 import logging
 import os
@@ -48,6 +50,7 @@ import jwt
 import starlette.middleware
 import tomllib
 from asgiref import typing as asgiref
+from dateutil import parser as dateutil
 
 if sys.version_info < (3, 11):
     raise RuntimeError("Only supports Python 3.10+")
@@ -61,12 +64,11 @@ APP_ID = os.environ["app_id"]
 _client_name = os.environ.get("client_name", default="always-on-duty")
 COMMIT_ENV = {
     "GIT_COMMITTER_NAME": f"{_client_name}[bot]",
-    "GIT_COMMITTER_EMAIL": f"123456789+{_client_name}[bot]@users.noreply.github.com",
+    "GIT_COMMITTER_EMAIL": f"{APP_ID}+{_client_name}[bot]@users.noreply.github.com",
 }
 COMMIT_ENV["GIT_AUTHOR_NAME"] = COMMIT_ENV["GIT_COMMITTER_NAME"]
 COMMIT_ENV["GIT_AUTHOR_EMAIL"] = COMMIT_ENV["GIT_COMMITTER_EMAIL"]
 CLIENT_SECRET = os.environ["client_secret"].encode()
-PRIVATE_KEY = jwt.jwk_from_pem(os.environ["private_key"].encode())
 PYTHON_PATH = os.environ["python_path"]
 WEBHOOK_SECRET = os.environ["webhook_secret"]
 jwt_instance = jwt.JWT()
@@ -120,6 +122,39 @@ class _ProcessingIndex:
         scope = anyio.CancelScope()
         self._prs[key] = scope
         return scope
+
+
+class _Tokens:
+    __slots__ = ("_installation_tokens", "_private_key")
+
+    def __init__(self) -> None:
+        self._installation_tokens: dict[int, tuple[datetime.datetime, str]] = {}
+        self._private_key = jwt.jwk_from_pem(os.environ["private_key"].encode())
+
+    def app_token(self) -> str:
+        now = int(time.time())
+        token = jwt_instance.encode(
+            {"iat": now - 60, "exp": now + 60 * 3, "iss": APP_ID}, self._private_key, alg="RS256"
+        )
+        return token
+
+    async def installation_token(self, http: httpx.AsyncClient, installation_id: int, /) -> str:
+        if token_info := self._installation_tokens.get(installation_id):
+            expire_by = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(seconds=60)
+            if token_info[0] >= (expire_by):
+                return token_info[1]
+
+        # TODO: do we need to use an async lock here?
+        response = await http.post(
+            f"https://api.github.com/app/installations/{installation_id}/access_tokens",
+            headers={"Authorization": f"Bearer {self.app_token()}", "X-GitHub-Api-Version": "2022-11-28"},
+            json={"permissions": {"contents": "write", "workflows": "write"}},
+        )
+        response.raise_for_status()
+        data = response.json()
+        token = data["token"]
+        self._installation_tokens[installation_id] = (dateutil.isoparse(data["expires_at"]), token)
+        return token
 
 
 class _CachedReceive:
@@ -209,14 +244,15 @@ class AuthMiddleware:
 
 
 async def _on_startup():
+    app.state.http = httpx.AsyncClient()
     app.state.index = _ProcessingIndex()
-    app.state.session = httpx.AsyncClient()
+    app.state.tokens = _Tokens()
 
 
 async def _on_shutdown():
     await app.state.index.close()
-    assert isinstance(app.state.session, httpx.AsyncClient)
-    await app.state.session.aclose()
+    assert isinstance(app.state.http, httpx.AsyncClient)
+    await app.state.http.aclose()
 
 
 app = fastapi.FastAPI(middleware=[starlette.middleware.Middleware(AuthMiddleware)])
@@ -231,10 +267,12 @@ async def post_webhook(
     tasks: fastapi.BackgroundTasks,
     x_github_event: str = fastapi.Header(),
 ) -> fastapi.Response:
+    assert isinstance(request.app.state.http, httpx.AsyncClient)
     assert isinstance(request.app.state.index, _ProcessingIndex)
-    assert isinstance(request.app.state.session, httpx.AsyncClient)
+    assert isinstance(app.state.tokens, _Tokens)
+    http = request.app.state.http
     index = request.app.state.index
-    session = request.app.state.session
+    tokens = app.state.tokens
     # TODO: check_run and check_suite?
     match x_github_event:
         case "pull_request":
@@ -271,7 +309,7 @@ async def post_webhook(
 
         case "opened" | "reopened" | "synchronize":
             status_code = 202
-            tasks.add_task(_process_repo, session, index, body)
+            tasks.add_task(_process_repo, http, tokens, index, body)
 
         case _:
             pass
@@ -279,43 +317,44 @@ async def post_webhook(
     return fastapi.Response(status_code=status_code)
 
 
-def _auth_request() -> str:
-    return jwt_instance.encode(
-        {"iat": int(time.time()) - 60, "exp": int(time.time()) + 120, "iss": APP_ID}, PRIVATE_KEY, alg="RS256"
-    )
-
-
 def _read_toml(path: pathlib.Path) -> dict[str, typing.Any]:
     with path.open("rb") as file:
         return tomllib.load(file)
 
 
-async def _process_repo(session: httpx.AsyncClient, index: _ProcessingIndex, body: dict[str, typing.Any]) -> None:
+@contextlib.asynccontextmanager
+async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.AsyncGenerator[typing.Any, pathlib.Path]:
+    temp_dir = await anyio.to_thread.run_sync(lambda: tempfile.TemporaryDirectory[str](ignore_cleanup_errors=True))
+    try:
+        await anyio.run_process(
+            ["git", "clone", url, "--depth", "1", "--branch", branch, temp_dir.name],
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+        )
+        yield pathlib.Path(temp_dir.name)
+
+    finally:
+        # TODO: this just fails on Windows sometimes
+        await anyio.to_thread.run_sync(temp_dir.cleanup)
+
+
+async def _process_repo(
+    http: httpx.AsyncClient, tokens: _Tokens, index: _ProcessingIndex, body: dict[str, typing.Any]
+) -> None:
     repo_data = body["repository"]
     repo_id = int(repo_data["id"])
     pr_id = int(body["number"])
     full_name = repo_data.get("full_name") or str(repo_id)
+    head_name = body["pull_request"]["head"]["repo"]["full_name"]
+    head_ref = body["pull_request"]["head"]["ref"]
+    installation_id = body["installation"]["id"]
 
-    temp_dir: tempfile.TemporaryDirectory[str] | None = None
-    try:
-        with index.start(repo_id, pr_id, repo_name=full_name):
-            temp_dir = await anyio.to_thread.run_sync(
-                lambda: tempfile.TemporaryDirectory[str](ignore_cleanup_errors=True)
-            )
-            assert temp_dir
-            temp_dir_path = pathlib.Path(temp_dir.name)
-            token = _auth_request()
+    with index.start(repo_id, pr_id, repo_name=full_name):
+        token = await tokens.installation_token(http, installation_id)
+        git_url = f"https://x-access-token:{token}@github.com/{head_name}.git"
+        _LOGGER.info("Cloning %s:%s branch %s", full_name, pr_id, head_ref)
 
-            head_name = body["pull_request"]["head"]["repo"]["full_name"]
-            head_ref = body["pull_request"]["head"]["ref"]
-            git_url = f"https://x-access-token:{token}@github.com/{head_name}"
-            _LOGGER.info("Cloning %s:%s branch %s into %s", full_name, pr_id, head_ref, temp_dir_path)
-            await anyio.run_process(
-                ["git", "clone", git_url, "--depth", "1", "--branch", head_ref, temp_dir.name],
-                stdout=sys.stdout,
-                stderr=sys.stderr,
-            )
-
+        async with _with_cloned(git_url, branch=head_ref) as temp_dir_path:
             pyproject = await anyio.to_thread.run_sync(_read_toml, temp_dir_path / "pyproject.toml")
             bot_sessions = ((pyproject.get("tool") or {}).get("piped") or {}).get("bot_sessions")
             if not bot_sessions:
@@ -330,7 +369,7 @@ async def _process_repo(session: httpx.AsyncClient, index: _ProcessingIndex, bod
                 [PYTHON_PATH, "-m", "nox", "-s", *bot_sessions], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr
             )
 
-            await anyio.run_process(["git", "add", "."], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
+            await anyio.run_process(["git", "add", ".", "-A"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
             try:
                 await anyio.run_process(
                     ["git", "commit", "-am", "Reformatting PR"],
@@ -347,7 +386,3 @@ async def _process_repo(session: httpx.AsyncClient, index: _ProcessingIndex, bod
 
             else:
                 await anyio.run_process(["git", "push"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
-    finally:
-        if temp_dir:
-            # TODO: this just fails on Windows sometimes
-            await anyio.to_thread.run_sync(temp_dir.cleanup)
