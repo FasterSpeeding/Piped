@@ -145,9 +145,11 @@ class _Tokens:
                 return token_info[1]
 
         # TODO: do we need to use an async lock here?
-        response = await http.post(
+        response = await _request(
+            http,
+            "GET",
             f"https://api.github.com/app/installations/{installation_id}/access_tokens",
-            headers={"Authorization": f"Bearer {self.app_token()}", "X-GitHub-Api-Version": "2022-11-28"},
+            self.app_token(),
             json={"permissions": {"contents": "write", "workflows": "write"}},
         )
         response.raise_for_status()
@@ -155,6 +157,20 @@ class _Tokens:
         token = data["token"]
         self._installation_tokens[installation_id] = (dateutil.isoparse(data["expires_at"]), token)
         return token
+
+
+async def _request(
+    http: httpx.AsyncClient,
+    method: typing.Literal["GET", "POST", "DELETE"],
+    url: str,
+    token: str,
+    json: dict[str, typing.Any] | None = None,
+) -> httpx.Response:
+    response = await http.request(
+        method, url, headers={"Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}, json=json
+    )
+    response.raise_for_status()
+    return response
 
 
 class _CachedReceive:
