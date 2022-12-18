@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-    paths: ["dev-requirements/*.in", "!dev-requirements/constraints.in", "python/base-requirements/*.in", "!python/base-requirements/constraints.in"]
+    paths: ["bot/requirements.in", "dev-requirements/*.in", "!dev-requirements/constraints.in", "python/base-requirements/*.in", "!python/base-requirements/constraints.in"]
 
 permissions:
   contents: write
@@ -25,10 +25,10 @@ jobs:
           submodules: "true"
           token: ${{ secrets.ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python 3.9
+      - name: Set up Python "3.11"
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: "3.11"
 
       - name: install prerequisites
         run: |
