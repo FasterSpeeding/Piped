@@ -641,4 +641,4 @@ def bot_package_diff(session: nox.Session) -> None:
 @nox.session(name="is-diff-file-empty", venv_backend="none")
 def is_diff_file_empty(_: nox.Session):
     if pathlib.Path("./gogo.patch").exists():
-        raise RuntimeError("Diff created")
+        exit("Diff created")
