@@ -57,6 +57,7 @@ per-file-ignores = [
 
 [tool.isort]
 profile = "black"
+py_version = "311"
 force_single_line = true
 
 [tool.mypy]

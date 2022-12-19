@@ -39,16 +39,20 @@ import subprocess  # noqa: S404
 import sys
 import tempfile
 import time
+import tomllib
+import types
 import typing
 from collections import abc as collections
+from typing import Self
 
 import anyio
 import dotenv
 import fastapi
 import httpx
 import jwt
+import pydantic
 import starlette.middleware
-import tomllib
+from anyio.streams import memory as streams
 from asgiref import typing as asgiref
 from dateutil import parser as dateutil
 
@@ -72,6 +76,10 @@ CLIENT_SECRET = os.environ["client_secret"].encode()
 PYTHON_PATH = os.environ["python_path"]
 WEBHOOK_SECRET = os.environ["webhook_secret"]
 jwt_instance = jwt.JWT()
+
+
+class _Config(pydantic.BaseModel):
+    bot_wait_for: set[str] = pydantic.Field(default_factory=lambda: {"Resync piped", "Reformat PR code"})
 
 
 class _ProcessingIndex:
@@ -147,12 +155,11 @@ class _Tokens:
         # TODO: do we need to use an async lock here?
         response = await _request(
             http,
-            "GET",
-            f"https://api.github.com/app/installations/{installation_id}/access_tokens",
+            "POST",
+            f"/app/installations/{installation_id}/access_tokens",
             self.app_token(),
-            json={"permissions": {"contents": "write", "workflows": "write"}},
+            json={"permissions": {"checks": "write", "contents": "write", "workflows": "write"}},
         )
-        response.raise_for_status()
         data = response.json()
         token = data["token"]
         self._installation_tokens[installation_id] = (dateutil.isoparse(data["expires_at"]), token)
@@ -161,13 +168,16 @@ class _Tokens:
 
 async def _request(
     http: httpx.AsyncClient,
-    method: typing.Literal["GET", "POST", "DELETE"],
-    url: str,
+    method: typing.Literal["GET", "PATCH", "POST", "DELETE"],
+    endpoint: str,
     token: str,
     json: dict[str, typing.Any] | None = None,
 ) -> httpx.Response:
     response = await http.request(
-        method, url, headers={"Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"}, json=json
+        method,
+        f"https://api.github.com{endpoint}",
+        headers={"Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"},
+        json=json,
     )
     response.raise_for_status()
     return response
@@ -259,10 +269,40 @@ class AuthMiddleware:
         await self.app(scope, _CachedReceive(payload, receive), send)
 
 
+class _WorkflowDispatch:
+    __slots__ = ("_listeners",)
+
+    def __init__(self) -> None:
+        self._listeners: dict[tuple[int, int, str], streams.MemoryObjectSendStream[str]] = {}
+
+    def consume_completed(self, body: dict[str, typing.Any], /) -> None:
+        name = body["workflow_run"]["name"]
+        head_repo_id = int(body["workflow_run"]["head_repository"]["id"])
+        head_sha = body["workflow_run"]["head_sha"]
+        repo_id = int(body["repository"]["id"])
+        if send := self._listeners.get((repo_id, head_repo_id, head_sha)):
+            send.send_nowait(name)
+
+    async def wait_for_finish(self, repo_id: int, head_repo_id: int, head_sha: str, names: set[str], /) -> None:
+        names = names.copy()
+        # TODO: the typing for this function is wrong, we should be able to just pass item_type.
+        send, recv = anyio.create_memory_object_stream(0, item_type=str)
+
+        self._listeners[(repo_id, head_repo_id, head_sha)] = send
+
+        try:
+            while names:
+                names.discard(await recv.receive())
+
+        finally:
+            del self._listeners[(repo_id, head_repo_id, head_sha)]
+
+
 async def _on_startup():
     app.state.http = httpx.AsyncClient()
     app.state.index = _ProcessingIndex()
     app.state.tokens = _Tokens()
+    app.state.workflows = _WorkflowDispatch()
 
 
 async def _on_shutdown():
@@ -286,30 +326,41 @@ async def post_webhook(
     assert isinstance(request.app.state.http, httpx.AsyncClient)
     assert isinstance(request.app.state.index, _ProcessingIndex)
     assert isinstance(app.state.tokens, _Tokens)
+    assert isinstance(app.state.workflows, _WorkflowDispatch)
     http = request.app.state.http
     index = request.app.state.index
     tokens = app.state.tokens
+    workflows = app.state.workflows
     # TODO: check_run and check_suite?
-    match x_github_event:
-        case "pull_request":
+    match (x_github_event, body):
+        case ("pull_request", {"action": "closed", "id": id_, "number": number, "repository": repo_data}):
+            await index.stop_for_pr(int(id_), int(number), repo_name=repo_data["full_name"])
+
+        case ("pull_request", {"action": "opened" | "reopened" | "synchronize"}):
+            tasks.add_task(_process_repo, http, tokens, index, workflows, body)
+            return fastapi.Response(status_code=202)
+
+        case ("workflow_run", {"action": "completed"}):
+            workflows.consume_completed(body)
+
+        case ("installation", {"action": "removed", "repositories_removed": repositories_removed}):
+            for repo in repositories_removed:
+                await index.clear_for_repo(int(repo["id"]))
+
+        case ("installation_repositories", {"action": "removed", "repositories": repositories}):
+            for repo in repositories:
+                await index.clear_for_repo(int(repo["id"]))
+
+        case (
+            "github_app_authorization"
+            | "installation"
+            | "installation_repositories"
+            | "installation_target"
+            | "pull_request"
+            | "workflow_run",
+            _,
+        ):
             pass
-
-        case "installation":
-            if body["action"] == "removed":
-                for repo in body["repositories_removed"]:
-                    await index.clear_for_repo(int(repo["id"]))
-
-            return fastapi.Response(status_code=204)
-
-        case "installation_repositories":
-            if body["action"] == "removed":
-                for repo in body["repositories"]:
-                    await index.clear_for_repo(int(repo["id"]))
-
-            return fastapi.Response(status_code=204)
-
-        case "installation_target" | "github_app_authorization":
-            return fastapi.Response(status_code=204)
 
         case _:
             _LOGGER.info(
@@ -317,20 +368,7 @@ async def post_webhook(
             )
             return fastapi.Response("Event type not implemented", status_code=501)
 
-    status_code = 204
-    match body["action"]:
-        case "closed":
-            repo_data = body["repository"]
-            await index.stop_for_pr(int(repo_data["id"]), int(body["number"]), repo_name=repo_data.get("full_name"))
-
-        case "opened" | "reopened" | "synchronize":
-            status_code = 202
-            tasks.add_task(_process_repo, http, tokens, index, body)
-
-        case _:
-            pass
-
-    return fastapi.Response(status_code=status_code)
+    return fastapi.Response(status_code=204)
 
 
 def _read_toml(path: pathlib.Path) -> dict[str, typing.Any]:
@@ -354,36 +392,103 @@ async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.As
         await anyio.to_thread.run_sync(temp_dir.cleanup)
 
 
+class _Run:
+    __slots__ = ("check_id", "commit_hash", "http", "index", "repo_name", "token")
+
+    def __init__(
+        self, http: httpx.AsyncClient, index: _ProcessingIndex, /, *, token: str, repo_name: str, commit_hash: str
+    ) -> None:
+        self.check_id = -1
+        self.commit_hash = commit_hash
+        self.http = http
+        self.index = index
+        self.repo_name = repo_name
+        self.token = token
+
+    async def __aenter__(self) -> Self:
+        result = await _request(
+            self.http,
+            "POST",
+            f"/repos/{self.repo_name}/check-runs",
+            self.token,
+            json={"name": "Inspecting PR", "head_sha": self.commit_hash},
+        )
+        self.check_id = int(result.json()["id"])
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: typing.Optional[type[BaseException]],
+        _: typing.Optional[BaseException],
+        __: typing.Optional[types.TracebackType],
+    ) -> None:
+        if exc_type:
+            conclusion = "failure" if issubclass(exc_type, Exception) else "cancelled"
+
+        else:
+            conclusion = "success"
+
+        # TODO:
+        # Consider setting exception name as {"output": {"summary"}}
+        # Consider setting exception traceback as {"output": {"text"}}
+        # For this we will likely want a add_filter for tokens
+        # And also a set_changes for the summary and text and success
+        await _request(
+            self.http,
+            "PATCH",
+            f"/repos/{self.repo_name}/check-runs/{self.check_id}",
+            self.token,
+            json={"conclusion": conclusion},
+        )
+
+    async def mark_running(self) -> None:
+        if self.check_id == -1:
+            raise RuntimeError("Not running yet")
+
+        await _request(
+            self.http,
+            "PATCH",
+            f"/repos/{self.repo_name}/check-runs/{self.check_id}",
+            self.token,
+            json={"started_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(), "status": "in_progress"},
+        )
+
+
 async def _process_repo(
-    http: httpx.AsyncClient, tokens: _Tokens, index: _ProcessingIndex, body: dict[str, typing.Any]
+    http: httpx.AsyncClient,
+    tokens: _Tokens,
+    index: _ProcessingIndex,
+    workflows: _WorkflowDispatch,
+    body: dict[str, typing.Any],
 ) -> None:
     repo_data = body["repository"]
     repo_id = int(repo_data["id"])
     pr_id = int(body["number"])
-    full_name = repo_data.get("full_name") or str(repo_id)
+    full_name = repo_data["full_name"]
     head_name = body["pull_request"]["head"]["repo"]["full_name"]
     head_ref = body["pull_request"]["head"]["ref"]
+    head_repo_id = body["pull_request"]["head"]["repo"]["id"]
+    head_sha = body["pull_request"]["head"]["sha"]
     installation_id = body["installation"]["id"]
 
     with index.start(repo_id, pr_id, repo_name=full_name):
         token = await tokens.installation_token(http, installation_id)
         git_url = f"https://x-access-token:{token}@github.com/{head_name}.git"
         _LOGGER.info("Cloning %s:%s branch %s", full_name, pr_id, head_ref)
+        run_ctx = _Run(http, index, token=token, repo_name=full_name, commit_hash=head_sha)
 
-        async with _with_cloned(git_url, branch=head_ref) as temp_dir_path:
+        # TODO: pipe output to file to send in comment
+        async with _with_cloned(git_url, branch=head_ref) as temp_dir_path, run_ctx:
             pyproject = await anyio.to_thread.run_sync(_read_toml, temp_dir_path / "pyproject.toml")
-            bot_sessions = ((pyproject.get("tool") or {}).get("piped") or {}).get("bot_sessions")
-            if not bot_sessions:
-                _LOGGER.warn("Received event from %s repo with no bot_sessions", full_name)
+            config = _Config.parse_obj(pyproject["tool"]["piped"])
+            if not config.bot_wait_for:
+                _LOGGER.warn("Received event from %s repo with no bot_wait_for", full_name)
                 return
 
-            # TODO: this is currently a RCE so this needs to make sure piped and noxfile.py haven't
-            # been changed
-            # TODO: filter to work out which actions should even be ran.
-            # TODO: pipe output to file to send in comment
-            await anyio.run_process(
-                [PYTHON_PATH, "-m", "nox", "-s", *bot_sessions], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr
-            )
+            # TODO: start tracking before this to avoid race conditions or make request to check?
+            await workflows.wait_for_finish(repo_id, head_repo_id, head_sha, config.bot_wait_for)
+            await run_ctx.mark_running()
+            # Then collect patch files
 
             await anyio.run_process(["git", "add", ".", "-A"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
             try:
