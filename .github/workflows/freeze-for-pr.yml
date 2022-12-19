@@ -10,10 +10,6 @@ on:
       - master
     paths: ["dev-requirements/*.in", "!dev-requirements/constraints.in", "python/base-requirements/*.in", "!python/base-requirements/constraints.in"]
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   freeze-pr-dep-changes:
     runs-on: ubuntu-latest
