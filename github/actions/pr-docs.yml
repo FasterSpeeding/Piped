@@ -32,7 +32,7 @@ jobs:
         if: github.event.action != 'closed'
         uses: actions/setup-python@v4
         with:
-          python-version: {{ DEFAULT_PY_VER }}
+          python-version: "{{ DEFAULT_PY_VER }}"
 
       - name: install prerequisites
         if: github.event.action != 'closed'

@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python {{ DEFAULT_PY_VER }}
         uses: actions/setup-python@v4
         with:
-          python-version: {{ DEFAULT_PY_VER }}
+          python-version: "{{ DEFAULT_PY_VER }}"
 
       - name: install prerequisites
         run: |

@@ -86,7 +86,7 @@ path_ignore = "github\\/actions\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]
 
 [tool.piped.github_actions."*"]
-default_py_ver = '"3.11"'
+default_py_ver = "3.11"
 nox_dep_path = "./python/base-requirements/nox.txt"
 
 [tool.piped.github_actions.freeze_for_pr]
