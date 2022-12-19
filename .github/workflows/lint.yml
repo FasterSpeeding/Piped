@@ -39,3 +39,6 @@ jobs:
 
       - name: Check spelling
         run: python -m nox -s spell-check
+
+      - name: Lint with flake8
+        run: python -m nox -s flake8

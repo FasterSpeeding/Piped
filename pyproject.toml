@@ -79,7 +79,7 @@ disable_error_code = ["type-abstract"]
 [tool.piped]
 bot_sessions = ["copy-actions", "reformat"]
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
-hide = ["build", "publish", "slot-check", "test", "test-publish", "test-coverage"]
+hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
 dep_locks = ["./dev-requirements", "./python/base-requirements/"]
 path_ignore = "github\\/actions\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./noxfile.py", "./python"]
@@ -89,7 +89,6 @@ nox_dep_path = "./python/base-requirements/nox.txt"
 
 [tool.piped.github_actions.freeze_for_pr]
 [tool.piped.github_actions.lint]
-[tool.piped.github_actions.py_lint]
 [tool.piped.github_actions.reformat]
 [tool.piped.github_actions.resync_piped]
 [tool.piped.github_actions.type_check]
