@@ -21,7 +21,6 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           submodules: "true"
-          token: ${{ secrets.WORKFLOW_TOKEN }}
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
