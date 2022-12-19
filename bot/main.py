@@ -32,6 +32,7 @@
 import contextlib
 import datetime
 import hmac
+import io
 import logging
 import os
 import pathlib
@@ -42,6 +43,7 @@ import time
 import tomllib
 import types
 import typing
+import zipfile
 from collections import abc as collections
 from typing import Self
 
@@ -64,14 +66,18 @@ _LOGGER.setLevel("INFO")
 
 dotenv.load_dotenv()
 
+_username = os.environ.get("client_name", default="always-on-duty") + "[bot]"
+
+with httpx.Client() as client:
+    _user_id = client.get(f"https://api.github.com/users/{_username}").json()["id"]
+
 APP_ID = os.environ["app_id"]
-_client_name = os.environ.get("client_name", default="always-on-duty")
 COMMIT_ENV = {
-    "GIT_COMMITTER_NAME": f"{_client_name}[bot]",
-    "GIT_COMMITTER_EMAIL": f"{APP_ID}+{_client_name}[bot]@users.noreply.github.com",
+    "GIT_AUTHOR_NAME": _username,
+    "GIT_AUTHOR_EMAIL": f"{_user_id}+{_username}@users.noreply.github.com",
+    "GIT_COMMITTER_NAME": _username,
 }
-COMMIT_ENV["GIT_AUTHOR_NAME"] = COMMIT_ENV["GIT_COMMITTER_NAME"]
-COMMIT_ENV["GIT_AUTHOR_EMAIL"] = COMMIT_ENV["GIT_COMMITTER_EMAIL"]
+COMMIT_ENV["GIT_COMMITTER_EMAIL"] = COMMIT_ENV["GIT_AUTHOR_EMAIL"]
 CLIENT_SECRET = os.environ["client_secret"].encode()
 PYTHON_PATH = os.environ["python_path"]
 WEBHOOK_SECRET = os.environ["webhook_secret"]
@@ -79,7 +85,9 @@ jwt_instance = jwt.JWT()
 
 
 class _Config(pydantic.BaseModel):
-    bot_wait_for: set[str] = pydantic.Field(default_factory=lambda: {"Resync piped", "Reformat PR code"})
+    bot_actions: set[str] = pydantic.Field(
+        default_factory=lambda: {"Freeze PR dependency changes", "Resync piped", "Reformat PR code"}
+    )
 
 
 class _ProcessingIndex:
@@ -157,8 +165,8 @@ class _Tokens:
             http,
             "POST",
             f"/app/installations/{installation_id}/access_tokens",
-            self.app_token(),
             json={"permissions": {"checks": "write", "contents": "write", "workflows": "write"}},
+            token=self.app_token(),
         )
         data = response.json()
         token = data["token"]
@@ -170,15 +178,23 @@ async def _request(
     http: httpx.AsyncClient,
     method: typing.Literal["GET", "PATCH", "POST", "DELETE"],
     endpoint: str,
-    token: str,
+    /,
+    *,
     json: dict[str, typing.Any] | None = None,
+    query: dict[str, str] | None = None,
+    token: str | None = None,
 ) -> httpx.Response:
-    response = await http.request(
-        method,
-        f"https://api.github.com{endpoint}",
-        headers={"Authorization": f"Bearer {token}", "X-GitHub-Api-Version": "2022-11-28"},
-        json=json,
-    )
+    if not endpoint.startswith("https://"):
+        endpoint = f"https://api.github.com{endpoint}"
+
+    headers = {"X-GitHub-Api-Version": "2022-11-28"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    if json:
+        headers["Content-Type"] = "application/vnd.github+json"
+
+    response = await http.request(method, endpoint, follow_redirects=True, headers=headers, json=json, params=query)
     response.raise_for_status()
     return response
 
@@ -273,26 +289,39 @@ class _WorkflowDispatch:
     __slots__ = ("_listeners",)
 
     def __init__(self) -> None:
-        self._listeners: dict[tuple[int, int, str], streams.MemoryObjectSendStream[str]] = {}
+        self._listeners: dict[tuple[int, int, str], streams.MemoryObjectSendStream[tuple[int, str]]] = {}
 
     def consume_completed(self, body: dict[str, typing.Any], /) -> None:
         name = body["workflow_run"]["name"]
         head_repo_id = int(body["workflow_run"]["head_repository"]["id"])
         head_sha = body["workflow_run"]["head_sha"]
         repo_id = int(body["repository"]["id"])
-        if send := self._listeners.get((repo_id, head_repo_id, head_sha)):
-            send.send_nowait(name)
 
-    async def wait_for_finish(self, repo_id: int, head_repo_id: int, head_sha: str, names: set[str], /) -> None:
+        if send := self._listeners.get((repo_id, head_repo_id, head_sha)):
+            workflow_id = int(body["workflow_run"]["id"])
+            send.send_nowait((workflow_id, name))
+
+    async def wait_for_finish(self, repo_id: int, head_repo_id: int, head_sha: str, names: set[str], /) -> list[int]:
+        ids: list[int] = []
         names = names.copy()
         # TODO: the typing for this function is wrong, we should be able to just pass item_type.
-        send, recv = anyio.create_memory_object_stream(0, item_type=str)
+        send, recv = anyio.create_memory_object_stream(0, item_type=tuple[int, str])
 
         self._listeners[(repo_id, head_repo_id, head_sha)] = send
 
         try:
             while names:
-                names.discard(await recv.receive())
+                workflow_id, name = await recv.receive()
+                try:
+                    names.remove(name)
+
+                except KeyError:
+                    pass
+
+                else:
+                    ids.append(workflow_id)
+
+            return ids  # noqa: TC300
 
         finally:
             del self._listeners[(repo_id, head_repo_id, head_sha)]
@@ -333,8 +362,8 @@ async def post_webhook(
     workflows = app.state.workflows
     # TODO: check_run and check_suite?
     match (x_github_event, body):
-        case ("pull_request", {"action": "closed", "id": id_, "number": number, "repository": repo_data}):
-            await index.stop_for_pr(int(id_), int(number), repo_name=repo_data["full_name"])
+        case ("pull_request", {"action": "closed", "number": number, "repository": repo_data}):
+            await index.stop_for_pr(int(repo_data["id"]), int(number), repo_name=repo_data["full_name"])
 
         case ("pull_request", {"action": "opened" | "reopened" | "synchronize"}):
             tasks.add_task(_process_repo, http, tokens, index, workflows, body)
@@ -377,7 +406,7 @@ def _read_toml(path: pathlib.Path) -> dict[str, typing.Any]:
 
 
 @contextlib.asynccontextmanager
-async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.AsyncGenerator[typing.Any, pathlib.Path]:
+async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.AsyncGenerator[pathlib.Path, typing.Any]:
     temp_dir = await anyio.to_thread.run_sync(lambda: tempfile.TemporaryDirectory[str](ignore_cleanup_errors=True))
     try:
         await anyio.run_process(
@@ -410,8 +439,8 @@ class _Run:
             self.http,
             "POST",
             f"/repos/{self.repo_name}/check-runs",
-            self.token,
             json={"name": "Inspecting PR", "head_sha": self.commit_hash},
+            token=self.token,
         )
         self.check_id = int(result.json()["id"])
         return self
@@ -422,6 +451,7 @@ class _Run:
         _: typing.Optional[BaseException],
         __: typing.Optional[types.TracebackType],
     ) -> None:
+        # TODO: this isn't actually marking it as cancel?
         if exc_type:
             conclusion = "failure" if issubclass(exc_type, Exception) else "cancelled"
 
@@ -437,8 +467,8 @@ class _Run:
             self.http,
             "PATCH",
             f"/repos/{self.repo_name}/check-runs/{self.check_id}",
-            self.token,
             json={"conclusion": conclusion},
+            token=self.token,
         )
 
     async def mark_running(self) -> None:
@@ -449,8 +479,8 @@ class _Run:
             self.http,
             "PATCH",
             f"/repos/{self.repo_name}/check-runs/{self.check_id}",
-            self.token,
             json={"started_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(), "status": "in_progress"},
+            token=self.token,
         )
 
 
@@ -481,19 +511,20 @@ async def _process_repo(
         async with _with_cloned(git_url, branch=head_ref) as temp_dir_path, run_ctx:
             pyproject = await anyio.to_thread.run_sync(_read_toml, temp_dir_path / "pyproject.toml")
             config = _Config.parse_obj(pyproject["tool"]["piped"])
-            if not config.bot_wait_for:
+            if not config.bot_actions:
                 _LOGGER.warn("Received event from %s repo with no bot_wait_for", full_name)
                 return
 
+            # TODO: the other workflows won't actually run if it needs rebasing
             # TODO: start tracking before this to avoid race conditions or make request to check?
-            await workflows.wait_for_finish(repo_id, head_repo_id, head_sha, config.bot_wait_for)
+            workflow_ids = await workflows.wait_for_finish(repo_id, head_repo_id, head_sha, config.bot_actions)
             await run_ctx.mark_running()
-            # Then collect patch files
+            await _apply_patches(http, token, full_name, workflow_ids, cwd=temp_dir_path)
 
             await anyio.run_process(["git", "add", ".", "-A"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
             try:
                 await anyio.run_process(
-                    ["git", "commit", "-am", "Reformatting PR"],
+                    ["git", "commit", "-am", "Inspector changes"],
                     cwd=temp_dir_path,
                     stdout=sys.stdout,
                     stderr=sys.stderr,
@@ -507,3 +538,27 @@ async def _process_repo(
 
             else:
                 await anyio.run_process(["git", "push"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
+
+
+async def _apply_patches(
+    http: httpx.AsyncClient, token: str, repo_name: str, workflow_ids: list[int], /, *, cwd: pathlib.Path
+) -> None:
+    for workflow_id in workflow_ids:
+        # TODO: pagination support
+        response = await _request(
+            http,
+            "GET",
+            f"https://api.github.com/repos/{repo_name}/actions/runs/{workflow_id}/artifacts",
+            token=token,
+            query={"per_page": "100"},
+        )
+        for artifact in response.json()["artifacts"]:
+            if artifact["name"] != "gogo.patch":
+                continue
+
+            response = await _request(http, "GET", artifact["archive_download_url"], token=token)
+            # It's safe to extract to cwd since gogo.patch is git ignored.
+            result = zipfile.ZipFile(io.BytesIO(await response.aread())).extract("gogo.patch", path=cwd)
+            await anyio.run_process(["git", "apply", result], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr)
+            await anyio.to_thread.run_sync(pathlib.Path(result).unlink)
+            break
