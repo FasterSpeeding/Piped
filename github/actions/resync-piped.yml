@@ -34,7 +34,7 @@ jobs:
           python -m pip install -r {{ NOX_DEP_PATH }}
 
       - name: Resync Piped
-        run: python -m nox -s sync-piped bot-package-diff
+        run: python -m nox -s copy-piped bot-package-diff
 
       - uses: actions/upload-artifact@v3
         with:

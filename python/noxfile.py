@@ -253,7 +253,7 @@ def cleanup(session: nox.Session) -> None:
 
 
 _ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
-_resync_filter: typing.Union[typing.List[str], str] = []
+_resync_filter: typing.Union[typing.List[str], str] = ["piped"]
 
 
 if _config.dep_locks:
@@ -607,11 +607,10 @@ def verify_types(session: nox.Session) -> None:
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
-@nox.session(name="sync-piped", reuse_venv=True)
+@nox.session(name="copy-piped", reuse_venv=True)
 def sync_piped(session: nox.Session) -> None:
-    """Sync Piped's configuration without fetching."""
+    """Copy over Piped's configuration without fetching."""
     copy_actions(session)
-    freeze_locks(session)
 
 
 @_filtered_session(name="fetch-piped", reuse_venv=True)
@@ -621,7 +620,7 @@ def fetch_piped(session: nox.Session) -> None:
     _install_deps(session, *_deps("nox"))
     # We call this through nox's CLI like this to ensure that the updated version
     # of these sessions are called.
-    session.run("nox", "-s", "sync-piped")
+    session.run("nox", "-s", "copy-piped")
 
 
 @nox.session(name="bot-package-diff", venv_backend="none")
