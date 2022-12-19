@@ -1,6 +1,5 @@
 Split up dev-dep files like publish.in into more atomic files.
 Allow configuring whether pyright is allowed to fail.
-Have no-copy equiv of sync-piped session.
 Make the actions dir if it doesn't exist.
 Have more copy handling (plus a skip_copy)config,
 Add a non-template system for partially updating yaml and toml files.

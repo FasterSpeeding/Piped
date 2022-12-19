@@ -30,13 +30,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import contextlib
+import dataclasses
 import datetime
 import hmac
 import io
 import logging
 import os
 import pathlib
-import subprocess  # noqa: S404
+import subprocess
 import sys
 import tempfile
 import time
@@ -69,12 +70,12 @@ dotenv.load_dotenv()
 _username = os.environ.get("client_name", default="always-on-duty") + "[bot]"
 
 with httpx.Client() as client:
-    _user_id = client.get(f"https://api.github.com/users/{_username}").json()["id"]
+    USER_ID = int(client.get(f"https://api.github.com/users/{_username}").json()["id"])
 
 APP_ID = os.environ["app_id"]
 COMMIT_ENV = {
     "GIT_AUTHOR_NAME": _username,
-    "GIT_AUTHOR_EMAIL": f"{_user_id}+{_username}@users.noreply.github.com",
+    "GIT_AUTHOR_EMAIL": f"{USER_ID}+{_username}@users.noreply.github.com",
     "GIT_COMMITTER_NAME": _username,
 }
 COMMIT_ENV["GIT_COMMITTER_EMAIL"] = COMMIT_ENV["GIT_AUTHOR_EMAIL"]
@@ -285,6 +286,12 @@ class AuthMiddleware:
         await self.app(scope, _CachedReceive(payload, receive), send)
 
 
+@dataclasses.dataclass(slots=True)
+class _Workflow:
+    name: str
+    workflow_id: int
+
+
 class _WorkflowDispatch:
     __slots__ = ("_listeners",)
 
@@ -301,8 +308,10 @@ class _WorkflowDispatch:
             workflow_id = int(body["workflow_run"]["id"])
             send.send_nowait((workflow_id, name))
 
-    async def wait_for_finish(self, repo_id: int, head_repo_id: int, head_sha: str, names: set[str], /) -> list[int]:
-        ids: list[int] = []
+    async def wait_for_finish(
+        self, repo_id: int, head_repo_id: int, head_sha: str, names: set[str], /
+    ) -> list[_Workflow]:
+        ids: list[_Workflow] = []
         names = names.copy()
         # TODO: the typing for this function is wrong, we should be able to just pass item_type.
         send, recv = anyio.create_memory_object_stream(0, item_type=tuple[int, str])
@@ -319,7 +328,7 @@ class _WorkflowDispatch:
                     pass
 
                 else:
-                    ids.append(workflow_id)
+                    ids.append(_Workflow(name, workflow_id))
 
             return ids  # noqa: TC300
 
@@ -517,38 +526,23 @@ async def _process_repo(
 
             # TODO: the other workflows won't actually run if it needs rebasing
             # TODO: start tracking before this to avoid race conditions or make request to check?
-            workflow_ids = await workflows.wait_for_finish(repo_id, head_repo_id, head_sha, config.bot_actions)
+            tracked_workflows = await workflows.wait_for_finish(repo_id, head_repo_id, head_sha, config.bot_actions)
             await run_ctx.mark_running()
-            await _apply_patches(http, token, full_name, workflow_ids, cwd=temp_dir_path)
+            await _apply_patches(http, token, full_name, tracked_workflows, cwd=temp_dir_path)
 
             await anyio.run_process(["git", "add", ".", "-A"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
-            try:
-                await anyio.run_process(
-                    ["git", "commit", "-am", "Inspector changes"],
-                    cwd=temp_dir_path,
-                    stdout=sys.stdout,
-                    stderr=sys.stderr,
-                    env=COMMIT_ENV,
-                )
-
-            except subprocess.CalledProcessError as exc:
-                # 1 indicates no changes were found.
-                if exc.returncode != 1:
-                    raise
-
-            else:
-                await anyio.run_process(["git", "push"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
+            await anyio.run_process(["git", "push"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
 
 
 async def _apply_patches(
-    http: httpx.AsyncClient, token: str, repo_name: str, workflow_ids: list[int], /, *, cwd: pathlib.Path
+    http: httpx.AsyncClient, token: str, repo_name: str, workflows: list[_Workflow], /, *, cwd: pathlib.Path
 ) -> None:
-    for workflow_id in workflow_ids:
+    for workflow in workflows:
         # TODO: pagination support
         response = await _request(
             http,
             "GET",
-            f"https://api.github.com/repos/{repo_name}/actions/runs/{workflow_id}/artifacts",
+            f"https://api.github.com/repos/{repo_name}/actions/runs/{workflow.workflow_id}/artifacts",
             token=token,
             query={"per_page": "100"},
         )
@@ -557,8 +551,29 @@ async def _apply_patches(
                 continue
 
             response = await _request(http, "GET", artifact["archive_download_url"], token=token)
+            zipped = zipfile.ZipFile(io.BytesIO(await response.aread()))
             # It's safe to extract to cwd since gogo.patch is git ignored.
-            result = zipfile.ZipFile(io.BytesIO(await response.aread())).extract("gogo.patch", path=cwd)
-            await anyio.run_process(["git", "apply", result], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr)
-            await anyio.to_thread.run_sync(pathlib.Path(result).unlink)
+            patch_path = await anyio.to_thread.run_sync(zipped.extract, "gogo.patch", cwd)
+
+            try:
+                # TODO: could --3way or --unidiff-zero help with conflicts here?
+                await anyio.run_process(["git", "apply", patch_path], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr)
+
+            # If this conflicted then we should do another CI run after the current changes have been pushed.
+            except subprocess.CalledProcessError:
+                pass
+
+            else:
+                await anyio.run_process(
+                    ["git", "commit", "-am", workflow.name],
+                    cwd=cwd,
+                    stdout=sys.stdout,
+                    stderr=sys.stderr,
+                    env=COMMIT_ENV,
+                )
+
+            await anyio.to_thread.run_sync(pathlib.Path(patch_path).unlink)
             break
+
+
+#  TODO: for some reason this is getting stuck on a background task while trying to stop it
