@@ -37,7 +37,7 @@ import io
 import logging
 import os
 import pathlib
-import subprocess
+import subprocess  # noqa: S404
 import sys
 import tempfile
 import time
@@ -525,6 +525,7 @@ async def _process_repo(
                 return
 
             # TODO: the other workflows won't actually run if it needs rebasing
+            # Handle optional workflows.
             # TODO: start tracking before this to avoid race conditions or make request to check?
             tracked_workflows = await workflows.wait_for_finish(repo_id, head_repo_id, head_sha, config.bot_actions)
             await run_ctx.mark_running()
