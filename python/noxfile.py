@@ -240,7 +240,7 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
     # Remove individual files
-    for raw_path in ["./.coverage", "./coverage_html.xml"]:
+    for raw_path in ["./.coverage", "./coverage_html.xml", "./gogo.patch"]:
         path = pathlib.Path(raw_path)
         try:
             path.unlink()
@@ -622,3 +622,24 @@ def fetch_piped(session: nox.Session) -> None:
     # We call this through nox's CLI like this to ensure that the updated version
     # of these sessions are called.
     session.run("nox", "-s", "sync-piped")
+
+
+@nox.session(name="bot-package-diff", venv_backend="none")
+def bot_package_diff(session: nox.Session) -> None:
+    session.run("git", "add", ".", external=True)
+    output = session.run("git", "diff", "HEAD", external=True, silent=True)
+    assert isinstance(output, str)
+
+    path = pathlib.Path("./gogo.patch")
+    if output:
+        with path.open("w+") as file:
+            file.write(output)
+
+    else:
+        path.unlink(missing_ok=True)
+
+
+@nox.session(name="is-diff-file-empty", venv_backend="none")
+def is_diff_file_empty(_: nox.Session):
+    if pathlib.Path("./gogo.patch").exists():
+        raise RuntimeError("Diff created")

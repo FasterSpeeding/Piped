@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           {% raw %}ref: ${{ github.event.pull_request.head.sha }}{% endraw %}
+          {% raw %}repository: ${{ github.event.pull_request.head.repo.full_name }}{% endraw %}
           submodules: "true"
 
       - name: Set up Python {{ DEFAULT_PY_VER }}
