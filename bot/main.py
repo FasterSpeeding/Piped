@@ -668,7 +668,8 @@ async def _with_cloned(
 
     finally:
         # TODO: this just fails on Windows sometimes
-        await anyio.to_thread.run_sync(temp_dir.cleanup)
+        with anyio.CancelScope(shield=True):
+            await anyio.to_thread.run_sync(temp_dir.cleanup)
 
 
 class _RunCheck:
@@ -743,13 +744,14 @@ class _RunCheck:
 
         # TODO: https://docs.github.com/en/get-started/writing-on-github/
         # working-with-advanced-formatting/creating-and-highlighting-code-blocks
-        await _request(
-            self._http,
-            "PATCH",
-            f"/repos/{self._repo_name}/check-runs/{self._check_id}",
-            json={"conclusion": conclusion, "output": output},
-            token=self._token,
-        )
+        with anyio.CancelScope(shield=True):
+            await _request(
+                self._http,
+                "PATCH",
+                f"/repos/{self._repo_name}/check-runs/{self._check_id}",
+                json={"conclusion": conclusion, "output": output},
+                token=self._token,
+            )
 
     def filter_from_logs(self, value: str, /) -> Self:
         """Mark a string as being filtered out of the logs.
