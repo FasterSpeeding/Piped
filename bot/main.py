@@ -36,6 +36,7 @@ import enum
 import hmac
 import io
 import logging
+import math
 import os
 import pathlib
 import subprocess  # noqa: S404
@@ -455,7 +456,7 @@ class _WorkflowDispatch:
         """
         # TODO: the typing for this function is wrong, we should be able to just pass item_type.
         key = (repo_id, head_repo_id, head_sha)
-        send, recv = anyio.create_memory_object_stream(0, item_type=tuple[int, str, _WorkflowAction])
+        send, recv = anyio.create_memory_object_stream(math.inf, item_type=tuple[int, str, _WorkflowAction])
         self._listeners[key] = send
 
         yield _IterWorkflows(recv)
