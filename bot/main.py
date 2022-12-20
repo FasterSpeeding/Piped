@@ -43,6 +43,7 @@ import sys
 import tempfile
 import time
 import tomllib
+import traceback
 import types
 import typing
 import zipfile
@@ -189,26 +190,48 @@ class _ProcessingIndex:
 class _Tokens:
     """Index of the Github API tokens this application has authorised."""
 
-    __slots__ = ("_installation_tokens", "_private_key")
+    __slots__ = ("_app_token", "_installation_tokens", "_private_key")
 
     def __init__(self) -> None:
+        self._app_token: tuple[int, str] | None = None
         self._installation_tokens: dict[int, tuple[datetime.datetime, str]] = {}
         self._private_key = jwt.jwk_from_pem(os.environ["private_key"].encode())
 
-    def app_token(self) -> str:
+    def app_token(self, *, on_gen: collections.Callable[[str], None] | None = None) -> str:
         """Generate an application app token.
 
         !!! warning
             This cannot does not provide authorization for repos or
             organisations the application is authorised in.
+
+        Parameters
+        ----------
+        on_gen
+            Called on new token generation.
+
+            This is for log filtering.
         """
         now = int(time.time())
-        token = jwt_instance.encode(
-            {"iat": now - 60, "exp": now + 60 * 3, "iss": APP_ID}, self._private_key, alg="RS256"
-        )
+
+        if self._app_token and self._app_token[0] < now + 30:
+            return self._app_token[1]
+
+        expire_at = now + 60 * 5
+        token = jwt_instance.encode({"iat": now - 60, "exp": expire_at, "iss": APP_ID}, self._private_key, alg="RS256")
+        self._app_token = (expire_at, token)
+        if on_gen:
+            on_gen(token)
+
         return token
 
-    async def installation_token(self, http: httpx.AsyncClient, installation_id: int, /) -> str:
+    async def installation_token(
+        self,
+        http: httpx.AsyncClient,
+        installation_id: int,
+        /,
+        *,
+        on_gen: collections.Callable[[str], None] | None = None,
+    ) -> str:
         """Authorise an installation specific token.
 
         This is used to authorise organisation and repo actions and will return
@@ -220,6 +243,15 @@ class _Tokens:
             REST client to use to authorise the token.
         installation_id
             ID of the installation to authorise a token for.
+        on_gen
+            Called on new token generation for both app and installation tokens.
+
+            This is for log filtering.
+
+        Returns
+        -------
+        str
+            The generated installation token.
         """
         if token_info := self._installation_tokens.get(installation_id):
             expire_by = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(seconds=60)
@@ -232,10 +264,13 @@ class _Tokens:
             "POST",
             f"/app/installations/{installation_id}/access_tokens",
             json={"permissions": {"actions": "read", "checks": "write", "contents": "write", "workflows": "write"}},
-            token=self.app_token(),
+            token=self.app_token(on_gen=on_gen),
         )
         data = response.json()
-        token = data["token"]
+        token: str = data["token"]
+        if on_gen:
+            on_gen(token)
+
         self._installation_tokens[installation_id] = (dateutil.isoparse(data["expires_at"]), token)
         return token
 
@@ -607,11 +642,15 @@ def _read_toml(path: pathlib.Path) -> dict[str, typing.Any]:
 
 
 @contextlib.asynccontextmanager
-async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.AsyncGenerator[pathlib.Path, None]:
+async def _with_cloned(
+    output: typing.IO[str], url: str, /, *, branch: str = "master"
+) -> collections.AsyncGenerator[pathlib.Path, None]:
     """Async context manager which shallow clones a repo into a temporary directory.
 
     Parameters
     ----------
+    output
+        String file-like object this should pipe GIT's output to.
     url
         URL of the repository to clone.
 
@@ -623,11 +662,7 @@ async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.As
     """
     temp_dir = await anyio.to_thread.run_sync(lambda: tempfile.TemporaryDirectory[str](ignore_cleanup_errors=True))
     try:
-        await anyio.run_process(
-            ["git", "clone", url, "--depth", "1", "--branch", branch, temp_dir.name],
-            stdout=sys.stdout,
-            stderr=sys.stderr,
-        )
+        await run_process(output, ["git", "clone", url, "--depth", "1", "--branch", branch, temp_dir.name])
         yield pathlib.Path(temp_dir.name)
 
     finally:
@@ -638,7 +673,7 @@ async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.As
 class _RunCheck:
     """Context manager which manages the Github check suite for this application."""
 
-    __slots__ = ("check_id", "commit_hash", "http", "index", "repo_name", "token")
+    __slots__ = ("_check_id", "_commit_hash", "_filter_from_logs", "_http", "_output", "_repo_name", "_token")
 
     def __init__(self, http: httpx.AsyncClient, /, *, token: str, repo_name: str, commit_hash: str) -> None:
         """Initialise this context manager.
@@ -656,60 +691,101 @@ class _RunCheck:
         commit_hash
             Hash of the PR commit this run is for.
         """
-        self.check_id = -1
-        self.commit_hash = commit_hash
-        self.http = http
-        self.repo_name = repo_name
-        self.token = token
+        self._check_id = -1
+        self._commit_hash = commit_hash
+        self._filter_from_logs = [token]
+        self._http = http
+        self._output = io.StringIO()
+        self._repo_name = repo_name
+        self._token = token
+
+    @property
+    def output(self) -> io.StringIO:
+        return self._output
 
     async def __aenter__(self) -> Self:
         result = await _request(
-            self.http,
+            self._http,
             "POST",
-            f"/repos/{self.repo_name}/check-runs",
-            json={"name": "Inspecting PR", "head_sha": self.commit_hash},
-            token=self.token,
+            f"/repos/{self._repo_name}/check-runs",
+            json={"name": "Inspecting PR", "head_sha": self._commit_hash},
+            token=self._token,
         )
-        self.check_id = int(result.json()["id"])
+        self._check_id = int(result.json()["id"])
         return self
 
     async def __aexit__(
         self,
-        exc_type: typing.Optional[type[BaseException]],
-        _: typing.Optional[BaseException],
-        __: typing.Optional[types.TracebackType],
+        exc_cls: type[BaseException] | None,
+        exc: BaseException | None,
+        traceback_value: types.TracebackType | None,
     ) -> None:
-        # TODO: this isn't actually marking it as cancel?
-        if exc_type:
-            conclusion = "failure" if issubclass(exc_type, Exception) else "cancelled"
+        self._output.seek(0)
+        output = {}
+
+        if exc:
+            conclusion = "failure" if isinstance(exc, Exception) else "cancelled"
+            output["title"] = "Error"
+            output["summary"] = str(exc)
+            self._output.write("\n")
+            self._output.write("```python\n")
+            traceback.print_exception(exc_cls, exc, traceback_value, file=self._output)
+            self._output.write("```\n")
 
         else:
             conclusion = "success"
+            output["title"] = output["summary"] = "Success"
 
-        # TODO:
-        # Consider setting exception name as {"output": {"summary"}}
-        # Consider setting exception traceback as {"output": {"text"}}
-        # For this we will likely want a add_filter for tokens
-        # And also a set_changes for the summary and text and success
+        # TODO: charlimit
+        text = "\n".join(_censor(line, self._filter_from_logs) for line in self._output)
+        output["text"] = f"```\n{text}\n```"
+
+        # TODO: https://docs.github.com/en/get-started/writing-on-github/
+        # working-with-advanced-formatting/creating-and-highlighting-code-blocks
         await _request(
-            self.http,
+            self._http,
             "PATCH",
-            f"/repos/{self.repo_name}/check-runs/{self.check_id}",
-            json={"conclusion": conclusion},
-            token=self.token,
+            f"/repos/{self._repo_name}/check-runs/{self._check_id}",
+            json={"conclusion": conclusion, "output": output},
+            token=self._token,
         )
 
+    def filter_from_logs(self, value: str, /) -> Self:
+        """Mark a string as being filtered out of the logs.
+
+        Parameters
+        ----------
+        value
+            String to censor from logs.
+        """
+        self._filter_from_logs.append(value)
+        return self
+
     async def mark_running(self) -> None:
-        if self.check_id == -1:
+        """Mark the check suite as running.
+
+        Raises
+        ------
+        RuntimeError
+            If called outside of this context manager's context.
+        """
+        if self._check_id == -1:
             raise RuntimeError("Not running yet")
 
         await _request(
-            self.http,
+            self._http,
             "PATCH",
-            f"/repos/{self.repo_name}/check-runs/{self.check_id}",
+            f"/repos/{self._repo_name}/check-runs/{self._check_id}",
             json={"started_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(), "status": "in_progress"},
-            token=self.token,
+            token=self._token,
         )
+
+
+def _censor(value: str, filters: list[str], /) -> str:
+    for filter_ in filters:
+        value.replace(filter_, "***")
+
+    return value
 
 
 async def _process_repo(
@@ -733,13 +809,13 @@ async def _process_repo(
         index.start(repo_id, pr_id, repo_name=full_name),
         workflows.track_workflows(repo_id, head_repo_id, head_sha) as tracked_workflows,
     ):
+        app_token = tokens.app_token()
         token = await tokens.installation_token(http, installation_id)
         git_url = f"https://x-access-token:{token}@github.com/{head_name}.git"
         _LOGGER.info("Cloning %s:%s branch %s", full_name, pr_id, head_ref)
-        run_ctx = _RunCheck(http, token=token, repo_name=full_name, commit_hash=head_sha)
+        run_ctx = _RunCheck(http, token=token, repo_name=full_name, commit_hash=head_sha).filter_from_logs(app_token)
 
-        # TODO: pipe output to file to send in comment
-        async with _with_cloned(git_url, branch=head_ref) as temp_dir_path, run_ctx:
+        async with run_ctx, _with_cloned(run_ctx.output, git_url, branch=head_ref) as temp_dir_path:
             pyproject = await anyio.to_thread.run_sync(_read_toml, temp_dir_path / "pyproject.toml")
             config = _Config.parse_obj(pyproject["tool"]["piped"])
             if not config.bot_actions:
@@ -748,13 +824,20 @@ async def _process_repo(
 
             await run_ctx.mark_running()
             async for workflow in tracked_workflows.filter_names(config.bot_actions):
-                await _apply_patch(http, token, full_name, workflow, cwd=temp_dir_path)
+                await _apply_patch(http, run_ctx.output, token, full_name, workflow, cwd=temp_dir_path)
 
-            await anyio.run_process(["git", "push"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
+            await run_process(run_ctx.output, ["git", "push"], cwd=temp_dir_path)
 
 
 async def _apply_patch(
-    http: httpx.AsyncClient, token: str, repo_name: str, workflow: _Workflow, /, *, cwd: pathlib.Path
+    http: httpx.AsyncClient,
+    output: typing.IO[str],
+    token: str,
+    repo_name: str,
+    workflow: _Workflow,
+    /,
+    *,
+    cwd: pathlib.Path,
 ) -> None:
     """Apply a patch file from another workflow's artifacts and commit its changes.
 
@@ -765,6 +848,8 @@ async def _apply_patch(
     ----------
     http
         The REST client to use to scan and download the workflow's artefacts.
+    output
+        String file-like object this should pipe GIT's output to.
     token
         The integration token to use.
 
@@ -795,7 +880,7 @@ async def _apply_patch(
 
         try:
             # TODO: could --3way or --unidiff-zero help with conflicts here?
-            await anyio.run_process(["git", "apply", patch_path], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr)
+            await run_process(output, ["git", "apply", patch_path], cwd=cwd)
 
         # If this conflicted then we should allow another CI run to redo these
         # changes after the current changes have been pushed.
@@ -803,13 +888,45 @@ async def _apply_patch(
             pass
 
         else:
-            await anyio.run_process(
-                ["git", "commit", "-am", workflow.name], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr, env=COMMIT_ENV
-            )
+            await run_process(output, ["git", "commit", "-am", workflow.name], cwd=cwd, env=COMMIT_ENV)
 
         await anyio.to_thread.run_sync(pathlib.Path(patch_path).unlink)
         break
 
 
+async def run_process(
+    output: typing.IO[str],
+    command: str | bytes | collections.Sequence[str | bytes],
+    *,
+    input: bytes | None = None,  # noqa: A002
+    check: bool = True,
+    cwd: str | bytes | os.PathLike[str] | None = None,
+    env: collections.Mapping[str, str] | None = None,
+    start_new_session: bool = False,
+) -> None:
+    try:
+        # TODO: could --3way or --unidiff-zero help with conflicts here?
+        result = await anyio.run_process(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            input=input,
+            check=check,
+            cwd=cwd,
+            env=env,
+            start_new_session=start_new_session,
+        )
+
+    except subprocess.CalledProcessError as exc:
+        assert isinstance(exc.stdout, bytes)
+        output.write(exc.stdout.decode())
+        raise
+
+    else:
+        output.write(result.stdout.decode())
+
+
 # TODO: for some reason this is getting stuck on a background task while trying to stop it
 # TODO: this probably shouldn't run on a PR with conflicts.
+# TODO: edge cases where the token expires mid-run.
+# TODO: rerun requests.
