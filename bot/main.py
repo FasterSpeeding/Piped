@@ -32,6 +32,7 @@
 import contextlib
 import dataclasses
 import datetime
+import enum
 import hmac
 import io
 import logging
@@ -161,7 +162,7 @@ class _Tokens:
             if token_info[0] >= (expire_by):
                 return token_info[1]
 
-        # TODO: do we need to use an async lock here?
+        # TODO: do we need/want to use an async lock here?
         response = await _request(
             http,
             "POST",
@@ -292,48 +293,88 @@ class _Workflow:
     workflow_id: int
 
 
+class _WorkflowAction(str, enum.Enum):
+    COMPLETED = "completed"
+    IN_PROGRESS = "in_progress"
+    REQUESTED = "requested"
+
+
 class _WorkflowDispatch:
     __slots__ = ("_listeners",)
 
     def __init__(self) -> None:
-        self._listeners: dict[tuple[int, int, str], streams.MemoryObjectSendStream[tuple[int, str]]] = {}
+        self._listeners: dict[
+            tuple[int, int, str], streams.MemoryObjectSendStream[tuple[int, str, _WorkflowAction]]
+        ] = {}
 
-    def consume_completed(self, body: dict[str, typing.Any], /) -> None:
-        name = body["workflow_run"]["name"]
+    def consume_event(self, body: dict[str, typing.Any], /) -> None:
         head_repo_id = int(body["workflow_run"]["head_repository"]["id"])
         head_sha = body["workflow_run"]["head_sha"]
         repo_id = int(body["repository"]["id"])
 
         if send := self._listeners.get((repo_id, head_repo_id, head_sha)):
+            action = _WorkflowAction(body["action"])
+            name = body["workflow_run"]["name"]
             workflow_id = int(body["workflow_run"]["id"])
-            send.send_nowait((workflow_id, name))
+            send.send_nowait((workflow_id, name, action))
 
-    async def wait_for_finish(
-        self, repo_id: int, head_repo_id: int, head_sha: str, names: set[str], /
-    ) -> list[_Workflow]:
-        ids: list[_Workflow] = []
-        names = names.copy()
+    @contextlib.contextmanager
+    def track_workflows(
+        self, repo_id: int, head_repo_id: int, head_sha: str, /
+    ) -> collections.Generator["_IterWorkflows", None, None]:
         # TODO: the typing for this function is wrong, we should be able to just pass item_type.
-        send, recv = anyio.create_memory_object_stream(0, item_type=tuple[int, str])
+        key = (repo_id, head_repo_id, head_sha)
+        send, recv = anyio.create_memory_object_stream(0, item_type=tuple[int, str, _WorkflowAction])
+        self._listeners[key] = send
 
-        self._listeners[(repo_id, head_repo_id, head_sha)] = send
+        yield _IterWorkflows(recv)
 
-        try:
-            while names:
-                workflow_id, name = await recv.receive()
-                try:
-                    names.remove(name)
+        send.close()
+        del self._listeners[key]
 
-                except KeyError:
-                    pass
 
-                else:
-                    ids.append(_Workflow(name, workflow_id))
+class _IterWorkflows:
+    __slots__ = ("_filter", "_recv")
 
-            return ids  # noqa: TC300
+    def __init__(self, recv: streams.MemoryObjectReceiveStream[tuple[int, str, _WorkflowAction]], /) -> None:
+        self._filter: collections.Collection[str] = ()
+        self._recv = recv
 
-        finally:
-            del self._listeners[(repo_id, head_repo_id, head_sha)]
+    async def __aiter__(self) -> collections.AsyncIterator[_Workflow]:
+        timeout_at = time.time() + 5
+        waiting_on = {name: False for name in self._filter}
+
+        while waiting_on:
+            any_running = any(waiting_on.values())
+            if not any_running:
+                if time.time() > timeout_at:
+                    break
+
+                timeout = timeout_at
+
+            else:
+                timeout = None
+
+            try:
+                with anyio.fail_after(timeout):
+                    workflow_id, name, action = await self._recv.receive()
+
+            except TimeoutError:
+                return
+
+            if name not in waiting_on:
+                continue
+
+            if action is _WorkflowAction.COMPLETED:
+                del waiting_on[name]
+                yield _Workflow(name, workflow_id)
+
+            else:
+                waiting_on[name] = True
+
+    def filter_names(self, names: collections.Collection[str], /) -> Self:
+        self._filter = names
+        return self
 
 
 async def _on_startup():
@@ -369,7 +410,6 @@ async def post_webhook(
     index = request.app.state.index
     tokens = app.state.tokens
     workflows = app.state.workflows
-    # TODO: check_run and check_suite?
     match (x_github_event, body):
         case ("pull_request", {"action": "closed", "number": number, "repository": repo_data}):
             await index.stop_for_pr(int(repo_data["id"]), int(number), repo_name=repo_data["full_name"])
@@ -378,8 +418,8 @@ async def post_webhook(
             tasks.add_task(_process_repo, http, tokens, index, workflows, body)
             return fastapi.Response(status_code=202)
 
-        case ("workflow_run", {"action": "completed"}):
-            workflows.consume_completed(body)
+        case ("workflow_run", _):
+            workflows.consume_event(body)
 
         case ("installation", {"action": "removed", "repositories_removed": repositories_removed}):
             for repo in repositories_removed:
@@ -415,7 +455,7 @@ def _read_toml(path: pathlib.Path) -> dict[str, typing.Any]:
 
 
 @contextlib.asynccontextmanager
-async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.AsyncGenerator[pathlib.Path, typing.Any]:
+async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.AsyncGenerator[pathlib.Path, None]:
     temp_dir = await anyio.to_thread.run_sync(lambda: tempfile.TemporaryDirectory[str](ignore_cleanup_errors=True))
     try:
         await anyio.run_process(
@@ -510,7 +550,10 @@ async def _process_repo(
     head_sha = body["pull_request"]["head"]["sha"]
     installation_id = body["installation"]["id"]
 
-    with index.start(repo_id, pr_id, repo_name=full_name):
+    with (
+        index.start(repo_id, pr_id, repo_name=full_name),
+        workflows.track_workflows(repo_id, head_repo_id, head_sha) as tracked_workflows,
+    ):
         token = await tokens.installation_token(http, installation_id)
         git_url = f"https://x-access-token:{token}@github.com/{head_name}.git"
         _LOGGER.info("Cloning %s:%s branch %s", full_name, pr_id, head_ref)
@@ -524,57 +567,50 @@ async def _process_repo(
                 _LOGGER.warn("Received event from %s repo with no bot_wait_for", full_name)
                 return
 
-            # TODO: the other workflows won't actually run if it needs rebasing
-            # Handle optional workflows.
-            # TODO: start tracking before this to avoid race conditions or make request to check?
-            tracked_workflows = await workflows.wait_for_finish(repo_id, head_repo_id, head_sha, config.bot_actions)
             await run_ctx.mark_running()
-            await _apply_patches(http, token, full_name, tracked_workflows, cwd=temp_dir_path)
+            async for workflow in tracked_workflows.filter_names(config.bot_actions):
+                await _apply_patch(http, token, full_name, workflow, cwd=temp_dir_path)
 
-            await anyio.run_process(["git", "add", ".", "-A"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
             await anyio.run_process(["git", "push"], cwd=temp_dir_path, stdout=sys.stdout, stderr=sys.stderr)
 
 
-async def _apply_patches(
-    http: httpx.AsyncClient, token: str, repo_name: str, workflows: list[_Workflow], /, *, cwd: pathlib.Path
+async def _apply_patch(
+    http: httpx.AsyncClient, token: str, repo_name: str, workflow: _Workflow, /, *, cwd: pathlib.Path
 ) -> None:
-    for workflow in workflows:
-        # TODO: pagination support
-        response = await _request(
-            http,
-            "GET",
-            f"https://api.github.com/repos/{repo_name}/actions/runs/{workflow.workflow_id}/artifacts",
-            token=token,
-            query={"per_page": "100"},
-        )
-        for artifact in response.json()["artifacts"]:
-            if artifact["name"] != "gogo.patch":
-                continue
+    # TODO: pagination support
+    response = await _request(
+        http,
+        "GET",
+        f"https://api.github.com/repos/{repo_name}/actions/runs/{workflow.workflow_id}/artifacts",
+        token=token,
+        query={"per_page": "100"},
+    )
+    for artifact in response.json()["artifacts"]:
+        if artifact["name"] != "gogo.patch":
+            continue
 
-            response = await _request(http, "GET", artifact["archive_download_url"], token=token)
-            zipped = zipfile.ZipFile(io.BytesIO(await response.aread()))
-            # It's safe to extract to cwd since gogo.patch is git ignored.
-            patch_path = await anyio.to_thread.run_sync(zipped.extract, "gogo.patch", cwd)
+        response = await _request(http, "GET", artifact["archive_download_url"], token=token)
+        zipped = zipfile.ZipFile(io.BytesIO(await response.aread()))
+        # It's safe to extract to cwd since gogo.patch is git ignored.
+        patch_path = await anyio.to_thread.run_sync(zipped.extract, "gogo.patch", cwd)
 
-            try:
-                # TODO: could --3way or --unidiff-zero help with conflicts here?
-                await anyio.run_process(["git", "apply", patch_path], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr)
+        try:
+            # TODO: could --3way or --unidiff-zero help with conflicts here?
+            await anyio.run_process(["git", "apply", patch_path], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr)
 
-            # If this conflicted then we should do another CI run after the current changes have been pushed.
-            except subprocess.CalledProcessError:
-                pass
+        # If this conflicted then we should allow another CI run to redo these
+        # changes after the current changes have been pushed.
+        except subprocess.CalledProcessError:
+            pass
 
-            else:
-                await anyio.run_process(
-                    ["git", "commit", "-am", workflow.name],
-                    cwd=cwd,
-                    stdout=sys.stdout,
-                    stderr=sys.stderr,
-                    env=COMMIT_ENV,
-                )
+        else:
+            await anyio.run_process(
+                ["git", "commit", "-am", workflow.name], cwd=cwd, stdout=sys.stdout, stderr=sys.stderr, env=COMMIT_ENV
+            )
 
-            await anyio.to_thread.run_sync(pathlib.Path(patch_path).unlink)
-            break
+        await anyio.to_thread.run_sync(pathlib.Path(patch_path).unlink)
+        break
 
 
-#  TODO: for some reason this is getting stuck on a background task while trying to stop it
+# TODO: for some reason this is getting stuck on a background task while trying to stop it
+# TODO: this probably shouldn't run on a PR with conflicts.
