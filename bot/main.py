@@ -428,12 +428,12 @@ class _WorkflowDispatch:
             Dict body of the workflow_run event.
         """
         head_repo_id = int(body["workflow_run"]["head_repository"]["id"])
-        head_sha = body["workflow_run"]["head_sha"]
+        head_sha: str = body["workflow_run"]["head_sha"]
         repo_id = int(body["repository"]["id"])
 
         if send := self._listeners.get((repo_id, head_repo_id, head_sha)):
             action = _WorkflowAction(body["action"])
-            name = body["workflow_run"]["name"]
+            name: str = body["workflow_run"]["name"]
             workflow_id = int(body["workflow_run"]["id"])
             send.send_nowait((workflow_id, name, action))
 
@@ -719,15 +719,15 @@ async def _process_repo(
     workflows: _WorkflowDispatch,
     body: dict[str, typing.Any],
 ) -> None:
-    repo_data = body["repository"]
+    repo_data: dict[str, typing.Any] = body["repository"]
     repo_id = int(repo_data["id"])
     pr_id = int(body["number"])
-    full_name = repo_data["full_name"]
-    head_name = body["pull_request"]["head"]["repo"]["full_name"]
-    head_ref = body["pull_request"]["head"]["ref"]
-    head_repo_id = body["pull_request"]["head"]["repo"]["id"]
-    head_sha = body["pull_request"]["head"]["sha"]
-    installation_id = body["installation"]["id"]
+    full_name: str = repo_data["full_name"]
+    head_name: str = body["pull_request"]["head"]["repo"]["full_name"]
+    head_ref: str = body["pull_request"]["head"]["ref"]
+    head_repo_id = int(body["pull_request"]["head"]["repo"]["id"])
+    head_sha: str = body["pull_request"]["head"]["sha"]
+    installation_id = int(body["installation"]["id"])
 
     with (
         index.start(repo_id, pr_id, repo_name=full_name),
