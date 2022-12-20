@@ -577,8 +577,12 @@ async def post_webhook(
             for repo in repositories:
                 await index.clear_for_repo(int(repo["id"]))
 
+        # Guard to let these expected but ignored cases still return 204
         case (
-            "github_app_authorization"
+            # check_suite events are received for the bot's check suites
+            # regardless of configuration.
+            "check_suite"
+            | "github_app_authorization"
             | "installation"
             | "installation_repositories"
             | "installation_target"
