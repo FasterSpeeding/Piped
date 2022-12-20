@@ -353,6 +353,7 @@ async def _error_response(send: asgiref.ASGISendCallable, body: bytes, /, *, sta
             "type": "http.response.start",
             "status": status_code,
             "headers": [(b"content-type", b"text/plain; charset=UTF-8")],
+            "trailers": False,
         }
     )
     await send({"type": "http.response.body", "body": body, "more_body": False})
