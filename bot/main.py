@@ -36,7 +36,6 @@ import enum
 import hmac
 import io
 import logging
-import math
 import os
 import pathlib
 import subprocess  # noqa: S404
@@ -116,7 +115,7 @@ class _ProcessingIndex:
 
         await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
-    async def clear_for_repo(self, repo_id: int, /, *, repo_name: str | None = None) -> None:
+    def clear_for_repo(self, repo_id: int, /, *, repo_name: str | None = None) -> None:
         """Cancel the active PR processing tasks for a Repo.
 
         Parameters
@@ -134,9 +133,7 @@ class _ProcessingIndex:
             for pr_id in prs:
                 self._prs.pop(self._pr_id(repo_id, pr_id)).cancel()
 
-            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
-
-    async def stop_for_pr(self, repo_id: int, pr_id: int, /, *, repo_name: str | None = None) -> None:
+    def stop_for_pr(self, repo_id: int, pr_id: int, /, *, repo_name: str | None = None) -> None:
         """Cancel the active processing task for a PR.
 
         Parameters
@@ -154,7 +151,6 @@ class _ProcessingIndex:
             repo_name = repo_name or str(repo_id)
             _LOGGER.info("Stopping call for %s:%s", repo_name, pr_id)
             pr.cancel()
-            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
     def start(self, repo_id: int, pr_id: int, /, *, repo_name: str | None = None) -> anyio.CancelScope:
         """Create a cancel scope for processing a specific PR.
@@ -456,7 +452,7 @@ class _WorkflowDispatch:
         """
         # TODO: the typing for this function is wrong, we should be able to just pass item_type.
         key = (repo_id, head_repo_id, head_sha)
-        send, recv = anyio.create_memory_object_stream(math.inf, item_type=tuple[int, str, _WorkflowAction])
+        send, recv = anyio.create_memory_object_stream(1_000, item_type=tuple[int, str, _WorkflowAction])
         self._listeners[key] = send
 
         yield _IterWorkflows(recv)
@@ -479,8 +475,7 @@ class _IterWorkflows:
         waiting_on = {name: False for name in self._filter}
 
         while waiting_on:
-            any_running = any(waiting_on.values())
-            if not any_running:
+            if not any(waiting_on.values()):
                 if time.time() > timeout_at:
                     break
 
@@ -560,7 +555,8 @@ async def post_webhook(
     workflows = app.state.workflows
     match (x_github_event, body):
         case ("pull_request", {"action": "closed", "number": number, "repository": repo_data}):
-            await index.stop_for_pr(int(repo_data["id"]), int(number), repo_name=repo_data["full_name"])
+            index.stop_for_pr(int(repo_data["id"]), int(number), repo_name=repo_data["full_name"])
+            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
         case ("pull_request", {"action": "opened" | "reopened" | "synchronize"}):
             tasks.add_task(_process_repo, http, tokens, index, workflows, body)
@@ -571,11 +567,15 @@ async def post_webhook(
 
         case ("installation", {"action": "removed", "repositories_removed": repositories_removed}):
             for repo in repositories_removed:
-                await index.clear_for_repo(int(repo["id"]))
+                index.clear_for_repo(int(repo["id"]))
+
+            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
         case ("installation_repositories", {"action": "removed", "repositories": repositories}):
             for repo in repositories:
-                await index.clear_for_repo(int(repo["id"]))
+                index.clear_for_repo(int(repo["id"]))
+
+            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
         # Guard to let these expected but ignored cases still return 204
         case (
