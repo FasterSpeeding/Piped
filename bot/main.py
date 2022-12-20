@@ -71,12 +71,12 @@ dotenv.load_dotenv()
 _username = os.environ.get("client_name", default="always-on-duty") + "[bot]"
 
 with httpx.Client() as client:
-    USER_ID = int(client.get(f"https://api.github.com/users/{_username}").json()["id"])
+    _user_id = int(client.get(f"https://api.github.com/users/{_username}").json()["id"])
 
 APP_ID = os.environ["app_id"]
 COMMIT_ENV = {
     "GIT_AUTHOR_NAME": _username,
-    "GIT_AUTHOR_EMAIL": f"{USER_ID}+{_username}@users.noreply.github.com",
+    "GIT_AUTHOR_EMAIL": f"{_user_id}+{_username}@users.noreply.github.com",
     "GIT_COMMITTER_NAME": _username,
 }
 COMMIT_ENV["GIT_COMMITTER_EMAIL"] = COMMIT_ENV["GIT_AUTHOR_EMAIL"]
@@ -93,6 +93,8 @@ class _Config(pydantic.BaseModel):
 
 
 class _ProcessingIndex:
+    """Index of the PRs being processed."""
+
     __slots__ = ("_prs", "_repos")
 
     def __init__(self) -> None:
@@ -103,6 +105,7 @@ class _ProcessingIndex:
         return f"{repo_id}:{pr_id}"
 
     async def close(self) -> None:
+        """Cancel all active PR processing tasks."""
         self._repos.clear()
         prs = self._prs
         self._prs = {}
@@ -113,6 +116,17 @@ class _ProcessingIndex:
         await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
     async def clear_for_repo(self, repo_id: int, /, *, repo_name: str | None = None) -> None:
+        """Cancel the active PR processing tasks for a Repo.
+
+        Parameters
+        ----------
+        repo_id
+            ID of the repo to cancel the active tasks for.
+        repo_name
+            Name of the repo to cancel the active tasks for.
+
+            Used for logging.
+        """
         if prs := self._repos.get(repo_id):
             repo_name = repo_name or str(repo_id)
             _LOGGER.info("Stopping calls for all PRs in %s", repo_name)
@@ -122,6 +136,19 @@ class _ProcessingIndex:
             await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
     async def stop_for_pr(self, repo_id: int, pr_id: int, /, *, repo_name: str | None = None) -> None:
+        """Cancel the active processing task for a PR.
+
+        Parameters
+        ----------
+        repo_id
+            ID of the repo to cancel an active task in.
+        pr_id
+            ID of the PR to cancel the active processing task for.
+        repo_name
+            Name of the repo to cancel an active task in.
+
+            Use for logging.
+        """
         if pr := self._prs.pop(self._pr_id(repo_id, pr_id), None):
             repo_name = repo_name or str(repo_id)
             _LOGGER.info("Stopping call for %s:%s", repo_name, pr_id)
@@ -129,6 +156,26 @@ class _ProcessingIndex:
             await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
 
     def start(self, repo_id: int, pr_id: int, /, *, repo_name: str | None = None) -> anyio.CancelScope:
+        """Create a cancel scope for processing a specific PR.
+
+        This will cancel any previous processing task for the passed PR.
+
+        Parameters
+        ----------
+        repo_id
+            ID of the repo to start a processing task for.
+        pr_id
+            ID of the pull request to start a processing task for.
+        repo_name
+            Name of the repo this task is in.
+
+            Use for logging.
+
+        Returns
+        -------
+        anyio.CancelScope
+            Cancel scope to use for this task.
+        """
         key = self._pr_id(repo_id, pr_id)
         repo_name = repo_name or str(repo_id)
 
@@ -143,6 +190,8 @@ class _ProcessingIndex:
 
 
 class _Tokens:
+    """Index of the Github API tokens this application has authorised."""
+
     __slots__ = ("_installation_tokens", "_private_key")
 
     def __init__(self) -> None:
@@ -150,6 +199,12 @@ class _Tokens:
         self._private_key = jwt.jwk_from_pem(os.environ["private_key"].encode())
 
     def app_token(self) -> str:
+        """Generate an application app token.
+
+        !!! warning
+            This cannot does not provide authorization for repos or
+            organisations the application is authorised in.
+        """
         now = int(time.time())
         token = jwt_instance.encode(
             {"iat": now - 60, "exp": now + 60 * 3, "iss": APP_ID}, self._private_key, alg="RS256"
@@ -157,6 +212,18 @@ class _Tokens:
         return token
 
     async def installation_token(self, http: httpx.AsyncClient, installation_id: int, /) -> str:
+        """Authorise an installation specific token.
+
+        This is used to authorise organisation and repo actions and will return
+        cached tokens.
+
+        Parameters
+        ----------
+        http
+            REST client to use to authorise the token.
+        installation_id
+            ID of the installation to authorise a token for.
+        """
         if token_info := self._installation_tokens.get(installation_id):
             expire_by = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(seconds=60)
             if token_info[0] >= (expire_by):
@@ -167,7 +234,7 @@ class _Tokens:
             http,
             "POST",
             f"/app/installations/{installation_id}/access_tokens",
-            json={"permissions": {"checks": "write", "contents": "write", "workflows": "write"}},
+            json={"permissions": {"actions": "read", "checks": "write", "contents": "write", "workflows": "write"}},
             token=self.app_token(),
         )
         data = response.json()
@@ -186,6 +253,24 @@ async def _request(
     query: dict[str, str] | None = None,
     token: str | None = None,
 ) -> httpx.Response:
+    """Make a request to Github's API.
+
+    Parameters
+    ---------
+    http
+        The REST client to use to make the request.
+    endpoint
+        Endpoint to request to.
+
+        This will be appended to `"https://api.github.com"` if it doesn't
+        start with `"https://"`.
+    json
+        Dict of the JSON payload to include in this request.
+    query
+        Dict of the query string parameters to include for this request.
+    token
+        The authorisation token to use.
+    """
     if not endpoint.startswith("https://"):
         endpoint = f"https://api.github.com{endpoint}"
 
@@ -202,6 +287,8 @@ async def _request(
 
 
 class _CachedReceive:
+    """Helper ASGI event receiver which first returned the cached request body."""
+
     __slots__ = ("_data", "_receive")
 
     def __init__(self, data: bytearray, receive: asgiref.ASGIReceiveCallable) -> None:
@@ -218,6 +305,17 @@ class _CachedReceive:
 
 
 async def _error_response(send: asgiref.ASGISendCallable, body: bytes, /, *, status_code: int = 400) -> None:
+    """Helper function for returning a quick error response.
+
+    Parameters
+    ----------
+    send
+        The ASGI send callback to use to send this response.
+    body
+        The error message.
+    status_code
+        The error's status code.
+    """
     await send(
         {
             "type": "http.response.start",
@@ -229,6 +327,15 @@ async def _error_response(send: asgiref.ASGISendCallable, body: bytes, /, *, sta
 
 
 def _find_headers(scope: asgiref.HTTPScope, headers: collections.Collection[bytes]) -> dict[bytes, bytes]:
+    """Helper function for extracting specific headers from an ASGI request.
+
+    Parameters
+    ----------
+    scope
+        The ASGI HTTP scope payload to get the headers from.
+    headers
+        Collection of the headers to find.
+    """
     results: dict[bytes, bytes] = {}
 
     for header_name, header_value in scope["headers"]:
@@ -244,6 +351,8 @@ def _find_headers(scope: asgiref.HTTPScope, headers: collections.Collection[byte
 
 # TODO: check user agent header starts with "GitHub-Hookshot/"?
 class AuthMiddleware:
+    """ASGI signature authorisation middleware."""
+
     __slots__ = ("app",)
 
     # starlette.types.ASGIApp is more appropriate but less concise than this callable type.
@@ -300,6 +409,8 @@ class _WorkflowAction(str, enum.Enum):
 
 
 class _WorkflowDispatch:
+    """Workflow dispatch tracker."""
+
     __slots__ = ("_listeners",)
 
     def __init__(self) -> None:
@@ -308,6 +419,13 @@ class _WorkflowDispatch:
         ] = {}
 
     def consume_event(self, body: dict[str, typing.Any], /) -> None:
+        """Dispatch a workflow_run event.
+
+        Parameters
+        ----------
+        body
+            Dict body of the workflow_run event.
+        """
         head_repo_id = int(body["workflow_run"]["head_repository"]["id"])
         head_sha = body["workflow_run"]["head_sha"]
         repo_id = int(body["repository"]["id"])
@@ -322,6 +440,19 @@ class _WorkflowDispatch:
     def track_workflows(
         self, repo_id: int, head_repo_id: int, head_sha: str, /
     ) -> collections.Generator["_IterWorkflows", None, None]:
+        """Async context manager which manages tracking the workflows for a PR.
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        _IterWorkflows
+            Async iterable of the received workflow finishes.
+
+            `_IterWorkflows.filter_names` should be used to set this to filter
+            for specific names before iterating over this.
+        """
         # TODO: the typing for this function is wrong, we should be able to just pass item_type.
         key = (repo_id, head_repo_id, head_sha)
         send, recv = anyio.create_memory_object_stream(0, item_type=tuple[int, str, _WorkflowAction])
@@ -334,6 +465,8 @@ class _WorkflowDispatch:
 
 
 class _IterWorkflows:
+    """Async iterable of received workflow finishes."""
+
     __slots__ = ("_filter", "_recv")
 
     def __init__(self, recv: streams.MemoryObjectReceiveStream[tuple[int, str, _WorkflowAction]], /) -> None:
@@ -373,6 +506,20 @@ class _IterWorkflows:
                 waiting_on[name] = True
 
     def filter_names(self, names: collections.Collection[str], /) -> Self:
+        """Set this to only track specific workflows.
+
+        This will override any previously set filter.
+
+        Parameters
+        ----------
+        names
+            Collection of workflow names to filter for.
+
+        Returns
+        -------
+        typing.Self
+            The async workflow iterable.
+        """
         self._filter = names
         return self
 
@@ -456,6 +603,19 @@ def _read_toml(path: pathlib.Path) -> dict[str, typing.Any]:
 
 @contextlib.asynccontextmanager
 async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.AsyncGenerator[pathlib.Path, None]:
+    """Async context manager which shallow clones a repo into a temporary directory.
+
+    Parameters
+    ----------
+    url
+        URL of the repository to clone.
+
+        This must include an installation which is authorised for
+        `contents: write`.
+        (`https://x-access-token:<token>@github.com/owner/repo.git`)
+    branch
+        The branch to clone.
+    """
     temp_dir = await anyio.to_thread.run_sync(lambda: tempfile.TemporaryDirectory[str](ignore_cleanup_errors=True))
     try:
         await anyio.run_process(
@@ -470,16 +630,30 @@ async def _with_cloned(url: str, /, *, branch: str = "master") -> collections.As
         await anyio.to_thread.run_sync(temp_dir.cleanup)
 
 
-class _Run:
+class _RunCheck:
+    """Context manager which manages the Github check suite for this application."""
+
     __slots__ = ("check_id", "commit_hash", "http", "index", "repo_name", "token")
 
-    def __init__(
-        self, http: httpx.AsyncClient, index: _ProcessingIndex, /, *, token: str, repo_name: str, commit_hash: str
-    ) -> None:
+    def __init__(self, http: httpx.AsyncClient, /, *, token: str, repo_name: str, commit_hash: str) -> None:
+        """Initialise this context manager.
+
+        Parameters
+        ----------
+        http
+            REST client to use to manage the check suite.
+        token
+            Installation token to use to authorise the check suite requests.
+
+            This must be authorised for `checks: write`.
+        repo_name
+            The repo's full name in the format `"{owner_name}/{repo_name}"`.
+        commit_hash
+            Hash of the PR commit this run is for.
+        """
         self.check_id = -1
         self.commit_hash = commit_hash
         self.http = http
-        self.index = index
         self.repo_name = repo_name
         self.token = token
 
@@ -557,7 +731,7 @@ async def _process_repo(
         token = await tokens.installation_token(http, installation_id)
         git_url = f"https://x-access-token:{token}@github.com/{head_name}.git"
         _LOGGER.info("Cloning %s:%s branch %s", full_name, pr_id, head_ref)
-        run_ctx = _Run(http, index, token=token, repo_name=full_name, commit_hash=head_sha)
+        run_ctx = _RunCheck(http, token=token, repo_name=full_name, commit_hash=head_sha)
 
         # TODO: pipe output to file to send in comment
         async with _with_cloned(git_url, branch=head_ref) as temp_dir_path, run_ctx:
@@ -577,6 +751,26 @@ async def _process_repo(
 async def _apply_patch(
     http: httpx.AsyncClient, token: str, repo_name: str, workflow: _Workflow, /, *, cwd: pathlib.Path
 ) -> None:
+    """Apply a patch file from another workflow's artifacts and commit its changes.
+
+    This specifically looks for an artefact called `gogo.patch` and unzips it
+    to get the file at `./gogo.patch`.
+
+    Parameters
+    ----------
+    http
+        The REST client to use to scan and download the workflow's artefacts.
+    token
+        The integration token to use.
+
+        This must be authorised for `actions: read`.
+    repo_name
+        The repo's full name in the format `"{owner_name}/{repo_name}"`.
+    workflow
+        The workflow run to apply the patch of (if set).
+    cwd
+        Path to the target repo's top level directory.
+    """
     # TODO: pagination support
     response = await _request(
         http,
