@@ -254,7 +254,7 @@ def cleanup(session: nox.Session) -> None:
 
 _ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
 _resync_filter: typing.Union[typing.List[str], str] = ["piped"]
-_verify_filter: typing.Union[typing.List[str], str] = ["piped"]
+_verify_filter: typing.Union[typing.List[str], str] = []
 _dep_locks: typing.List[pathlib.Path] = []
 
 
