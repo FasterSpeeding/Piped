@@ -11,8 +11,7 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - "dev-requirements/*.txt"
+    paths: {{ FILTERS }}
 
 jobs:
   verify-pr-dep-changes:
