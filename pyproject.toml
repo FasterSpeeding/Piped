@@ -84,6 +84,7 @@ hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish",
 dep_locks = ["./bot/requirements.in", "./dev-requirements", "./python/base-requirements/"]
 path_ignore = "github\\/actions\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]
+version_constraint = "3.9"
 
 [tool.piped.github_actions."*"]
 default_py_ver = "3.11"
