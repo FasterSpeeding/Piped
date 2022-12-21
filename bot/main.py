@@ -189,10 +189,9 @@ class _ProcessingIndex:
 class _Tokens:
     """Index of the Github API tokens this application has authorised."""
 
-    __slots__ = ("_app_token", "_installation_tokens", "_private_key")
+    __slots__ = ("_installation_tokens", "_private_key")
 
     def __init__(self) -> None:
-        self._app_token: tuple[int, str] | None = None
         self._installation_tokens: dict[int, tuple[datetime.datetime, str]] = {}
         self._private_key = jwt.jwk_from_pem(os.environ["private_key"].encode())
 
@@ -211,13 +210,10 @@ class _Tokens:
             This is for log filtering.
         """
         now = int(time.time())
+        token = jwt_instance.encode(
+            {"iat": now - 60, "exp": now + 60 * 2, "iss": APP_ID}, self._private_key, alg="RS256"
+        )
 
-        if self._app_token and self._app_token[0] < now + 30:
-            return self._app_token[1]
-
-        expire_at = now + 60 * 5
-        token = jwt_instance.encode({"iat": now - 60, "exp": expire_at, "iss": APP_ID}, self._private_key, alg="RS256")
-        self._app_token = (expire_at, token)
         if on_gen:
             on_gen(token)
 
@@ -811,11 +807,10 @@ async def _process_repo(
         index.start(repo_id, pr_id, repo_name=full_name),
         workflows.track_workflows(repo_id, head_repo_id, head_sha) as tracked_workflows,
     ):
-        app_token = tokens.app_token()
         token = await tokens.installation_token(http, installation_id)
         git_url = f"https://x-access-token:{token}@github.com/{head_name}.git"
         _LOGGER.info("Cloning %s:%s branch %s", full_name, pr_id, head_ref)
-        run_ctx = _RunCheck(http, token=token, repo_name=full_name, commit_hash=head_sha).filter_from_logs(app_token)
+        run_ctx = _RunCheck(http, token=token, repo_name=full_name, commit_hash=head_sha)
 
         async with run_ctx, _with_cloned(run_ctx.output, git_url, branch=head_ref) as temp_dir_path:
             pyproject = await anyio.to_thread.run_sync(_read_toml, temp_dir_path / "pyproject.toml")
