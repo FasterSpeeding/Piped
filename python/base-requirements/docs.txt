@@ -19,9 +19,9 @@ colorama==0.4.6 ; python_version >= "3.9" and python_version < "3.12" \
 ghp-import==2.1.0 ; python_version >= "3.9" and python_version < "3.12" \
     --hash=sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619 \
     --hash=sha256:9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343
-griffe==0.25.0 ; python_version >= "3.9" and python_version < "3.12" \
-    --hash=sha256:35d412d2235330a05c755f906458c70ee8a4eec85bc3de20f1fd79d0a501dc38 \
-    --hash=sha256:57527250e06c0fac5381c5ccc9695b6c46a3af51928d99364bf2e5fd9aabf37d
+griffe==0.25.1 ; python_version >= "3.9" and python_version < "3.12" \
+    --hash=sha256:a2d6cef8129579438c3e71401a5fb035ffea5afa8f8e27d946dbb9e136b90b1a \
+    --hash=sha256:d79365aa6f5050a24b47fca4b351fbdd446f0fe7924c9e55ae908bfacc91bfcf
 idna==3.4 ; python_version >= "3.9" and python_version < "3.12" \
     --hash=sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4 \
     --hash=sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2
