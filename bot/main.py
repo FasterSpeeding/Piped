@@ -485,7 +485,6 @@ class _WorkflowDispatch:
             `_IterWorkflows.filter_names` should be used to set this to filter
             for specific names before iterating over this.
         """
-        # TODO: the typing for this function is wrong, we should be able to just pass item_type.
         key = (repo_id, head_repo_id, head_sha)
         send, recv = anyio.create_memory_object_stream(1_000, item_type=tuple[int, str, _WorkflowAction])
         self._listeners[key] = send
