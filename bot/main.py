@@ -82,7 +82,6 @@ COMMIT_ENV = {
 }
 COMMIT_ENV["GIT_COMMITTER_EMAIL"] = COMMIT_ENV["GIT_AUTHOR_EMAIL"]
 CLIENT_SECRET = os.environ["client_secret"].encode()
-PYTHON_PATH = os.environ["python_path"]
 WEBHOOK_SECRET = os.environ["webhook_secret"]
 jwt_instance = jwt.JWT()
 
