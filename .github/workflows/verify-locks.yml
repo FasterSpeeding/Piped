@@ -11,8 +11,7 @@ on:
   pull_request:
     branches:
       - master
-    paths:
-      - "dev-requirements/*.txt"
+    paths: ["piped", "bot/requirements.txt", "dev-requirements/*.txt", "python/base-requirements/*.txt"]
 
 jobs:
   verify-pr-dep-changes:

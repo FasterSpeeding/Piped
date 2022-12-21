@@ -254,6 +254,8 @@ def cleanup(session: nox.Session) -> None:
 
 _ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
 _resync_filter: typing.Union[typing.List[str], str] = ["piped"]
+_verify_filter: typing.Union[typing.List[str], str] = ["piped"]
+_dep_locks: typing.List[pathlib.Path] = []
 
 
 if _config.dep_locks:
@@ -264,13 +266,19 @@ if _config.dep_locks:
         _str_path = str(_path).replace("\\", "/").strip("/")
 
         if _path.is_file():
-            _resync_filter.append(f"{(_str_path)}")
+            _resync_filter.append(_str_path)
+            _verify_filter.append(_str_path.replace(".in", ".txt"))
+            _dep_locks.append(_path.with_name(_path.name.replace(".in", ".txt")))
 
         else:
             _resync_filter.append(f"{_str_path}/*.in")
             _resync_filter.append(f"!{_str_path}/constraints.in")
+            _verify_filter.append(f"{_str_path}/*.txt")
+            _dep_locks.extend(_path.glob("*.txt"))
+
 
 _resync_filter = ", ".join(map('"{}"'.format, _resync_filter))  # noqa: FS002
+_verify_filter = ", ".join(map('"{}"'.format, _verify_filter))  # noqa: FS002
 
 
 class _Action:
@@ -298,7 +306,7 @@ _ACTIONS: typing.Dict[str, _Action] = {
     "resync-piped": _Action(),
     "type-check": _Action(),
     "upgrade-locks": _Action(),
-    "verify-locks": _Action(),
+    "verify-locks": _Action(defaults={"FILTERS": f"[{_verify_filter}]"}),
     "verify-types": _Action(),
 }
 
@@ -417,7 +425,7 @@ def freeze_locks(session: nox.Session) -> None:
 @_filtered_session(name="verify-deps", reuse_venv=True)
 def verify_deps(session: nox.Session) -> None:
     """Verify the dependency locks by installing them."""
-    for path in pathlib.Path("./dev-requirements/").glob("*.txt"):
+    for path in _dep_locks:
         session.install("--dry-run", "-r", str(path))
 
 
