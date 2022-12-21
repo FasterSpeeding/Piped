@@ -142,9 +142,9 @@ pathspec==0.10.3 ; python_version >= "3.9" and python_version < "3.12" \
 pbr==5.11.0 ; python_version >= "3.9" and python_version < "3.12" \
     --hash=sha256:b97bc6695b2aff02144133c2e7399d5885223d42b7912ffaec2ca3898e673bfe \
     --hash=sha256:db2317ff07c84c4c63648c9064a79fe9d9f5c7ce85a9099d4b6258b3db83225a
-pep8-naming==0.13.2 ; python_version >= "3.9" and python_version < "3.12" \
-    --hash=sha256:59e29e55c478db69cffbe14ab24b5bd2cd615c0413edf790d47d3fb7ba9a4e23 \
-    --hash=sha256:93eef62f525fd12a6f8c98f4dcc17fa70baae2f37fa1f73bec00e3e44392fa48
+pep8-naming==0.13.3 ; python_version >= "3.9" and python_version < "3.12" \
+    --hash=sha256:1705f046dfcd851378aac3be1cd1551c7c1e5ff363bacad707d43007877fa971 \
+    --hash=sha256:1a86b8c71a03337c97181917e2b472f0f5e4ccb06844a0d6f0a33522549e7a80
 platformdirs==2.6.0 ; python_version >= "3.9" and python_version < "3.12" \
     --hash=sha256:1a89a12377800c81983db6be069ec068eee989748799b946cce2a6e80dcc54ca \
     --hash=sha256:b46ffafa316e6b83b47489d240ce17173f123a9b9c83282141c3daf26ad9ac2e
