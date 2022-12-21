@@ -25,13 +25,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           {% raw %}ref: ${{ github.event.pull_request.head.sha }}{% endraw %}
+          {% raw %}repository: ${{ github.event.pull_request.head.repo.full_name }}{% endraw %}
           submodules: "true"
 
       - name: Set up Python {{ DEFAULT_PY_VER }}
         if: github.event.action != 'closed'
         uses: actions/setup-python@v4
         with:
-          python-version: {{ DEFAULT_PY_VER }}
+          python-version: "{{ DEFAULT_PY_VER }}"
 
       - name: install prerequisites
         if: github.event.action != 'closed'

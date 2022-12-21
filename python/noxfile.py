@@ -35,7 +35,7 @@ __all__: typing.List[str] = [
     "cleanup",
     "copy_actions",
     "flake8",
-    "freeze_deps",
+    "freeze_locks",
     "generate_docs",
     "publish",
     "reformat",
@@ -240,7 +240,7 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
     # Remove individual files
-    for raw_path in ["./.coverage", "./coverage_html.xml"]:
+    for raw_path in ["./.coverage", "./coverage_html.xml", "./gogo.patch"]:
         path = pathlib.Path(raw_path)
         try:
             path.unlink()
@@ -253,7 +253,7 @@ def cleanup(session: nox.Session) -> None:
 
 
 _ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
-_resync_filter: typing.Union[typing.List[str], str] = []
+_resync_filter: typing.Union[typing.List[str], str] = ["piped"]
 
 
 if _config.dep_locks:
@@ -369,7 +369,7 @@ _EXTRAS_FILTER = re.compile(r"\[.+\]")
 
 
 @nox.session(name="freeze-locks", reuse_venv=True)
-def freeze_deps(session: nox.Session) -> None:
+def freeze_locks(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, *_deps("freeze-locks"))
     valid_urls = _to_valid_urls(session)
@@ -607,11 +607,10 @@ def verify_types(session: nox.Session) -> None:
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
-@nox.session(name="sync-piped", reuse_venv=True)
+@nox.session(name="copy-piped", reuse_venv=True)
 def sync_piped(session: nox.Session) -> None:
-    """Sync Piped's configuration without fetching."""
+    """Copy over Piped's configuration without fetching."""
     copy_actions(session)
-    freeze_deps(session)
 
 
 @_filtered_session(name="fetch-piped", reuse_venv=True)
@@ -621,4 +620,25 @@ def fetch_piped(session: nox.Session) -> None:
     _install_deps(session, *_deps("nox"))
     # We call this through nox's CLI like this to ensure that the updated version
     # of these sessions are called.
-    session.run("nox", "-s", "sync-piped")
+    session.run("nox", "-s", "copy-piped")
+
+
+@nox.session(name="bot-package-diff", venv_backend="none")
+def bot_package_diff(session: nox.Session) -> None:
+    session.run("git", "add", ".", external=True)
+    output = session.run("git", "diff", "HEAD", external=True, silent=True)
+    assert isinstance(output, str)
+
+    path = pathlib.Path("./gogo.patch")
+    if output:
+        with path.open("w+") as file:
+            file.write(output)
+
+    else:
+        path.unlink(missing_ok=True)
+
+
+@nox.session(name="is-diff-file-empty", venv_backend="none")
+def is_diff_file_empty(_: nox.Session):
+    if pathlib.Path("./gogo.patch").exists():
+        exit("Diff created")
