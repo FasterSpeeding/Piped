@@ -563,8 +563,9 @@ async def _on_startup():
 
 
 async def _on_shutdown():
-    await app.state.index.close()
+    assert isinstance(app.state.index, _ProcessingIndex)
     assert isinstance(app.state.http, httpx.AsyncClient)
+    await app.state.index.close()
     await app.state.http.aclose()
 
 
@@ -582,12 +583,12 @@ async def post_webhook(
 ) -> fastapi.Response:
     assert isinstance(request.app.state.http, httpx.AsyncClient)
     assert isinstance(request.app.state.index, _ProcessingIndex)
-    assert isinstance(app.state.tokens, _Tokens)
-    assert isinstance(app.state.workflows, _WorkflowDispatch)
+    assert isinstance(request.app.state.tokens, _Tokens)
+    assert isinstance(request.app.state.workflows, _WorkflowDispatch)
     http = request.app.state.http
     index = request.app.state.index
-    tokens = app.state.tokens
-    workflows = app.state.workflows
+    tokens = request.app.state.tokens
+    workflows = request.app.state.workflows
     match (x_github_event, body):
         case ("pull_request", {"action": "closed", "number": number, "repository": repo_data}):
             index.stop_for_pr(int(repo_data["id"]), int(number), repo_name=repo_data["full_name"])
