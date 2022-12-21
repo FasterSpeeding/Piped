@@ -274,7 +274,7 @@ if _config.dep_locks:
             _resync_filter.append(f"{_str_path}/*.in")
             _resync_filter.append(f"!{_str_path}/constraints.in")
             _verify_filter.append(f"{_str_path}/*.txt")
-            _dep_locks.extend(_path.glob("*.txt"))
+            _dep_locks.append(_path)
 
 
 _resync_filter = ", ".join(map('"{}"'.format, _resync_filter))  # noqa: FS002
@@ -425,7 +425,7 @@ def freeze_locks(session: nox.Session) -> None:
 @_filtered_session(name="verify-deps", reuse_venv=True)
 def verify_deps(session: nox.Session) -> None:
     """Verify the dependency locks by installing them."""
-    for path in _dep_locks:
+    for path in itertools.chain.from_iterable(path.glob("*.txt") if path.is_dir() else (path,) for path in _dep_locks):
         session.install("--dry-run", "-r", str(path))
 
 
