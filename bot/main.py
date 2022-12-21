@@ -559,9 +559,7 @@ class _IterWorkflows:
 
 
 async def _on_startup():
-    # The default timeout was causing issues when running in Docker locally
-    # so I super-sized it.
-    app.state.http = httpx.AsyncClient(timeout=15.0)
+    app.state.http = httpx.AsyncClient()
     app.state.index = _ProcessingIndex()
     app.state.tokens = _Tokens()
     app.state.workflows = _WorkflowDispatch()
