@@ -278,6 +278,7 @@ async def _request(
     *,
     json: dict[str, typing.Any] | None = None,
     query: dict[str, str] | None = None,
+    output: typing.IO[str] | None = None,
     token: str | None = None,
 ) -> httpx.Response:
     """Make a request to Github's API.
@@ -309,7 +310,14 @@ async def _request(
         headers["Content-Type"] = "application/vnd.github+json"
 
     response = await http.request(method, endpoint, follow_redirects=True, headers=headers, json=json, params=query)
-    response.raise_for_status()
+
+    try:
+        response.raise_for_status()
+    except Exception:
+        print("Response body:", file=output or sys.stderr)  # noqa: T201
+        print(response.read().decode(), file=output or sys.stderr)  # noqa: T201
+        raise
+
     return response
 
 
@@ -706,6 +714,7 @@ class _RunCheck:
             "POST",
             f"/repos/{self._repo_name}/check-runs",
             json={"name": "Inspecting PR", "head_sha": self._commit_hash},
+            output=self._output,
             token=self._token,
         )
         self._check_id = int(result.json()["id"])
@@ -745,6 +754,7 @@ class _RunCheck:
                 "PATCH",
                 f"/repos/{self._repo_name}/check-runs/{self._check_id}",
                 json={"conclusion": conclusion, "output": output},
+                output=self._output,
                 token=self._token,
             )
 
@@ -775,6 +785,7 @@ class _RunCheck:
             "PATCH",
             f"/repos/{self._repo_name}/check-runs/{self._check_id}",
             json={"started_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(), "status": "in_progress"},
+            output=self._output,
             token=self._token,
         )
 
@@ -863,14 +874,15 @@ async def _apply_patch(
         http,
         "GET",
         f"https://api.github.com/repos/{repo_name}/actions/runs/{workflow.workflow_id}/artifacts",
-        token=token,
+        output=output,
         query={"per_page": "100"},
+        token=token,
     )
     for artifact in response.json()["artifacts"]:
         if artifact["name"] != "gogo.patch":
             continue
 
-        response = await _request(http, "GET", artifact["archive_download_url"], token=token)
+        response = await _request(http, "GET", artifact["archive_download_url"], output=output, token=token)
         zipped = zipfile.ZipFile(io.BytesIO(await response.aread()))
         # It's safe to extract to cwd since gogo.patch is git ignored.
         patch_path = await anyio.to_thread.run_sync(zipped.extract, "gogo.patch", cwd)
