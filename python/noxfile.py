@@ -79,7 +79,9 @@ class _Config(pydantic.BaseModel):
     default_sessions: list[str]
     dep_locks: list[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
     extra_test_installs: list[str] = pydantic.Field(default_factory=list)
-    github_actions: dict[str, dict[str, str]] | list[str] = pydantic.Field(default_factory=lambda: ["resync-piped"])
+    github_actions: typing.Union[dict[str, dict[str, str]], list[str]] = pydantic.Field(
+        default_factory=lambda: ["resync-piped"]
+    )
     hide: list[str] = pydantic.Field(default_factory=list)
     mypy_allowed_to_fail: bool = False
     mypy_targets: list[str] = pydantic.Field(default_factory=list)
