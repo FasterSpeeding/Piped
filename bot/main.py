@@ -69,20 +69,20 @@ _LOGGER.setLevel("INFO")
 
 dotenv.load_dotenv()
 
-_username = os.environ.get("client_name", default="always-on-duty") + "[bot]"
+_username = os.environ.get("CLIENT_NAME", default="always-on-duty") + "[bot]"
 
 with httpx.Client() as client:
     _user_id = int(client.get(f"https://api.github.com/users/{_username}").json()["id"])
 
-APP_ID = os.environ["app_id"]
+APP_ID = os.environ["APP_ID"]
 COMMIT_ENV = {
     "GIT_AUTHOR_NAME": _username,
     "GIT_AUTHOR_EMAIL": f"{_user_id}+{_username}@users.noreply.github.com",
     "GIT_COMMITTER_NAME": _username,
 }
 COMMIT_ENV["GIT_COMMITTER_EMAIL"] = COMMIT_ENV["GIT_AUTHOR_EMAIL"]
-CLIENT_SECRET = os.environ["client_secret"].encode()
-WEBHOOK_SECRET = os.environ["webhook_secret"]
+CLIENT_SECRET = os.environ["CLIENT_SECRET"].encode()
+WEBHOOK_SECRET = os.environ["WEBHOOK_SECRET"]
 jwt_instance = jwt.JWT()
 
 
@@ -193,7 +193,7 @@ class _Tokens:
 
     def __init__(self) -> None:
         self._installation_tokens: dict[int, tuple[datetime.datetime, str]] = {}
-        self._private_key = jwt.jwk_from_pem(os.environ["private_key"].encode())
+        self._private_key = jwt.jwk_from_pem(os.environ["PRIVATE_KEY"].encode())
 
     def app_token(self, *, on_gen: collections.Callable[[str], None] | None = None) -> str:
         """Generate an application app token.
