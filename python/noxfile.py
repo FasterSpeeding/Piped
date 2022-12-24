@@ -55,12 +55,13 @@ import pathlib
 import re
 import shutil
 import typing
+from collections import abc as collections
 
 import nox
 import pydantic
 import tomli
 
-_CallbackT = typing.TypeVar("_CallbackT", bound=typing.Callable[..., typing.Any])
+_CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
 
 
 def _default_version():
@@ -75,26 +76,24 @@ class _Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
     codespell_ignore: typing.Optional[str] = None
-    default_sessions: typing.List[str]
-    dep_locks: typing.List[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
-    extra_test_installs: typing.List[str] = pydantic.Field(default_factory=list)
-    github_actions: typing.Union[typing.Dict[str, typing.Dict[str, str]], typing.List[str]] = pydantic.Field(
-        default_factory=lambda: ["resync-piped"]
-    )
-    hide: typing.List[str] = pydantic.Field(default_factory=list)
+    default_sessions: list[str]
+    dep_locks: list[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
+    extra_test_installs: list[str] = pydantic.Field(default_factory=list)
+    github_actions: dict[str, dict[str, str]] | list[str] = pydantic.Field(default_factory=lambda: ["resync-piped"])
+    hide: list[str] = pydantic.Field(default_factory=list)
     mypy_allowed_to_fail: bool = False
-    mypy_targets: typing.List[str] = pydantic.Field(default_factory=list)
+    mypy_targets: list[str] = pydantic.Field(default_factory=list)
 
     # Right now pydantic fails to recognise Pattern[str] so we have to hide this
     # at runtime.
     if typing.TYPE_CHECKING:
-        path_ignore: typing.Optional[typing.Pattern[str]] = None
+        path_ignore: typing.Optional[re.Pattern[str]] = None
 
     else:
-        path_ignore: typing.Optional[typing.Pattern] = None
+        path_ignore: typing.Optional[re.Pattern] = None
 
     project_name: typing.Optional[str] = None
-    top_level_targets: typing.List[str]
+    top_level_targets: list[str]
     version_constraint: str = pydantic.Field(default_factory=_default_version)
 
     def assert_project_name(self) -> str:
@@ -132,7 +131,7 @@ def _constraints_txt() -> typing.Optional[pathlib.Path]:
     return _exists(_DEPS_DIR / "constraints.txt")
 
 
-def _runtime_deps() -> typing.List[str]:
+def _runtime_deps() -> list[str]:
     path = _constraints_txt()
     if path:
         actual_file = _exists(_DEPS_DIR / "constraints.txt")
@@ -144,14 +143,14 @@ def _runtime_deps() -> typing.List[str]:
     return []
 
 
-def _deps(*dev_deps: str, constrain: bool = False) -> typing.Iterator[str]:
+def _deps(*dev_deps: str, constrain: bool = False) -> collections.Iterator[str]:
     if constrain and (path := _constraints_txt()):
         return itertools.chain(["-c", str(path)], _deps(*dev_deps))
 
     return itertools.chain.from_iterable(("-r", str(_dev_path(value))) for value in dev_deps)
 
 
-def _tracked_files(session: nox.Session, *, force_all: bool = False) -> typing.Iterable[str]:
+def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collections.Iterable[str]:
     output = session.run("git", "--no-pager", "grep", "--threads=1", "-l", "", external=True, log=False, silent=True)
     assert isinstance(output, str)
 
@@ -190,14 +189,14 @@ def _try_find_option(
 
 def _filtered_session(
     *,
-    python: typing.Union[str, typing.Sequence[str], bool, None] = None,
-    py: typing.Union[str, typing.Sequence[str], bool, None] = None,
+    python: typing.Union[str, collections.Sequence[str], bool, None] = None,
+    py: typing.Union[str, collections.Sequence[str], bool, None] = None,
     reuse_venv: typing.Optional[bool] = None,
     name: typing.Optional[str] = None,
     venv_backend: typing.Any = None,
     venv_params: typing.Any = None,
-    tags: typing.Optional[typing.List[str]] = None,
-) -> typing.Callable[[_CallbackT], typing.Union[_CallbackT, None]]:
+    tags: typing.Optional[list[str]] = None,
+) -> collections.Callable[[_CallbackT], typing.Union[_CallbackT, None]]:
     """Filtering version of `nox.session`."""
 
     def decorator(callback: _CallbackT, /) -> typing.Optional[_CallbackT]:
@@ -253,9 +252,9 @@ def cleanup(session: nox.Session) -> None:
 
 
 _ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
-_resync_filter: typing.Union[typing.List[str], str] = ["piped"]
-_verify_filter: typing.Union[typing.List[str], str] = []
-_dep_locks: typing.List[pathlib.Path] = []
+_resync_filter: typing.Union[list[str], str] = ["piped"]
+_verify_filter: typing.Union[list[str], str] = []
+_dep_locks: list[pathlib.Path] = []
 
 
 if _config.dep_locks:
@@ -285,14 +284,14 @@ class _Action:
     __slots__ = ("defaults", "required_names")
 
     def __init__(
-        self, *, required: typing.Sequence[str] = (), defaults: typing.Optional[dict[str, str]] = None
+        self, *, required: collections.Sequence[str] = (), defaults: typing.Optional[dict[str, str]] = None
     ) -> None:
         self.defaults = _ACTION_DEFAULTS.copy()
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
 
 
-_ACTIONS: typing.Dict[str, _Action] = {
+_ACTIONS: dict[str, _Action] = {
     "freeze-for-pr": _Action(defaults={"FILTERS": f"[{_resync_filter}]"}),
     "lint": _Action(),
     "pr-docs": _Action(),
@@ -321,15 +320,13 @@ def copy_actions(_: nox.Session) -> None:
         loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions"),
     )
 
-    to_write: typing.Dict[pathlib.Path, str] = {}
+    to_write: dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())
-        wild_card: typing.ItemsView[str, str] = (_config.github_actions.get("*") or {}).items()
+        wild_card: collections.ItemsView[str, str] = (_config.github_actions.get("*") or {}).items()
 
     else:
-        actions: typing.Iterable[typing.Tuple[str, typing.Dict[str, str]]] = (
-            (name, {}) for name in _config.github_actions
-        )
+        actions: collections.Iterable[tuple[str, dict[str, str]]] = ((name, {}) for name in _config.github_actions)
         wild_card = {}.items()
 
     for file_name, config in actions:
@@ -354,7 +351,7 @@ def copy_actions(_: nox.Session) -> None:
             file.write(value)
 
 
-def _to_valid_urls(session: nox.Session) -> typing.Optional[typing.Set[pathlib.Path]]:
+def _to_valid_urls(session: nox.Session) -> typing.Optional[set[pathlib.Path]]:
     if session.posargs:
         return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
 
@@ -385,7 +382,7 @@ def freeze_locks(session: nox.Session) -> None:
 
     if not valid_urls:
         project = _pyproject_toml.get("project") or {}
-        deps: typing.List[str] = project.get("dependencies") or []
+        deps: list[str] = project.get("dependencies") or []
         if optional := project.get("optional-dependencies"):
             deps.extend(itertools.chain(*optional.values()))
 
@@ -500,7 +497,7 @@ def verify_markup(session: nox.Session):
     )
 
 
-def _publish(session: nox.Session, /, *, env: typing.Optional[typing.Dict[str, str]] = None) -> None:
+def _publish(session: nox.Session, /, *, env: typing.Optional[dict[str, str]] = None) -> None:
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, *_runtime_deps(), *_deps("publish"))
     # TODO: does this need to install .?

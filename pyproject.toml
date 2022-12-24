@@ -52,6 +52,7 @@ ignore = [
 ]
 per-file-ignores = [
     "noxfile.py: F401, F403",
+    "python/*.py: UNT001",
     "python/noxfile.template.py: F401, F403"
 ]
 
