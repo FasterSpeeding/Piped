@@ -62,6 +62,8 @@ import pydantic
 import tomli
 
 _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
+ConfigEntryT = dict[str, str] | list[str] | str
+ConfigT = dict[str, ConfigEntryT]
 
 
 def _default_version():
@@ -79,7 +81,7 @@ class _Config(pydantic.BaseModel):
     default_sessions: list[str]
     dep_locks: list[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
     extra_test_installs: list[str] = pydantic.Field(default_factory=list)
-    github_actions: typing.Union[dict[str, dict[str, str]], list[str]] = pydantic.Field(
+    github_actions: typing.Union[dict[str, ConfigT], list[str]] = pydantic.Field(
         default_factory=lambda: ["resync-piped"]
     )
     hide: list[str] = pydantic.Field(default_factory=list)
@@ -254,8 +256,8 @@ def cleanup(session: nox.Session) -> None:
 
 
 _ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
-_resync_filter: typing.Union[list[str], str] = ["piped"]
-_verify_filter: typing.Union[list[str], str] = []
+_resync_filter: list[str] = []
+_verify_filter: list[str] = []
 _dep_locks: list[pathlib.Path] = []
 
 
@@ -278,23 +280,22 @@ if _config.dep_locks:
             _dep_locks.append(_path)
 
 
-_resync_filter = ", ".join(map('"{}"'.format, _resync_filter))  # noqa: FS002
-_verify_filter = ", ".join(map('"{}"'.format, _verify_filter))  # noqa: FS002
-
-
 class _Action:
     __slots__ = ("defaults", "required_names")
 
-    def __init__(
-        self, *, required: collections.Sequence[str] = (), defaults: typing.Optional[dict[str, str]] = None
-    ) -> None:
-        self.defaults = _ACTION_DEFAULTS.copy()
+    def __init__(self, *, required: collections.Sequence[str] = (), defaults: typing.Optional[ConfigT] = None) -> None:
+        self.defaults: ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
 
+    def process_config(self, config: ConfigT, /) -> ConfigT:
+        output: ConfigT = dict(self.defaults)
+        output.update(**config)
+        return output
+
 
 _ACTIONS: dict[str, _Action] = {
-    "freeze-for-pr": _Action(defaults={"FILTERS": f"[{_resync_filter}]"}),
+    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _resync_filter}),
     "lint": _Action(),
     "pr-docs": _Action(),
     "publish": _Action(),
@@ -307,7 +308,7 @@ _ACTIONS: dict[str, _Action] = {
     "resync-piped": _Action(),
     "type-check": _Action(),
     "upgrade-locks": _Action(),
-    "verify-locks": _Action(defaults={"FILTERS": f"[{_verify_filter}]"}),
+    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _verify_filter}),
     "verify-types": _Action(),
 }
 
@@ -325,10 +326,10 @@ def copy_actions(_: nox.Session) -> None:
     to_write: dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())
-        wild_card: collections.ItemsView[str, str] = (_config.github_actions.get("*") or {}).items()
+        wild_card: collections.ItemsView[str, ConfigEntryT] = (_config.github_actions.get("*") or {}).items()
 
     else:
-        actions: collections.Iterable[tuple[str, dict[str, str]]] = ((name, {}) for name in _config.github_actions)
+        actions: collections.Iterable[tuple[str, ConfigT]] = ((name, {}) for name in _config.github_actions)
         wild_card = {}.items()
 
     for file_name, config in actions:
@@ -344,8 +345,7 @@ def copy_actions(_: nox.Session) -> None:
         file_name = f"{file_name}.yml"
         template = env.get_template(file_name)
 
-        full_config = action.defaults.copy()
-        full_config.update(**config)
+        full_config = action.process_config(config)
         to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_config)
 
     for path, value in to_write.items():
