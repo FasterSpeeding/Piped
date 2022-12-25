@@ -256,7 +256,7 @@ def cleanup(session: nox.Session) -> None:
 
 
 _ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
-_resync_filter: list[str] = []
+_resync_filter: list[str] = ["piped"]
 _verify_filter: list[str] = []
 _dep_locks: list[pathlib.Path] = []
 
@@ -305,7 +305,7 @@ _ACTIONS: dict[str, _Action] = {
     ),
     "reformat": _Action(),
     "release-docs": _Action(),
-    "resync-piped": _Action(),
+    "resync-piped": _Action(defaults={"FILTERS": ["piped", "pyproject.toml"]}),
     "type-check": _Action(),
     "upgrade-locks": _Action(),
     "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _verify_filter}),
