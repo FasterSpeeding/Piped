@@ -11,7 +11,7 @@ on:
   pull_request:
     branches:
       - master
-    paths: {{ FILTERS }}
+    paths: [{% for path in (FILTERS + EXTEND_FILTERS) %}{{ '"%s"' | format(path) }}, {% endfor %}]
 
 jobs:
   verify-pr-dep-changes:
