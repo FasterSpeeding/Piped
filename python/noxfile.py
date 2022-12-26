@@ -62,7 +62,7 @@ import pydantic
 import tomli
 
 _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
-ConfigEntryT = dict[str, str] | list[str] | str
+ConfigEntryT = typing.Union[dict[str, str], list[str], str]
 ConfigT = dict[str, ConfigEntryT]
 
 
