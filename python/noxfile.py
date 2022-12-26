@@ -323,6 +323,8 @@ def copy_actions(_: nox.Session) -> None:
         loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions"),
     )
 
+    env.filters["quoted"] = '"{}"'.format
+
     to_write: dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())

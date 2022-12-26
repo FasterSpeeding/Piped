@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-    paths: [{% for path in FILTERS %}{{ '"%s"' | format(path) }}, {% endfor %}]
+    paths: [{{ FILTERS | map("quoted") | join(", ") }}]
 
 jobs:
   resync-piped:

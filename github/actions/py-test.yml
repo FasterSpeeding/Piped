@@ -21,7 +21,7 @@ jobs:
       fail-fast: false
       matrix:
         os: {{ OSES }}
-        python-version: [{% for path in PYTHON_VERSIONS %}{{ '"%s"' | format(path) }}, {% endfor %}]
+        python-version: [{{ PYTHON_VERSIONS | map("quoted") | join(", ") }}]
 
     {% raw %}runs-on: ${{ matrix.os }}{% endraw %}
 
