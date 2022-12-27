@@ -12,8 +12,8 @@ ENV WEBHOOK_SECRET=webhook_secret
 COPY ./main.py ./main.py
 COPY ./requirements.txt ./requirements.txt
 
-RUN python -m pip install --upgrade pip wheel
-RUN python -m pip install -r requirements.txt
+RUN python -m pip install --no-cache-dir wheel && /
+    python -m pip install --no-cache-dir -r requirements.txt
 
 # TODO: https://github.com/ome/devspace/issues/38?
 ENTRYPOINT ["python", "-m", "uvicorn", "main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80"]
