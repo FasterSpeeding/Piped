@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-    paths: ["piped", "bot/requirements.in", "dev-requirements/*.in", "!dev-requirements/constraints.in", "python/base-requirements/*.in", "!python/base-requirements/constraints.in"]
+    paths: ["piped", "pyproject.toml", "bot/requirements.in", "dev-requirements/*.in", "!dev-requirements/constraints.in", "python/base-requirements/*.in", "!python/base-requirements/constraints.in"]
 
 jobs:
   freeze-pr-dep-changes:
