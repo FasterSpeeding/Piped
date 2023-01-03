@@ -263,7 +263,7 @@ _ACTION_DEFAULTS = {
     "DEFAULT_PY_VER": "3.9",
     "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt",
 }
-_resync_filter: list[str] = ["piped"]
+_resync_filter: list[str] = ["piped", "pyproject.toml"]
 _verify_filter: list[str] = []
 _dep_locks: list[pathlib.Path] = []
 
