@@ -47,7 +47,9 @@ jobs:
           python -m nox -s generate-docs -- -o ./site
 
       - name: Deploy preview
-        uses: rossjrw/pr-preview-action@v1
+        uses: FasterSpeeding/pr-preview-action@ddfa7dc4b5f8fa02675fe5da02ae15c9722367f0
         with:
-          source-dir: ./site/
+          git-config-email: "{{ ACTION_COMMITTER_EMAIL }}"
+          git-config-name: "{{ ACTION_COMMITTER_USERNAME }}"
           preview-branch: docs
+          source-dir: ./site/
