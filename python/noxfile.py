@@ -255,7 +255,14 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
-_ACTION_DEFAULTS = {"DEFAULT_PY_VER": "3.9", "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt"}
+_DEFAULT_COMMITER_USERNAME = "always-on-duty[bot]"
+
+_ACTION_DEFAULTS = {
+    "ACTION_COMMITTER_EMAIL": f"120557446+{_DEFAULT_COMMITER_USERNAME}@users.noreply.github.com",
+    "ACTION_COMMITTER_USERNAME": _DEFAULT_COMMITER_USERNAME,
+    "DEFAULT_PY_VER": "3.9",
+    "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt",
+}
 _resync_filter: list[str] = ["piped"]
 _verify_filter: list[str] = []
 _dep_locks: list[pathlib.Path] = []

@@ -30,7 +30,9 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
+          author: "{{ ACTION_COMMITTER_USERNAME }} <{{ ACTION_COMMITTER_EMAIL }}>"
           branch: task/upgrade-deps
           commit-message: Upgrade dependency locks
+          committer: "{{ ACTION_COMMITTER_USERNAME }} <{{ ACTION_COMMITTER_EMAIL }}>"
           title: Upgrade dependency locks
           {% raw %}token: ${{ secrets.ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}{% endraw %}

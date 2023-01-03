@@ -33,7 +33,9 @@ jobs:
       - name: Push
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: ./site
           branch: docs
           {% raw %}commit-message: "${{ steps.doc_info.outputs.GIT_HASH }} docs (${{ github.event.release.tag_name || github.event.ref }})"{% endraw %}
           clean-exclude: pr-preview
+          folder: ./site
+          git-config-email: "{{ ACTION_COMMITTER_EMAIL }}"
+          git-config-name: "{{ ACTION_COMMITTER_USERNAME }}"
