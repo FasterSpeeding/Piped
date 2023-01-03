@@ -26,12 +26,12 @@ jobs:
     {% raw %}runs-on: ${{ matrix.os }}{% endraw %}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
         with:
           submodules: "true"
 
       {% raw %}- name: Set up Python ${{ matrix.python-version }}{% endraw %}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
         with:
           {% raw %}python-version: ${{ matrix.python-version }}{% endraw %}
 
@@ -51,12 +51,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
         with:
           submodules: "true"
 
       - name: Set up Python {{ DEFAULT_PY_VER }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
         with:
           python-version: "{{ DEFAULT_PY_VER }}"
 
@@ -70,14 +70,14 @@ jobs:
           python -m nox -s test-coverage
 
       - name: Upload coverage
-        uses: paambaati/codeclimate-action@v3.2.0
+        uses: paambaati/codeclimate-action@ac3f177ece9928d220a8bd1c2f1957926fd3b67e
         env:
           CC_TEST_REPORTER_ID: {{ CODECLIMATE_TOKEN }}
         with:
           coverageLocations: .coverage.xml:coverage.py
 
       - name: Archive coverage
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@83fd05a356d7e2593de66fc9913b3002723633cb
         with:
           name: coverage
           path: ./coverage_html
