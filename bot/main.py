@@ -62,7 +62,7 @@ from asgiref import typing as asgiref
 from dateutil import parser as dateutil
 
 if sys.version_info < (3, 11):
-    raise RuntimeError("Only supports Python 3.10+")
+    raise RuntimeError("Only supports Python 3.11+")
 
 _LOGGER = logging.getLogger("piped.bot")
 _LOGGER.setLevel("INFO")
