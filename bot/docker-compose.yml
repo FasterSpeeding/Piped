@@ -6,6 +6,8 @@ services:
       context: .
     expose:
       - "80:80"
+    networks:
+      - "piped"
 
 networks:
   piped:
