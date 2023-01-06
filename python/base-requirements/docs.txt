@@ -19,9 +19,9 @@ colorama==0.4.6 ; python_version >= "3.9" and python_version < "4.0" \
 ghp-import==2.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619 \
     --hash=sha256:9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343
-griffe==0.25.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:0868da415c5f43fe186705c041d98b69523c24a6504e841031373eacfdd7ec05 \
-    --hash=sha256:555707b3417355e015d837845522cb38ee4ffcec485427868648eafacabe142e
+griffe==0.25.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:a71f156851649b3f0bdad6eb6bf7d7ac70e720a30da9f2d5a60e042480e92c03 \
+    --hash=sha256:c98e8471a4fc7675a7989f45563a9f7ccbfdfb1713725526d69dec1bbdcda74a
 idna==3.4 ; python_version >= "3.9" and python_version < "4" \
     --hash=sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4 \
     --hash=sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2
@@ -93,9 +93,9 @@ mkdocs-material==8.5.11 ; python_version >= "3.9" and python_version < "4.0" \
 mkdocs==1.4.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8947af423a6d0facf41ea1195b8e1e8c85ad94ac95ae307fe11232e0424b11c5 \
     --hash=sha256:c8856a832c1e56702577023cd64cc5f84948280c1c0fcc6af4cd39006ea6aa8c
-mkdocstrings-python==0.8.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:213d9592e66e084a9bd2fa4956d6294a3487c6dc9cc45164058d6317249b7b6e \
-    --hash=sha256:b22528b7a7a0589d007eced019d97ad14de4eba4b2b9ba6a013bb66edc74ab43
+mkdocstrings-python==0.8.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:4e6e1cd6f37a785de0946ced6eb846eb2f5d891ac1cc2c7b832943d3529087a7 \
+    --hash=sha256:9ae473f6dc599339b09eee17e4d2b05d6ac0ec29860f3fc9b7512d940fc61adf
 mkdocstrings==0.19.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:32a38d88f67f65b264184ea71290f9332db750d189dea4200cbbe408d304c261 \
     --hash=sha256:d1037cacb4b522c1e8c164ed5d00d724a82e49dcee0af80db8fb67b384faeef9
