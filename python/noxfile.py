@@ -50,6 +50,7 @@ __all__: typing.List[str] = [
     "verify_types",
 ]
 
+import datetime
 import itertools
 import pathlib
 import re
@@ -314,6 +315,7 @@ _ACTIONS: dict[str, _Action] = {
     "release-docs": _Action(),
     "resync-piped": _Action(defaults={"FILTERS": ["piped", "pyproject.toml"]}),
     "type-check": _Action(),
+    "update-license": _Action(),
     "upgrade-locks": _Action(),
     "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _verify_filter}),
     "verify-types": _Action(),
@@ -479,6 +481,37 @@ def build(session: nox.Session) -> None:
     _install_deps(session, *_deps("publish"))
     session.log("Starting build")
     session.run("flit", "build")
+
+
+_LICENSE_PATTERN = re.compile(r"(Copyright \(c\) (\d+-?\d*))")
+
+
+def _update_license(match: re.Match[str]) -> str:
+    license_str, date_range = match.groups()
+    start = date_range.split("-", 1)[0]
+    current_year = str(datetime.datetime.now().year)
+
+    if start == current_year:
+        return license_str
+
+    return f"{license_str.removesuffix(date_range)}{start}-{current_year}"
+
+
+_LICENSE_FILE_PATTERN = re.compile(r".*(rs|py)|LICENSE")
+
+
+@_filtered_session(name="update-license", venv_backend="none")
+def update_license(session: nox.Session):
+    """Bump the end year of the project's license to the current year."""
+    for path in map(pathlib.Path, _tracked_files(session)):
+        if not _LICENSE_FILE_PATTERN.fullmatch(path.name):
+            continue
+
+        data = path.read_text()
+        new_data = _LICENSE_PATTERN.sub(_update_license, data)
+
+        if new_data != data:
+            path.write_text(new_data)
 
 
 @_filtered_session(name="verify-markup", reuse_venv=True)
