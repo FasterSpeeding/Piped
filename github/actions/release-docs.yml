@@ -2,7 +2,9 @@ name: Publish documentation
 
 on:
   workflow_call:
-  workflow_dispatch:
+  workflow_dispatch:{% if BRANCH_PUSHES  %}
+  push:
+    branches: [{{ BRANCH_PUSHES | join(", ") }}]{% endif %}
 
 jobs:
   publish-docs:

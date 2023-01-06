@@ -63,7 +63,7 @@ import pydantic
 import tomli
 
 _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
-ConfigEntryT = typing.Union[dict[str, str], list[str], str]
+ConfigEntryT = typing.Union[dict[str, str], list[str], str, None]
 ConfigT = dict[str, ConfigEntryT]
 
 
@@ -312,7 +312,7 @@ _ACTIONS: dict[str, _Action] = {
         defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
     ),
     "reformat": _Action(),
-    "release-docs": _Action(),
+    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
     "resync-piped": _Action(defaults={"FILTERS": ["piped", "pyproject.toml"]}),
     "type-check": _Action(),
     "update-license": _Action(),
