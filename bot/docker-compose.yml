@@ -1,6 +1,7 @@
 version: "3.8"
 services:
   piped-bot:
+    container_name: piped_bot
     env_file: .env
     build:
       context: .
