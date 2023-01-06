@@ -497,11 +497,14 @@ def _update_license(match: re.Match[str]) -> str:
     return f"{license_str.removesuffix(date_range)}{start}-{current_year}"
 
 
+_LICENSE_FILE_PATTERN = re.compile(r".*(rs|py)|LICENSE")
+
+
 @_filtered_session(name="update-license", venv_backend="none")
 def update_license(session: nox.Session):
     """Bump the end year of the project's license to the current year."""
     for path in map(pathlib.Path, _tracked_files(session)):
-        if not (path.name.endswith(".py") or path.name == "LICENSE"):
+        if not _LICENSE_FILE_PATTERN.fullmatch(path.name):
             continue
 
         data = path.read_text()
