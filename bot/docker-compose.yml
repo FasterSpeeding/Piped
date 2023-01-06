@@ -4,5 +4,9 @@ services:
     env_file: .env
     build:
       context: .
-    ports:
+    expose:
       - "${PORT:-8000}:80"
+
+networks:
+  piped:
+    name: piped
