@@ -283,7 +283,7 @@ _ACTIONS: dict[str, _Action] = {
     "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
     "resync-piped": _Action(defaults={"FILTERS": ["piped", "pyproject.toml"]}),
     "type-check": _Action(),
-    "update-license": _Action(),
+    "update-licence": _Action(),
     "upgrade-locks": _Action(),
     "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _verify_filter}),
     "verify-types": _Action(),
@@ -452,32 +452,32 @@ def build(session: nox.Session) -> None:
     session.run("flit", "build")
 
 
-_LICENSE_PATTERN = re.compile(r"(Copyright \(c\) (\d+-?\d*))")
+_LICENCE_PATTERN = re.compile(r"(Copyright \(c\) (\d+-?\d*))")
 
 
-def _update_license(match: re.Match[str]) -> str:
-    license_str, date_range = match.groups()
+def _update_licence(match: re.Match[str]) -> str:
+    licence_str, date_range = match.groups()
     start = date_range.split("-", 1)[0]
     current_year = str(datetime.datetime.now().year)
 
     if start == current_year:
-        return license_str
+        return licence_str
 
-    return f"{license_str.removesuffix(date_range)}{start}-{current_year}"
-
-
-_LICENSE_FILE_PATTERN = re.compile(r".*(rs|py)|LICENSE")
+    return f"{licence_str.removesuffix(date_range)}{start}-{current_year}"
 
 
-@_filtered_session(name="update-license", venv_backend="none")
-def update_license(session: nox.Session):
-    """Bump the end year of the project's license to the current year."""
+_LICENCE_FILE_PATTERN = re.compile(r".*(rs|py)|LICENSE")
+
+
+@_filtered_session(name="update-licence", venv_backend="none")
+def update_licence(session: nox.Session):
+    """Bump the end year of the project's licence to the current year."""
     for path in map(pathlib.Path, _tracked_files(session)):
-        if not _LICENSE_FILE_PATTERN.fullmatch(path.name):
+        if not _LICENCE_FILE_PATTERN.fullmatch(path.name):
             continue
 
         data = path.read_text()
-        new_data = _LICENSE_PATTERN.sub(_update_license, data)
+        new_data = _LICENCE_PATTERN.sub(_update_licence, data)
 
         if new_data != data:
             path.write_text(new_data)

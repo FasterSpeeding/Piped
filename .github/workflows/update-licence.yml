@@ -1,4 +1,4 @@
-name: Update license
+name: Update licence
 
 on:
   schedule:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-license:
+  update-licence:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,15 +24,15 @@ jobs:
           python -m pip install --upgrade pip wheel
           python -m pip install -r ./python/base-requirements/nox.txt
 
-      - name: Update license
-        run: python -m nox -s update-license
+      - name: Update licence
+        run: python -m nox -s update-licence
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v4
         with:
           author: "always-on-duty[bot] <120557446+always-on-duty[bot]@users.noreply.github.com>"
-          branch: task/upgrade-deps
-          commit-message: Upgrade dependency locks
+          branch: task/update-licence
+          commit-message: Update licence
           committer: "always-on-duty[bot] <120557446+always-on-duty[bot]@users.noreply.github.com>"
-          title: Upgrade dependency locks
+          title: Update licence
           token: ${{ secrets.ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}
