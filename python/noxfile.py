@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2022, Faster Speeding
+# Copyright (c) 2020-2023, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -59,100 +59,36 @@ import typing
 from collections import abc as collections
 
 import nox
-import pydantic
+import piped_shared
 import tomli
 
 _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
-ConfigEntryT = typing.Union[dict[str, str], list[str], str, None]
-ConfigT = dict[str, ConfigEntryT]
 
-
-def _default_version():
-    requires: typing.Optional[str]
-    if (project := _pyproject_toml.get("project")) and (requires := project.get("requires-python")):
-        return requires.lstrip(">=")
-
-    return "3.9,<3.12"
-
-
-class _Config(pydantic.BaseModel):
-    """Configuration class for the project config."""
-
-    codespell_ignore: typing.Optional[str] = None
-    default_sessions: list[str]
-    dep_locks: list[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
-    extra_test_installs: list[str] = pydantic.Field(default_factory=list)
-    github_actions: typing.Union[dict[str, ConfigT], list[str]] = pydantic.Field(
-        default_factory=lambda: ["resync-piped"]
-    )
-    hide: list[str] = pydantic.Field(default_factory=list)
-    mypy_allowed_to_fail: bool = False
-    mypy_targets: list[str] = pydantic.Field(default_factory=list)
-
-    # Right now pydantic fails to recognise Pattern[str] so we have to hide this
-    # at runtime.
-    if typing.TYPE_CHECKING:
-        path_ignore: typing.Optional[re.Pattern[str]] = None
-
-    else:
-        path_ignore: typing.Optional[re.Pattern] = None
-
-    project_name: typing.Optional[str] = None
-    top_level_targets: list[str]
-    version_constraint: str = pydantic.Field(default_factory=_default_version)
-
-    def assert_project_name(self) -> str:
-        if not self.project_name:
-            raise RuntimeError("This CI cannot run without project_name")
-
-        return self.project_name
-
-    def codespell_ignore_args(self) -> list[str]:
-        if self.codespell_ignore:
-            return ["--ignore-regex", self.codespell_ignore]
-
-        return []
-
-
-with pathlib.Path("pyproject.toml").open("rb") as _file:
-    _pyproject_toml = tomli.load(_file)
-    _config = _Config.parse_obj(_pyproject_toml["tool"]["piped"])
-
-
+_config = piped_shared.Config.read(pathlib.Path("./"))
 nox.options.sessions = _config.default_sessions
 _DEPS_DIR = pathlib.Path("./dev-requirements")
 _SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
 
 
-def _exists(path: pathlib.Path) -> typing.Optional[pathlib.Path]:
-    return path if path.exists() else None
+def _pyproject_toml() -> typing.Optional[dict[str, typing.Any]]:
+    try:
+        with pathlib.Path("pyproject.toml").open("rb") as _file:
+            return tomli.load(_file)
+
+    except FileNotFoundError:
+        return None
 
 
-def _dev_path(value: str, /) -> pathlib.Path:
-    return _exists(_DEPS_DIR / f"{value}.txt") or pathlib.Path(__file__).parent / "base-requirements" / f"{value}.txt"
+def _dev_path(value: str, /) -> typing.Optional[pathlib.Path]:
+    for path in [_DEPS_DIR / f"{value}.txt", pathlib.Path(__file__).parent / "base-requirements" / f"{value}.txt"]:
+        if path.exists():
+            return path
+
+    return None
 
 
-def _constraints_txt() -> typing.Optional[pathlib.Path]:
-    return _exists(_DEPS_DIR / "constraints.txt")
-
-
-def _runtime_deps() -> list[str]:
-    path = _constraints_txt()
-    if path:
-        actual_file = _exists(_DEPS_DIR / "constraints.txt")
-        if not actual_file:
-            raise RuntimeError("Couldn't find constraints.txt")
-
-        return ["-r", str(actual_file), "-c", str(path)]
-
-    return []
-
-
-def _deps(*dev_deps: str, constrain: bool = False) -> collections.Iterator[str]:
-    if constrain and (path := _constraints_txt()):
-        return itertools.chain(["-c", str(path)], _deps(*dev_deps))
-
-    return itertools.chain.from_iterable(("-r", str(_dev_path(value))) for value in dev_deps)
+def _other_dep(name: str) -> str:
+    return f"other-{name}"
 
 
 def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collections.Iterable[str]:
@@ -165,9 +101,34 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     return output.splitlines()
 
 
-def _install_deps(session: nox.Session, *requirements: str, first_call: bool = True) -> None:
-    if not requirements:
+def _install_deps(
+    session: nox.Session, *requirements_tuple: str, names: list[str] = [], first_call: bool = True
+) -> None:
+    if not requirements_tuple and not names:
         return
+
+    requirements = list(requirements_tuple)
+    other_requirements: dict[pathlib.Path, list[str]] = {}
+    for name in names:
+        if name != "constraints":
+            path = _dev_path(name)
+            assert path, "If this doesn't exist then path is missing the base requirement and is broken"
+            requirements.extend(["-r", str(path)])
+            if path := _dev_path(_other_dep(name)):
+                files = other_requirements.get(path.parent) or []
+                files.extend(["-r", path.name])
+                other_requirements[path.parent] = files
+
+            continue
+
+        path = _DEPS_DIR / "constraints.txt"
+        if path.exists():
+            requirements.extend(["-r", str(path)])
+
+        if other_path := path.with_name(_other_dep(path.name)):
+            files = other_requirements.get(other_path.parent) or []
+            files.extend(["-r", other_path.name])
+            other_requirements[other_path.parent] = files
 
     # --no-install --no-venv leads to it trying to install in the global venv
     # as --no-install only skips "reused" venvs and global is not considered reused.
@@ -175,10 +136,15 @@ def _install_deps(session: nox.Session, *requirements: str, first_call: bool = T
         if first_call:
             session.install("--upgrade", "wheel")
 
-        session.install("--upgrade", *map(str, requirements))
+        session.install("--upgrade", *requirements)
 
     elif any(map(_SELF_INSTALL_REGEX.fullmatch, requirements)):
         session.install("--upgrade", "--force-reinstall", "--no-dependencies", ".")
+
+    for cwd, paths in other_requirements.items():
+        # We override the cwd using --root to handle relative dep links as relative to the requirement file.
+        # TODO: do we want to keep no-deps here?
+        session.install("--upgrade", "--root", str(cwd), "--no-deps", *paths)
 
 
 def _try_find_option(
@@ -291,13 +257,15 @@ if _config.dep_locks:
 class _Action:
     __slots__ = ("defaults", "required_names")
 
-    def __init__(self, *, required: collections.Sequence[str] = (), defaults: typing.Optional[ConfigT] = None) -> None:
-        self.defaults: ConfigT = dict(_ACTION_DEFAULTS)
+    def __init__(
+        self, *, required: collections.Sequence[str] = (), defaults: typing.Optional[piped_shared.ConfigT] = None
+    ) -> None:
+        self.defaults: piped_shared.ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
 
-    def process_config(self, config: ConfigT, /) -> ConfigT:
-        output: ConfigT = dict(self.defaults)
+    def process_config(self, config: piped_shared.ConfigT, /) -> piped_shared.ConfigT:
+        output: piped_shared.ConfigT = dict(self.defaults)
         output.update(**config)
         return output
 
@@ -337,10 +305,14 @@ def copy_actions(_: nox.Session) -> None:
     to_write: dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())
-        wild_card: collections.ItemsView[str, ConfigEntryT] = (_config.github_actions.get("*") or {}).items()
+        wild_card: collections.ItemsView[str, piped_shared.ConfigEntryT] = (
+            _config.github_actions.get("*") or {}
+        ).items()
 
     else:
-        actions: collections.Iterable[tuple[str, ConfigT]] = ((name, {}) for name in _config.github_actions)
+        actions: collections.Iterable[tuple[str, piped_shared.ConfigT]] = (
+            (name, {}) for name in _config.github_actions
+        )
         wild_card = {}.items()
 
     for file_name, config in actions:
@@ -364,11 +336,6 @@ def copy_actions(_: nox.Session) -> None:
             file.write(value)
 
 
-def _to_valid_urls(session: nox.Session) -> typing.Optional[set[pathlib.Path]]:
-    if session.posargs:
-        return set(map(pathlib.Path.resolve, map(pathlib.Path, session.posargs)))
-
-
 def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
     if not path.is_symlink():
         target = path.with_name(path.name[:-3] + ".txt")
@@ -378,7 +345,7 @@ def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
             "-o",
             str(target),
             "--min-python-version",
-            _config.version_constraint,
+            _config.version(_pyproject_toml()),
             str(path),
         )
 
@@ -389,29 +356,31 @@ _EXTRAS_FILTER = re.compile(r"\[.+\]")
 @nox.session(name="freeze-locks", reuse_venv=True)
 def freeze_locks(session: nox.Session) -> None:
     """Freeze the dependency locks."""
-    _install_deps(session, *_deps("freeze-locks"))
-    valid_urls = _to_valid_urls(session)
+    _install_deps(session, names=["freeze-locks"])
     constraints_lock = pathlib.Path("./dev-requirements/constraints.txt")
+    project = _pyproject_toml()
 
-    if not valid_urls:
-        project = _pyproject_toml.get("project") or {}
-        deps: list[str] = project.get("dependencies") or []
-        if optional := project.get("optional-dependencies"):
-            deps.extend(itertools.chain(*optional.values()))
+    if not project:
+        raise RuntimeError("Missing pyproject.toml")
 
-        tl_requirements = pathlib.Path("./requirements.in")
-        if tl_requirements.exists():
-            with tl_requirements.open("r") as file:
-                deps.extend(file.read().splitlines())
+    project = project.get("project") or {}
+    deps: list[str] = project.get("dependencies") or []
+    if optional := project.get("optional-dependencies"):
+        deps.extend(itertools.chain(*optional.values()))
 
-        constraints_in = pathlib.Path("./dev-requirements/constraints.in")
-        if deps:
-            with constraints_in.open("w+") as file:
-                file.write("\n".join(deps) + "\n")
+    tl_requirements = pathlib.Path("./requirements.in")
+    if tl_requirements.exists():
+        with tl_requirements.open("r") as file:
+            deps.extend(file.read().splitlines())
 
-        else:
-            constraints_in.unlink(missing_ok=True)
-            constraints_lock.unlink(missing_ok=True)
+    constraints_in = pathlib.Path("./dev-requirements/constraints.in")
+    if deps:
+        with constraints_in.open("w+") as file:
+            file.write("\n".join(deps) + "\n")
+
+    else:
+        constraints_in.unlink(missing_ok=True)
+        constraints_lock.unlink(missing_ok=True)
 
     for lock_path in _config.dep_locks:
         if lock_path.is_file():
@@ -442,7 +411,7 @@ def verify_deps(session: nox.Session) -> None:
 @_filtered_session(name="generate-docs", reuse_venv=True)
 def generate_docs(session: nox.Session) -> None:
     """Generate docs for this project using Mkdoc."""
-    _install_deps(session, *_deps("docs"))
+    _install_deps(session, names=["docs"])
     output_directory = _try_find_option(session, "-o", "--output") or "./site"
     session.run("mkdocs", "build", "-d", output_directory)
     for path in ("./CHANGELOG.md", "./README.md"):
@@ -452,7 +421,7 @@ def generate_docs(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def flake8(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined flake8 linters."""
-    _install_deps(session, *_deps("flake8"))
+    _install_deps(session, names=["flake8"])
     session.log("Running flake8")
     session.run("pflake8", *_config.top_level_targets, log=False)
 
@@ -462,7 +431,7 @@ def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_runtime_deps(), *_deps("lint"))
+    _install_deps(session, names=["constraints", "lint"])
     _install_deps(session, "--no-deps", *_config.extra_test_installs, first_call=False)
     session.run("slotscheck", "-m", _config.assert_project_name())
 
@@ -470,7 +439,7 @@ def slot_check(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True, name="spell-check")
 def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
-    _install_deps(session, *_deps("lint"))
+    _install_deps(session, names=["lint"])
     session.log("Running codespell")
     session.run("codespell", *_tracked_files(session), *_config.codespell_ignore_args(), log=False)
 
@@ -478,7 +447,7 @@ def spell_check(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def build(session: nox.Session) -> None:
     """Build this project using flit."""
-    _install_deps(session, *_deps("publish"))
+    _install_deps(session, names=["publish"])
     session.log("Starting build")
     session.run("flit", "build")
 
@@ -517,7 +486,7 @@ def update_license(session: nox.Session):
 @_filtered_session(name="verify-markup", reuse_venv=True)
 def verify_markup(session: nox.Session):
     """Verify the syntax of the repo's markup files."""
-    _install_deps(session, *_deps("lint"))
+    _install_deps(session, names=["lint"])
     tracked_files = list(_tracked_files(session))
 
     session.log("Running pre_commit_hooks.check_toml")
@@ -543,7 +512,7 @@ def verify_markup(session: nox.Session):
 
 def _publish(session: nox.Session, /, *, env: typing.Optional[dict[str, str]] = None) -> None:
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_runtime_deps(), *_deps("publish"))
+    _install_deps(session, names=["constraints", "publish"])
     # TODO: does this need to install .?
     _install_deps(session, "--no-deps", ".", first_call=False)
 
@@ -575,7 +544,7 @@ def test_publish(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
-    _install_deps(session, *_deps("reformat"))
+    _install_deps(session, names=["reformat"])
     session.run("black", *_config.top_level_targets)
     session.run("isort", *_config.top_level_targets)
     session.run("pycln", *_config.top_level_targets)
@@ -599,7 +568,7 @@ def reformat(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_deps("tests"))
+    _install_deps(session, names=["tests"])
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
@@ -610,7 +579,7 @@ def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _config.assert_project_name()
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_deps("tests"))
+    _install_deps(session, names=["tests"])
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
@@ -634,7 +603,7 @@ def _run_pyright(session: nox.Session, /, *args: str) -> None:
 @_filtered_session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    _install_deps(session, *_deps("type-checking"))
+    _install_deps(session, names=["type-checking"])
     _run_pyright(session)
 
     if _config.mypy_targets:
@@ -651,7 +620,7 @@ def verify_types(session: nox.Session) -> None:
     project_name = _config.assert_project_name()
     # TODO is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, *_runtime_deps(), *_deps("type-checking"))
+    _install_deps(session, names=["constraints", "type-checking"])
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
@@ -666,7 +635,7 @@ def sync_piped(session: nox.Session) -> None:
 def fetch_piped(session: nox.Session) -> None:
     """Fetch Piped from upstream and resync."""
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
-    _install_deps(session, *_deps("nox"))
+    _install_deps(session, names=["nox"])
     # We call this through nox's CLI like this to ensure that the updated version
     # of these sessions are called.
     session.run("nox", "-s", "copy-piped")

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
-# Copyright (c) 2020-2022, Faster Speeding
+# Copyright (c) 2020-2023, Faster Speeding
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import subprocess  # noqa: S404
 import sys
 import tempfile
 import time
-import tomllib
 import traceback
 import types
 import typing
@@ -55,7 +54,7 @@ import dotenv
 import fastapi
 import httpx
 import jwt
-import pydantic
+import piped_shared
 import starlette.middleware
 from anyio.streams import memory as streams
 from asgiref import typing as asgiref
@@ -84,12 +83,6 @@ COMMIT_ENV["GIT_COMMITTER_EMAIL"] = COMMIT_ENV["GIT_AUTHOR_EMAIL"]
 CLIENT_SECRET = os.environ["CLIENT_SECRET"].encode()
 WEBHOOK_SECRET = os.environ["WEBHOOK_SECRET"]
 jwt_instance = jwt.JWT()
-
-
-class _Config(pydantic.BaseModel):
-    bot_actions: set[str] = pydantic.Field(
-        default_factory=lambda: {"Freeze PR dependency changes", "Resync piped", "Reformat PR code"}
-    )
 
 
 class _ProcessingIndex:
@@ -640,11 +633,6 @@ async def post_webhook(
     return fastapi.Response(status_code=204)
 
 
-def _read_toml(path: pathlib.Path) -> dict[str, typing.Any]:
-    with path.open("rb") as file:
-        return tomllib.load(file)
-
-
 @contextlib.asynccontextmanager
 async def _with_cloned(
     output: typing.IO[str], url: str, /, *, branch: str = "master"
@@ -824,8 +812,7 @@ async def _process_repo(
         run_ctx = _RunCheck(http, token=token, repo_name=full_name, commit_hash=head_sha)
 
         async with run_ctx, _with_cloned(run_ctx.output, git_url, branch=head_ref) as temp_dir_path:
-            pyproject = await anyio.to_thread.run_sync(_read_toml, temp_dir_path / "pyproject.toml")
-            config = _Config.parse_obj(pyproject["tool"]["piped"])
+            config = await piped_shared.Config.read_async(temp_dir_path)
             if not config.bot_actions:
                 _LOGGER.warn("Received event from %s repo with no bot_wait_for", full_name)
                 return
