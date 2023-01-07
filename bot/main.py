@@ -897,6 +897,7 @@ async def _apply_patch(
             pass
 
         else:
+            await anyio.to_thread.run_sync(pathlib.Path("./gogo.patch").unlink)
             await run_process(output, ["git", "add", "."], cwd=cwd, env=COMMIT_ENV)
             await run_process(output, ["git", "commit", "-am", workflow.name], cwd=cwd, env=COMMIT_ENV)
 
