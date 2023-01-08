@@ -548,15 +548,17 @@ def test_publish(session: nox.Session) -> None:
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
     _install_deps(session, names=["reformat"])
-    session.run("black", *_config.top_level_targets)
-    session.run("isort", *_config.top_level_targets)
-    session.run("pycln", *_config.top_level_targets)
+    if _config.top_level_targets:
+        session.run("black", *_config.top_level_targets)
+        session.run("isort", *_config.top_level_targets)
+        session.run("pycln", *_config.top_level_targets)
 
     tracked_files = list(_tracked_files(session, force_all=True))
     py_files = [path for path in tracked_files if re.fullmatch(r".+\.pyi?$", path)]
 
-    session.log("Running sort-all")
-    session.run("sort-all", *py_files, success_codes=[0, 1], log=False)
+    if py_files:
+        session.log("Running sort-all")
+        session.run("sort-all", *py_files, success_codes=[0, 1], log=False)
 
     session.log("Running pre_commit_hooks.end_of_file_fixer")
     session.run("python", "-m", "pre_commit_hooks.end_of_file_fixer", *tracked_files, success_codes=[0, 1], log=False)
