@@ -144,7 +144,8 @@ def _install_deps(
     for cwd, paths in other_requirements.items():
         # We override the cwd using --root to handle relative dep links as relative to the requirement file.
         # TODO: do we want to keep no-deps here?
-        session.install("--upgrade", "--root", str(cwd), "--no-deps", *paths)
+        with session.chdir(cwd):  # TODO: get "--root", str(cwd) to work
+            session.install("--upgrade", "--no-deps", *paths)
 
 
 def _try_find_option(

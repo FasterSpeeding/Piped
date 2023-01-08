@@ -45,7 +45,7 @@ import pydantic
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-ConfigEntryT = typing.Union[dict[str, str], list[str], str]
+ConfigEntryT = typing.Union[dict[str, str], list[str], str, None]
 ConfigT = dict[str, ConfigEntryT]
 
 
