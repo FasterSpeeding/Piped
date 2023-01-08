@@ -36,11 +36,16 @@ __all__ = []
 
 import pathlib
 import re
-import tomllib
 import typing
 from collections import abc as collections
 
 import pydantic
+
+try:
+    import tomli as tomllib
+
+except ImportError:
+    import tomllib
 
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
