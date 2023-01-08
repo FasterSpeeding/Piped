@@ -70,13 +70,14 @@ _DEPS_DIR = pathlib.Path("./dev-requirements")
 _SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
 
 
-def _pyproject_toml() -> typing.Optional[dict[str, typing.Any]]:
-    try:
-        with pathlib.Path("pyproject.toml").open("rb") as _file:
-            return tomli.load(_file)
+def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collections.Iterable[str]:
+    output = session.run("git", "--no-pager", "grep", "--threads=1", "-l", "", external=True, log=False, silent=True)
+    assert isinstance(output, str)
 
-    except FileNotFoundError:
-        return None
+    if _config.path_ignore and not force_all:
+        return (path for path in output.splitlines() if not _config.path_ignore.search(path))
+
+    return output.splitlines()
 
 
 def _dev_path(value: str, /) -> typing.Optional[pathlib.Path]:
@@ -89,16 +90,6 @@ def _dev_path(value: str, /) -> typing.Optional[pathlib.Path]:
 
 def _other_dep(name: str) -> str:
     return f"other-{name}"
-
-
-def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collections.Iterable[str]:
-    output = session.run("git", "--no-pager", "grep", "--threads=1", "-l", "", external=True, log=False, silent=True)
-    assert isinstance(output, str)
-
-    if _config.path_ignore and not force_all:
-        return (path for path in output.splitlines() if not _config.path_ignore.search(path))
-
-    return output.splitlines()
 
 
 def _install_deps(
@@ -335,6 +326,15 @@ def copy_actions(_: nox.Session) -> None:
     for path, value in to_write.items():
         with path.open("w+") as file:
             file.write(value)
+
+
+def _pyproject_toml() -> typing.Optional[dict[str, typing.Any]]:
+    try:
+        with pathlib.Path("pyproject.toml").open("rb") as _file:
+            return tomli.load(_file)
+
+    except FileNotFoundError:
+        return None
 
 
 def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
