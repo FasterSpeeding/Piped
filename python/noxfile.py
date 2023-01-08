@@ -323,6 +323,8 @@ def copy_actions(_: nox.Session) -> None:
         full_config = action.process_config(config)
         to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_config)
 
+    pathlib.Path("./.github/workflows").mkdir(exist_ok=True, parents=True)
+
     for path, value in to_write.items():
         with path.open("w+") as file:
             file.write(value)
