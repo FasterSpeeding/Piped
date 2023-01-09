@@ -222,9 +222,9 @@ platformdirs==2.6.2 ; python_version >= "3.9" and python_version < "4.0" \
 pycodestyle==2.9.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:2c9607871d58c76354b697b42f5d57e1ada7d261c261efac224b664affdc5785 \
     --hash=sha256:d1735fc58b418fd7c5f658d28d943854f8a849b01a5d0a1e6f3f3fdd0166804b
-pydocstyle==6.2.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:021b33525927b43b4469c2715694c38082cb98146b52342df652b30806e3cb61 \
-    --hash=sha256:5714e3a96f6ece848a1c35f581e89f3164867733609f0dd8a99f7e7c6b526bdd
+pydocstyle==6.2.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:a04ed1e6fe0be0970eddbb1681a7ab59b11eb92729fdb4b9b24f0eb11a25629e \
+    --hash=sha256:d867acad25e48471f2ad8a40ef9813125e954ad675202245ca836cb6e28b2297
 pyflakes==2.5.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:4579f67d887f804e67edb544428f264b7b24f435b263c4614f384135cea553d2 \
     --hash=sha256:491feb020dca48ccc562a8c0cbe8df07ee13078df59813b83959cbdada312ea3
