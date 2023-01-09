@@ -881,10 +881,11 @@ async def _apply_patch(
         # If this conflicted then we should allow another CI run to redo these
         # changes after the current changes have been pushed.
         except subprocess.CalledProcessError:
-            pass
+            await anyio.to_thread.run_sync((cwd / "gogo.patch").unlink, True)
 
         else:
-            await anyio.to_thread.run_sync((cwd / "gogo.patch").unlink)
+            # TODO: this might not actually be deleting it
+            await anyio.to_thread.run_sync((cwd / "gogo.patch").unlink, True)
             await run_process(output, ["git", "add", "."], cwd=cwd, env=COMMIT_ENV)
             await run_process(output, ["git", "commit", "-am", workflow.name], cwd=cwd, env=COMMIT_ENV)
 
