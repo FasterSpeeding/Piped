@@ -54,7 +54,6 @@ import datetime
 import itertools
 import pathlib
 import re
-import shutil
 import typing
 from collections import abc as collections
 
@@ -417,8 +416,6 @@ def generate_docs(session: nox.Session) -> None:
     _install_deps(session, names=["docs"])
     output_directory = _try_find_option(session, "-o", "--output") or "./site"
     session.run("mkdocs", "build", "-d", output_directory)
-    for path in ("./CHANGELOG.md", "./README.md"):
-        shutil.copy(path, pathlib.Path(output_directory) / path)
 
 
 @_filtered_session(reuse_venv=True)
