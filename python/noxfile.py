@@ -407,7 +407,10 @@ def freeze_locks(session: nox.Session) -> None:
 def verify_deps(session: nox.Session) -> None:
     """Verify the dependency locks by installing them."""
     for path in itertools.chain.from_iterable(path.glob("*.txt") if path.is_dir() else (path,) for path in _dep_locks):
-        session.install("--dry-run", "-r", str(path))
+        # We override the cwd using --root to handle relative dep links as relative to the requirement file.
+        # TODO: do we want to keep no-deps here?
+        with session.chdir(path.parent):  # TODO: get "--root", str(cwd) to work
+            session.install("--dry-run", "-r", str(path.relative_to(path.parent)))
 
 
 @_filtered_session(name="generate-docs", reuse_venv=True)
