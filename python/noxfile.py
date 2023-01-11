@@ -115,7 +115,8 @@ def _install_deps(
         if path.exists():
             requirements.extend(["-r", str(path)])
 
-        if other_path := path.with_name(_other_dep(path.name)):
+        other_path = path.with_name(_other_dep(path.name))
+        if other_path.exists():
             files = other_requirements.get(other_path.parent) or []
             files.extend(["-r", other_path.name])
             other_requirements[other_path.parent] = files
