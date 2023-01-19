@@ -58,7 +58,7 @@ class Config(pydantic.BaseModel):
     """Configuration class for the project config."""
 
     bot_actions: set[str] = pydantic.Field(
-        default_factory=lambda: {"Freeze PR dependency changes", "Resync piped", "Reformat PR code"}
+        default_factory=lambda: {"Freeze PR dependency changes", "Resync piped", "Reformat PR code", "Run Rustfmt"}
     )
     codespell_ignore: typing.Optional[str] = None
     default_sessions: list[str]
