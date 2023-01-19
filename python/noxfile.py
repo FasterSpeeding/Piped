@@ -263,6 +263,7 @@ class _Action:
 
 
 _ACTIONS: dict[str, _Action] = {
+    "clippy": _Action(),
     "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _resync_filter}),
     "lint": _Action(),
     "pr-docs": _Action(),
@@ -274,6 +275,7 @@ _ACTIONS: dict[str, _Action] = {
     "reformat": _Action(),
     "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
     "resync-piped": _Action(defaults={"FILTERS": ["piped", "pyproject.toml"]}),
+    "rustfmt": _Action(),
     "type-check": _Action(),
     "update-licence": _Action(),
     "upgrade-locks": _Action(),
