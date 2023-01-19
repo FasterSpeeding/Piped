@@ -1,5 +1,9 @@
 name: Run Rustfmt
 
+concurrency:
+  {% raw %}group: ${{ github.workflow }}-${{ github.ref }}{% endraw %}
+  cancel-in-progress: true
+
 on: pull_request
 
 jobs:
