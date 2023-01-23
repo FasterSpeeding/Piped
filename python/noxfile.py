@@ -186,7 +186,7 @@ def cleanup(session: nox.Session) -> None:
     import shutil
 
     # Remove directories
-    raw_paths = ["./dist", "./site", "./.nox", "./.pytest_cache", "./coverage_html"]
+    raw_paths = ["./dist", "./site", "./.nox", "./.pytest_cache", "./coverage_html", ".mypy_cache"]
     if _config.project_name:
         raw_paths.append(f"{_config.project_name}.egg-info")
 
