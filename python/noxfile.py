@@ -518,9 +518,7 @@ def verify_markup(session: nox.Session):
 
 def _publish(session: nox.Session, /, *, env: typing.Optional[dict[str, str]] = None) -> None:
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, names=["constraints", "publish"])
-    # TODO: does this need to install .?
-    _install_deps(session, "--no-deps", ".", first_call=False)
+    _install_deps(session, names=["publish"])
 
     env = env or session.env.copy()
     if target := session.env.get("PUBLISH_TARGET"):
