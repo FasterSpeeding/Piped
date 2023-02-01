@@ -626,7 +626,7 @@ def verify_types(session: nox.Session) -> None:
     project_name = _config.assert_project_name()
     # TODO is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, names=["constraints", "type-checking"])
+    _install_deps(session, names=["type-checking"])
     _install_deps(session, *_config.extra_test_installs, first_call=False)
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
