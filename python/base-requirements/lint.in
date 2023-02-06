@@ -1,3 +1,3 @@
-codespell>=2.2.2, <3
-pre-commit-hooks>=4.4, <5
-slotscheck>=0.16.1, <1
+codespell>=2.2.2
+pre-commit-hooks>=4.4
+slotscheck>=0.16.1
