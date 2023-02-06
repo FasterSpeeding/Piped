@@ -1,6 +1,6 @@
-mkdocs>=1.4.2, <2
-mkdocs-material>=8.5.11, <9
-mkdocstrings[python]>=0.19, <1
+mkdocs>=1.4.2
+mkdocs-material>=8.5.11
+mkdocstrings[python]>=0.19
 # Needed for mkdocstring's reformatting
-# black>=22.1, <23
-markdown-include>=0.8, <1
+# black>=22.1
+markdown-include>=0.8
