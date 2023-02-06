@@ -1,4 +1,4 @@
-black>=22.10.0, <23
+black>=22.10.0, <24
 isort>=5.11.3, <6
 pre-commit-hooks>=4.4, <5
 pycln>=2.1.2, <3
