@@ -4,21 +4,21 @@
 #
 #    pip-compile-cross-platform python/base-requirements/flake8.in --output-file python/base-requirements/flake8.txt --min-python-version 3.9
 #
-flake8==5.0.4 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:6fbe320aad8d6b95cec8b8e47bc933004678dc63095be98528b7bdd2a9f510db \
-    --hash=sha256:7a1cf6b73744f5806ab95e526f6f0d8c01c66d7bbe349562d22dfca20610b248
+flake8==6.0.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:3833794e27ff64ea4e9cf5d410082a8b97ff1a06c16aa3d2027339cd0f1195c7 \
+    --hash=sha256:c61007e76655af75e6785a931f452915b371dc48f56efd765247c8fe68f2b181
 mccabe==0.7.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:348e0240c33b60bbdf4e523192ef919f28cb2c3d7d5c7794f74009290f236325 \
     --hash=sha256:6c2d30ab6be0e4a46919781807b4f0d834ebdd6c6e3dca0bda5a15f863427b6e
-pycodestyle==2.9.1 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:2c9607871d58c76354b697b42f5d57e1ada7d261c261efac224b664affdc5785 \
-    --hash=sha256:d1735fc58b418fd7c5f658d28d943854f8a849b01a5d0a1e6f3f3fdd0166804b
-pyflakes==2.5.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:4579f67d887f804e67edb544428f264b7b24f435b263c4614f384135cea553d2 \
-    --hash=sha256:491feb020dca48ccc562a8c0cbe8df07ee13078df59813b83959cbdada312ea3
-pyproject-flake8==5.0.4.post1 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:457e52dde1b7a1f84b5230c70d61afa58ced64a44b81a609f19e972319fa68ed \
-    --hash=sha256:c2dfdf1064f47efbb2e4faf1a32b0b6a6ea67dc4d1debb98d862b0cdee377941
+pycodestyle==2.10.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:347187bdb476329d98f695c213d7295a846d1152ff4fe9bacb8a9590b8ee7053 \
+    --hash=sha256:8a4eaf0d0495c7395bdab3589ac2db602797d76207242c17d470186815706610
+pyflakes==3.0.1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:ec55bf7fe21fff7f1ad2f7da62363d749e2a470500eab1b555334b67aa1ef8cf \
+    --hash=sha256:ec8b276a6b60bd80defed25add7e439881c19e64850afd9b346283d4165fd0fd
+pyproject-flake8==6.0.0.post1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:bdc7ca9b967b9724983903489b8943b72c668178fb69f03e8774ec74f6a13782 \
+    --hash=sha256:d43421caca0ef8a672874405fe63c722b0333e3c22c41648c6df60f21bab2b6b
 tomli==2.0.1 ; python_version >= "3.9" and python_version < "3.11" \
     --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
     --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
