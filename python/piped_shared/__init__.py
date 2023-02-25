@@ -63,6 +63,7 @@ class Config(pydantic.BaseModel):
     codespell_ignore: typing.Optional[str] = None
     default_sessions: list[str]
     dep_locks: list[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
+    docs_copy_dirs: dict[pathlib.Path, pathlib.Path] = pydantic.Field(default_factory=dict)
     extra_test_installs: list[str] = pydantic.Field(default_factory=list)
     github_actions: typing.Union[dict[str, ConfigT], list[str]] = pydantic.Field(
         default_factory=lambda: ["resync-piped"]

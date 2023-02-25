@@ -54,6 +54,7 @@ import datetime
 import itertools
 import pathlib
 import re
+import shutil
 import typing
 from collections import abc as collections
 
@@ -422,6 +423,14 @@ def generate_docs(session: nox.Session) -> None:
     _install_deps(session, names=["docs"])
     output_directory = _try_find_option(session, "-o", "--output") or "./site"
     session.run("mkdocs", "build", "-d", output_directory)
+
+    for source, target in _config.docs_copy_dirs.items():
+        target = output_directory / target
+
+        if target.exists():
+            shutil.rmtree(target)
+
+        shutil.copytree(source, target)
 
 
 @_filtered_session(reuse_venv=True)
