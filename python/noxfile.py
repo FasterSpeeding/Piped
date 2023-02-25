@@ -54,6 +54,7 @@ import datetime
 import itertools
 import pathlib
 import re
+import shutil
 import typing
 from collections import abc as collections
 
@@ -423,6 +424,14 @@ def generate_docs(session: nox.Session) -> None:
     output_directory = _try_find_option(session, "-o", "--output") or "./site"
     session.run("mkdocs", "build", "-d", output_directory)
 
+    for source, target in _config.docs_copy_dirs.items():
+        target = output_directory / target
+
+        if target.exists():
+            shutil.rmtree(target)
+
+        shutil.copytree(source, target)
+
 
 @_filtered_session(reuse_venv=True)
 def flake8(session: nox.Session) -> None:
@@ -554,7 +563,8 @@ def reformat(session: nox.Session) -> None:
         session.run("isort", *_config.top_level_targets)
         session.run("pycln", *_config.top_level_targets)
 
-    tracked_files = list(_tracked_files(session))  # TODO: sometimes force all or more granular controls?
+    # TODO: only sometimes force all or more granular controls?
+    tracked_files = list(_tracked_files(session, force_all=True))
     py_files = [path for path in tracked_files if re.fullmatch(r".+\.pyi?$", path)]
 
     if py_files:
