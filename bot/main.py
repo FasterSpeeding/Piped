@@ -885,7 +885,7 @@ async def _apply_patch(
 
         else:
             await anyio.to_thread.run_sync(pathlib.Path(patch_path).unlink)
-            await run_process(output, ["git", "add", " --renormalize", "."], cwd=cwd, env=COMMIT_ENV)
+            await run_process(output, ["git", "add", "."], cwd=cwd, env=COMMIT_ENV)
             await run_process(output, ["git", "commit", "-am", workflow.name], cwd=cwd, env=COMMIT_ENV)
 
         break
