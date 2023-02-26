@@ -196,8 +196,11 @@ def cleanup(session: nox.Session) -> None:
         try:
             shutil.rmtree(str(path.absolute()))
 
+        except FileNotFoundError:
+            session.warn(f"[ SKIP ] '{raw_path}'")
+
         except Exception as exc:
-            session.warn(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")
+            session.error(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")  # noqa: TC400
 
         else:
             session.log(f"[  OK  ] Removed '{raw_path}'")
@@ -208,8 +211,11 @@ def cleanup(session: nox.Session) -> None:
         try:
             path.unlink()
 
+        except FileNotFoundError:
+            session.warn(f"[ SKIP ] '{raw_path}'")
+
         except Exception as exc:
-            session.warn(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")
+            session.error(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")  # noqa: TC400
 
         else:
             session.log(f"[  OK  ] Removed '{raw_path}'")
