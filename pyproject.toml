@@ -108,9 +108,19 @@ include = ["bot/main.py", "noxfile.py", "python"]
 # TODO: only the bot logic is 3.11+, everything else is 3.8+
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
-reportMissingModuleSource = "error"
-reportMissingTypeStubs = "error"
+reportMissingModuleSource = "error"  # Is only "warning" on strict mode.
 
+# Error code which are disabled even when general strict.
+reportShadowedImports = "error"
+reportCallInDefaultInitializer = "none"  # Ended up just complaining about cases where this was fine (e.g. timedeltas).
+reportImplicitStringConcatenation = "none"  # Conflicts with flake8 config.
+reportMissingSuperCall = "none"  # Way too strict (requires calls to `object.__init__`).
+reportPropertyTypeMismatch = "error"
+reportUninitializedInstanceVariable = "error"
+reportUnnecessaryTypeIgnoreComment = "error"
+reportUnusedCallResult = "none"  # Enforces doing `_ = ...`.
+
+# Error codes which lead to too many false-positives.
 reportIncompatibleMethodOverride = "warning"    # This relies on ordering for key-word only arguments
                                                 # which is more annoying than it's worth
 reportUnknownMemberType = "warning"             # This messes with instance checking generic objects
