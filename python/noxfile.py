@@ -90,6 +90,9 @@ def _dev_path(value: str, /) -> typing.Optional[pathlib.Path]:
 def _other_dep(name: str) -> str:
     return f"other-{name}"
 
+def _dev_path(name: str) -> str:
+    return f"{name}-extra"
+
 
 def _install_deps(
     session: nox.Session, *requirements_tuple: str, names: list[str] = [], first_call: bool = True
@@ -104,7 +107,7 @@ def _install_deps(
             path = _dev_path(name)
             assert path, "If this doesn't exist then path is missing the base requirement and is broken"
             requirements.extend(["-r", str(path)])
-            if path := _dev_path(_other_dep(name)):
+            if path := (_dev_path(_other_dep(name)) or _dev_path(_dep_extra)):
                 files = other_requirements.get(path.parent) or []
                 files.extend(["-r", path.name])
                 other_requirements[path.parent] = files
@@ -116,6 +119,7 @@ def _install_deps(
             requirements.extend(["-r", str(path)])
 
         other_path = path.with_name(_other_dep(path.name))
+        other_path = other_path if other_path.exists() else path.with_name(_dev_path(path.name))
         if other_path.exists():
             files = other_requirements.get(other_path.parent) or []
             files.extend(["-r", other_path.name])
