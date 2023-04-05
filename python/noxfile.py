@@ -558,7 +558,7 @@ def reformat(session: nox.Session) -> None:
     if _config.top_level_targets:
         session.run("black", *_config.top_level_targets)
         session.run("isort", *_config.top_level_targets)
-        session.run("pycln", *_config.top_level_targets)
+        session.run("pycln", *_config.top_level_targets, "--config", "pyproject.toml")
 
     tracked_files = list(_tracked_files(session))  # TODO: sometimes force all or more granular controls?
     py_files = [path for path in tracked_files if re.fullmatch(r".+\.pyi?$", path)]
