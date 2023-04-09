@@ -60,7 +60,6 @@ class Config(pydantic.BaseModel):
     bot_actions: set[str] = pydantic.Field(
         default_factory=lambda: {"Freeze PR dependency changes", "Resync piped", "Reformat PR code", "Run Rustfmt"}
     )
-    codespell_ignore: typing.Optional[str] = None
     default_sessions: list[str]
     dep_locks: list[pathlib.Path] = pydantic.Field(default_factory=lambda: [pathlib.Path("./dev-requirements/")])
     extra_test_installs: list[str] = pydantic.Field(default_factory=list)
@@ -88,12 +87,6 @@ class Config(pydantic.BaseModel):
             raise RuntimeError("This CI cannot run without project_name")
 
         return self.project_name
-
-    def codespell_ignore_args(self) -> list[str]:
-        if self.codespell_ignore:
-            return ["--ignore-regex", self.codespell_ignore]
-
-        return []
 
     @classmethod
     def read(cls, base_path: pathlib.Path, /) -> Self:
