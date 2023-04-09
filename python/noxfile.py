@@ -453,7 +453,7 @@ def spell_check(session: nox.Session) -> None:
     """Check this project's text-like files for common spelling mistakes."""
     _install_deps(session, names=["lint"])
     session.log("Running codespell")
-    session.run("codespell", *_tracked_files(session), *_config.codespell_ignore_args(), log=False)
+    session.run("codespell", *_tracked_files(session), log=False)
 
 
 @_filtered_session(reuse_venv=True)
