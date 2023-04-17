@@ -87,8 +87,8 @@ def _dev_path(value: str, /) -> typing.Optional[pathlib.Path]:
     return None
 
 
-def _other_dep(name: str) -> str:
-    return f"other-{name}"
+def _extra_deps(name: str) -> str:
+    return f"{name}-extra"
 
 
 def _install_deps(
@@ -104,7 +104,7 @@ def _install_deps(
             path = _dev_path(name)
             assert path, "If this doesn't exist then path is missing the base requirement and is broken"
             requirements.extend(["-r", str(path)])
-            if path := _dev_path(_other_dep(name)):
+            if path := _dev_path(_extra_deps(name)):
                 files = other_requirements.get(path.parent) or []
                 files.extend(["-r", path.name])
                 other_requirements[path.parent] = files
@@ -115,7 +115,7 @@ def _install_deps(
         if path.exists():
             requirements.extend(["-r", str(path)])
 
-        other_path = path.with_name(_other_dep(path.name))
+        other_path = path.with_name(_extra_deps(path.name))
         if other_path.exists():
             files = other_requirements.get(other_path.parent) or []
             files.extend(["-r", other_path.name])
