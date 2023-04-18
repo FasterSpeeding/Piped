@@ -113,9 +113,9 @@ cryptography==40.0.2 ; python_version >= "3.9" and python_version < "4.0" \
 distlib==0.3.6 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:14bad2d9b04d3a36127ac97f30b12a19268f211063d8f8ee4f47108896e11b46 \
     --hash=sha256:f35c4b692542ca110de7ef0bea44d73981caeb34ca0b9b6b2e6d7790dda8f80e
-fastapi==0.95.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:99d4fdb10e9dd9a24027ac1d0bd4b56702652056ca17a6c8721eec4ad2f14e18 \
-    --hash=sha256:daf73bbe844180200be7966f68e8ec9fd8be57079dff1bacb366db32729e6eb5
+fastapi==0.95.1 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:9569f0a381f8a457ec479d90fa01005cfddaae07546eb1f3fa035bc4797ae7d5 \
+    --hash=sha256:a870d443e5405982e1667dfe372663abf10754f246866056336d7f01c21dab07
 filelock==3.11.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:3618c0da67adcc0506b015fd11ef7faf1b493f0b40d87728e19986b536890c37 \
     --hash=sha256:f08a52314748335c6460fc8fe40cd5638b85001225db78c2aa01c8c0db83b318
