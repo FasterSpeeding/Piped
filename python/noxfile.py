@@ -427,7 +427,7 @@ def generate_docs(session: nox.Session) -> None:
     """Generate docs for this project using Mkdoc."""
     _install_deps(session, names=["docs"])
     output_directory = _try_find_option(session, "-o", "--output") or "./site"
-    session.run("mkdocs", "build", "-d", output_directory)
+    session.run("mkdocs", "build", "--strict", "-d", output_directory)
 
 
 @_filtered_session(reuse_venv=True)
