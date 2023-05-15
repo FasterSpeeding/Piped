@@ -94,9 +94,9 @@ csscompressor==0.9.5 ; python_version >= "3.9" and python_version < "4.0" \
 ghp-import==2.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619 \
     --hash=sha256:9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343
-griffe==0.27.4 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:088c25fb22f8d1f1add5d3b58a86a3969993181a36ca55b3fa33096a3f3b1a23 \
-    --hash=sha256:685350067286229e80a18b8989d6acbd43abdf8b763591221d19c56f4108549e
+griffe==0.27.5 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:15b48fc3cebfc1c1a1a2f6e8177f6644a4a54517322e08e224fdf671454b34d7 \
+    --hash=sha256:96fbc7a264bdb32b4da227bed6a16f2509e028a12d7471dbb48c2785bb01817f
 htmlmin2==0.1.13 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:75609f2a42e64f7ce57dbff28a39890363bde9e7e5885db633317efbdf8c79a2
 idna==3.4 ; python_version >= "3.9" and python_version < "4.0" \
@@ -176,9 +176,9 @@ mkdocs-autorefs==0.4.1 ; python_version >= "3.9" and python_version < "4.0" \
 mkdocs-material-extensions==1.1.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:9c003da71e2cc2493d910237448c672e00cefc800d3d6ae93d2fc69979e3bd93 \
     --hash=sha256:e41d9f38e4798b6617ad98ca8f7f1157b1e4385ac1459ca1e4ea219b556df945
-mkdocs-material==9.1.11 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:f5d473eb79d6640a5e668d4b2ab5b9de5e76ae0a0e2d864112df0cfe9016dc1d \
-    --hash=sha256:fbc86d50ec2cf34d40d5c4365780f290ceedde23f1a0704323b34e7f16b0c0dd
+mkdocs-material==9.1.12 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:68c57d95d10104179c8c3ce9a88ee9d2322a5145b3d0f1f38ff686253fb5ec98 \
+    --hash=sha256:d4ebe9b5031ce63a265c19fb5eab4d27ea4edadb05de206372e831b2b7570fb5
 mkdocs-minify-plugin==0.6.4 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:1906e9687c39ded7d1ca959c76c6e52da6a8d0765e3981ad9812d3a489f1ecdb \
     --hash=sha256:c0221053968a68418245228e04b0d5bc7e6b1a1940db721a52c7ec98d898242e
