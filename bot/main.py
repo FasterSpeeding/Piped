@@ -720,7 +720,7 @@ class _RunCheck:
         if exc:
             conclusion = "failure" if isinstance(exc, Exception) else "cancelled"
             output["title"] = "Error"
-            output["summary"] = str(exc)
+            output["summary"] = _censor(str(exc), self._filter_from_logs)
             self._output.write("\n")
             self._output.write("```python\n")
             traceback.print_exception(exc_cls, exc, traceback_value, file=self._output)
