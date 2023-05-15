@@ -238,18 +238,18 @@ smmap==5.0.0 ; python_version >= "3.9" and python_version < "4.0" \
 stdlib-list==0.8.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:2ae0712a55b68f3fbbc9e58d6fa1b646a062188f49745b495f94d3310a9fdd3e \
     --hash=sha256:a1e503719720d71e2ed70ed809b385c60cd3fb555ba7ec046b96360d30b16d9f
-stevedore==5.0.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:2c428d2338976279e8eb2196f7a94910960d9f7ba2f41f3988511e95ca447021 \
-    --hash=sha256:bd5a71ff5e5e5f5ea983880e4a1dd1bb47f8feebbb3d95b592398e2f02194771
+stevedore==5.1.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:8cc040628f3cea5d7128f2e76cf486b2251a4e543c7b938f58d9a377f6694a2d \
+    --hash=sha256:a54534acf9b89bc7ed264807013b505bf07f74dbe4bcfa37d32bd063870b087c
 toml==0.10.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b \
     --hash=sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f
 tomli==2.0.1 ; python_version >= "3.9" and python_version < "3.11" \
     --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
     --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
-tryceratops==2.0.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:352572e3a08a8138eb9eba14cafb74a54d4dd7c4ccc47b873f200039fc6f5aa9 \
-    --hash=sha256:c549f3a6d4d1917280e8896878d55d59a26046e17b3d5a65ef2b537af61bcbc3
+tryceratops==2.1.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:5546988f689d3488e6dbe2813b54b07ad6abaebc7d18932d153939d71857ec85 \
+    --hash=sha256:6d6a5b4ca69666c59c68a30fab898d540f91c64c2a8a385d2ea1ac9354893ad8
 typing-extensions==4.5.0 ; python_version >= "3.9" and python_version < "3.10" \
     --hash=sha256:5cb5f4a79139d699607b3ef622a1dedafa84e115ab0024e0d9c044a9479ca7cb \
     --hash=sha256:fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4

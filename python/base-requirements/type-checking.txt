@@ -34,12 +34,12 @@ mypy==1.3.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:ebc95f8386314272bbc817026f8ce8f4f0d2ef7ae44f947c4664efac9adec929 \
     --hash=sha256:f9dca1e257d4cc129517779226753dbefb4f2266c4eaad610fc15c6a7e14283e \
     --hash=sha256:faff86aa10c1aa4a10e1a301de160f3d8fc8703b88c7e98de46b531ff1276a9a
-nodeenv==1.7.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:27083a7b96a25f2f5e1d8cb4b6317ee8aeda3bdd121394e5ac54e498028a042e \
-    --hash=sha256:e0e7f7dfb85fc5394c6fe1e8fa98131a2473e04311a45afb6508f7cf1836fa2b
-pyright==1.1.307 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:6b360d2e018311bdf8acea73ef1f21bf0b5b502345aa94bc6763cf197b2e75b3 \
-    --hash=sha256:b7a8734fad4a2438b8bb0dfbe462f529c9d4eb31947bdae85b9b4e7a97ff6a49
+nodeenv==1.8.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:d51e0c37e64fbf47d017feac3145cdbb58836d7eee8c6f6d3b6880c5456227d2 \
+    --hash=sha256:df865724bb3c3adc86b3876fa209771517b0cfe596beff01a92700e0e8be4cec
+pyright==1.1.308 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:40a541d21000d256bbd076f4337fc93d4265a92c63f06e5bedf893d77afb234d \
+    --hash=sha256:7858a32d08555f8894931e2dc9571126cdc417e78e096f5be13e9418d8aed1e9
 setuptools==67.7.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:23aaf86b85ca52ceb801d32703f12d77517b2556af839621c641fca11287952b \
     --hash=sha256:f104fa03692a2602fa0fec6c6a9e63b6c8a968de13e17c026957dd1f53d80990
