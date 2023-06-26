@@ -79,9 +79,9 @@ packaging==23.1 ; python_version >= "3.9" and python_version < "4.0" \
 pathspec==0.11.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:2798de800fa92780e33acca925945e9a19a133b715067cf165b8866c15a31687 \
     --hash=sha256:d8af70af76652554bd134c22b3e8a1cc46ed7d91edcdd721ef1a0c51a84a5293
-platformdirs==3.5.3 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:0ade98a4895e87dc51d47151f7d2ec290365a585151d97b4d8d6312ed6132fed \
-    --hash=sha256:e48fabd87db8f3a7df7150a4a5ea22c546ee8bc39bc2473244730d4b56d2cc4e
+platformdirs==3.8.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:b0cabcb11063d21a0b261d557acb0a9d2126350e63b70cdf7db6347baea456dc \
+    --hash=sha256:ca9ed98ce73076ba72e092b23d3c93ea6c4e186b3f1c3dad6edd98ff6ffcca2e
 pre-commit-hooks==4.4.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:7011eed8e1a25cde94693da009cba76392194cecc2f3f06c51a44ea6ad6c2af9 \
     --hash=sha256:fc8837335476221ccccda3d176ed6ae29fe58753ce7e8b7863f5d0f987328fc6
@@ -167,9 +167,9 @@ ruamel-yaml-clib==0.2.7 ; platform_python_implementation == "CPython" and python
     --hash=sha256:f01da5790e95815eb5a8a138508c01c758e5f5bc0ce4286c4f7028b8dd7ac3d0 \
     --hash=sha256:f34019dced51047d6f70cb9383b2ae2853b7fc4dce65129a5acd49f4f9256646 \
     --hash=sha256:f6d3d39611ac2e4f62c3128a9eed45f19a6608670c5a2f4f07f24e8de3441d38
-ruamel-yaml==0.17.31 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:098ed1eb6d338a684891a72380277c1e6fc4d4ae0e120de9a447275056dda335 \
-    --hash=sha256:3cf153f0047ced526e723097ac615d3009371779432e304dbd5596b6f3a4c777
+ruamel-yaml==0.17.32 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:23cd2ed620231677564646b0c6a89d138b6822a0d78656df7abda5879ec4f447 \
+    --hash=sha256:ec939063761914e14542972a5cba6d33c23b0859ab6342f61cf070cfc600efc2
 sort-all==1.2.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:1eb6a91cc61f36bd48d697f687377c6eb67b4ef98e2850fc65130502bae945d8 \
     --hash=sha256:ccc0fc7191a486ff826cb4d21c2b67d93f9d9cb5eb72e8d572d017d50d4eca88
