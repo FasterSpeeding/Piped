@@ -94,9 +94,9 @@ csscompressor==0.9.5 ; python_version >= "3.9" and python_version < "4.0" \
 ghp-import==2.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:8337dd7b50877f163d4c0289bc1f1c7f127550241988d568c1db512c4324a619 \
     --hash=sha256:9c535c4c61193c2df8871222567d7fd7e5014d835f97dc7b7439069e2413d343
-griffe==0.29.1 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:460188b719e363019d0d0f4bf2d9f05cf2df24960b42a4138a1524a17b100d9b \
-    --hash=sha256:f9edae6b9bb2eb205bebbdd0512a162713b9342ff6e32dc596d95ff64aa71c1f
+griffe==0.31.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:b51f6e9541ce9cb9c08580917971cd4b76b6d88e2469822d612b614fb96be776 \
+    --hash=sha256:de6e659487497c0e73459d370f40bfda7d6f9f6cec43a687de8a110ec72a2c4f
 htmlmin2==0.1.13 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:75609f2a42e64f7ce57dbff28a39890363bde9e7e5885db633317efbdf8c79a2
 idna==3.4 ; python_version >= "3.9" and python_version < "4.0" \
@@ -176,9 +176,9 @@ mkdocs-autorefs==0.4.1 ; python_version >= "3.9" and python_version < "4.0" \
 mkdocs-material-extensions==1.1.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:9c003da71e2cc2493d910237448c672e00cefc800d3d6ae93d2fc69979e3bd93 \
     --hash=sha256:e41d9f38e4798b6617ad98ca8f7f1157b1e4385ac1459ca1e4ea219b556df945
-mkdocs-material==9.1.17 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:5a076524625047bf4ee4da1509ec90626f8fce915839dc07bdae6b59ff4f36f9 \
-    --hash=sha256:809ed68427fbab0330b0b07bc93175824c3b98f4187060a5c7b46aa8ae398a75
+mkdocs-material==9.1.18 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:5bcf8fb79ac2f253c0ffe93fa181cba87718c6438f459dc4180ac7418cc9a450 \
+    --hash=sha256:981dd39979723d4cda7cfc77bbbe5e54922d5761a7af23fb8ba9edb52f114b13
 mkdocs-minify-plugin==0.6.4 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:1906e9687c39ded7d1ca959c76c6e52da6a8d0765e3981ad9812d3a489f1ecdb \
     --hash=sha256:c0221053968a68418245228e04b0d5bc7e6b1a1940db721a52c7ec98d898242e
@@ -345,9 +345,9 @@ requests==2.31.0 ; python_version >= "3.9" and python_version < "4.0" \
 six==1.16.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
-typing-extensions==4.6.3 ; python_version >= "3.9" and python_version < "3.10" \
-    --hash=sha256:88a4153d8505aabbb4e13aacb7c486c2b4a33ca3b3f807914a9b4c844c471c26 \
-    --hash=sha256:d91d5919357fe7f681a9f2b5b4cb2a5f1ef0a1e9f59c4d8ff0d3491e05c0ffd5
+typing-extensions==4.7.1 ; python_version >= "3.9" and python_version < "3.10" \
+    --hash=sha256:440d5dd3af93b060174bf433bccd69b0babc3b15b1a8dca43789fd7f61514b36 \
+    --hash=sha256:b75ddc264f0ba5615db7ba217daeb99701ad295353c45f9e95963337ceeeffb2
 urllib3==2.0.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:48e7fafa40319d358848e1bc6809b208340fafe2096f1725d05d67443d0483d1 \
     --hash=sha256:bee28b5e56addb8226c96f7f13ac28cb4c301dd5ea8a6ca179c0b9835e032825
