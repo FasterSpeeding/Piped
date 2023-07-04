@@ -1,4 +1,4 @@
-FROM python:3.11.3
+FROM python:3.11.4
 
 ARG app_id
 ARG client_secret
