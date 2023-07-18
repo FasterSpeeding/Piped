@@ -96,7 +96,7 @@ class Config(pydantic.BaseModel):
                 continue
 
             with path.open("rb") as file:
-                return cls.parse_obj(extractor(tomllib.load(file)))
+                return cls.model_validate(extractor(tomllib.load(file)))
 
         raise RuntimeError("Couldn't find config file")
 
