@@ -274,9 +274,9 @@ jeepney==0.8.0 ; python_version >= "3.9" and python_version < "4.0" and sys_plat
 jsonschema-specifications==2023.6.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:3d2b82663aff01815f744bb5c7887e2121a63399b49b104a3c96145474d091d7 \
     --hash=sha256:ca1c4dd059a9e7b34101cf5b3ab7ff1d18b139f35950d598d629837ef66e8f28
-jsonschema==4.18.3 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:64b7104d72efe856bea49ca4af37a14a9eba31b40bb7238179f3803130fd34d9 \
-    --hash=sha256:aab78b34c2de001c6b692232f08c21a97b436fe18e0b817bf0511046924fceef
+jsonschema==4.18.4 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:971be834317c22daaa9132340a51c01b50910724082c2c1a2ac87eeec153a3fe \
+    --hash=sha256:fb3642735399fa958c0d2aad7057901554596c63349f4f6b283c493cf692a25d
 keyring==23.13.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:771ed2a91909389ed6148631de678f82ddc73737d85a927f382a8a1b157898cd \
     --hash=sha256:ba2e15a9b35e21908d0aaf4e0a47acc52d6ae33444df0da2b49d41a46ef6d678
@@ -485,9 +485,9 @@ rapidfuzz==2.15.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:f976e76ac72f650790b3a5402431612175b2ac0363179446285cb3c901136ca9 \
     --hash=sha256:fc0bc259ebe3b93e7ce9df50b3d00e7345335d35acbd735163b7c4b1957074d3 \
     --hash=sha256:fc4528b7736e5c30bc954022c2cf410889abc19504a023abadbc59cdf9f37cae
-referencing==0.29.1 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:90cb53782d550ba28d2166ef3f55731f38397def8832baac5d45235f1995e35e \
-    --hash=sha256:d3c8f323ee1480095da44d55917cfb8278d73d6b4d5f677e3e40eb21314ac67f
+referencing==0.29.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:7e059500cac23dc5d7d11687291ab60ba1e77ccdf9739b039c1177c06304e98c \
+    --hash=sha256:ebd2f5fe533001edaca3eae6caf09de0d70b6a3c78ebe34c98d26526e6fad3aa
 requests-toolbelt==1.0.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:7681a0a3d047012b5bdc0ee37d7f8f07ebe76ab08caeccfc3921ce23c88d5bc6 \
     --hash=sha256:cccfdd665f0a24fcf4726e690f65639d272bb0637b9b92dfd91a5568ccf6bd06
