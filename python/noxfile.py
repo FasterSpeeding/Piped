@@ -369,12 +369,9 @@ def freeze_locks(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, names=["freeze-locks"])
     constraints_lock = pathlib.Path("./dev-requirements/constraints.txt")
+
     project = _pyproject_toml()
-
-    if not project:
-        raise RuntimeError("Missing pyproject.toml")
-
-    project = project.get("project") or {}
+    project = project.get("project") or {} if project else {}
     deps: list[str] = project.get("dependencies") or []
     if optional := project.get("optional-dependencies"):
         deps.extend(itertools.chain(*optional.values()))
