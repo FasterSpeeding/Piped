@@ -280,7 +280,7 @@ _ACTIONS: dict[str, _Action] = {
     ),
     "reformat": _Action(),
     "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
-    "resync-piped": _Action(defaults={"FILTERS": ["piped", "pyproject.toml"]}),
+    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
     "rustfmt": _Action(),
     "type-check": _Action(),
     "update-licence": _Action(),
