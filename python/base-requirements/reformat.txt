@@ -82,9 +82,9 @@ platformdirs==3.10.0 ; python_version >= "3.9" and python_version < "4.0" \
 pre-commit-hooks==4.4.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:7011eed8e1a25cde94693da009cba76392194cecc2f3f06c51a44ea6ad6c2af9 \
     --hash=sha256:fc8837335476221ccccda3d176ed6ae29fe58753ce7e8b7863f5d0f987328fc6
-pycln==2.2.0 ; python_version >= "3.9" and python_version < "4" \
-    --hash=sha256:8f2d8be5781de0114cf37d2327c52268093f9ee87712a7fbabc982a17e03cce2 \
-    --hash=sha256:e1962987979a7365e113ac0728978c36e0d1f6d4c17b3d26a6d33bc2320efb7f
+pycln==2.2.1 ; python_version >= "3.9" and python_version < "4" \
+    --hash=sha256:560ed5dec5e44d3250ed1cd6b080080c4022c24dfd2840902113b42d31775bd0 \
+    --hash=sha256:686f55b511d11d7f114dcbe0c7d1512443441e1dd00a74ee9ba6b6c1b775c9e2
 pyyaml==6.0.1 ; python_version >= "3.9" and python_version < "4" \
     --hash=sha256:062582fca9fabdd2c8b54a3ef1c978d786e0f6b3a1510e0ac93ef59e0ddae2bc \
     --hash=sha256:1635fd110e8d85d55237ab316b5b011de701ea0f29d07611174a1b42f1444741 \
