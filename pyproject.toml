@@ -34,7 +34,7 @@ max-function-length = 100
 max-line-length = 130
 show_source = false
 statistics = false
-ignore = [
+ignore = [ 
     "A003",    # class attribute is shadowing a builtin
     "CFQ004",  # Function has too many returns.
     "CFQ002",  # Function has too many arguments.
