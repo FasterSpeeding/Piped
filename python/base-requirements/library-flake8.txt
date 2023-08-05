@@ -251,9 +251,9 @@ mdurl==0.1.2 ; python_version >= "3.9" and python_version < "4.0" \
 mistletoe==1.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:6a72aebf783bf546cb7c7a85835d1492e3a0be01584aafe021f46118c27f882d \
     --hash=sha256:c17464a4a20d030524123a9c9ebd6a70e41c5ad96b6e6b54ac48cf07ca3add72
-more-itertools==10.0.0 ; python_version == "3.9" \
-    --hash=sha256:928d514ffd22b5b0a8fce326d57f423a55d2ff783b093bab217eda71e732330f \
-    --hash=sha256:cd65437d7c4b615ab81c0640c0480bc29a550ea032891977681efd28344d51e1
+more-itertools==10.1.0 ; python_version == "3.9" \
+    --hash=sha256:626c369fa0eb37bac0291bce8259b332fd59ac792fa5497b59837309cd5b114a \
+    --hash=sha256:64e0735fcfdc6f3464ea133afe8ea4483b1c5fe3a3d69852e6503b43a0b222e6
 mr-proper==0.0.7 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:03b517b19e617537f711ce418b125e5f2efd82ec881539cdee83195c78c14a02 \
     --hash=sha256:74a1b60240c46f10ba518707ef72811a01e5c270da0a78b5dd2dd923d99fdb14
@@ -334,9 +334,9 @@ pyyaml==6.0.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:fca0e3a251908a499833aa292323f32437106001d436eca0e6e7833256674585 \
     --hash=sha256:fd1592b3fdf65fff2ad0004b5e363300ef59ced41c2e6b3a99d4089fa8c5435d \
     --hash=sha256:fd66fc5d0da6d9815ba2cebeb4205f95818ff4b79c3ebe268e75d961704af52f
-rich==13.5.1 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:881653ee7037803559d8eae98f145e0a4c4b0ec3ff0300d2cc8d479c71fc6819 \
-    --hash=sha256:b97381b204a206e1be618f5e1215a57174a1a7732490b3bf6668cf41d30bc72d
+rich==13.5.2 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:146a90b3b6b47cac4a73c12866a499e9817426423f57c5a66949c086191a8808 \
+    --hash=sha256:fb9d6c0a0f643c99eed3875b5377a184132ba9be4d61516a55273d3554d75a39
 setuptools==68.0.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:11e52c67415a381d10d6b462ced9cfb97066179f0e871399e006c4ab101fc85f \
     --hash=sha256:baf1fdb41c6da4cd2eae722e135500da913332ab3f2f5c7d33af9b492acb5235
