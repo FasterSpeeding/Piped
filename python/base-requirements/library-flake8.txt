@@ -4,9 +4,9 @@
 #
 #    pip-compile-cross-platform python/base-requirements/library-flake8.in --output-file python/base-requirements/library-flake8.txt --min-python-version 3.9
 #
-astatine==0.3.2 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:5511b1d8ad36284410c4bfa45353492ad19a4698f61f226aee90d446aa2e91ae \
-    --hash=sha256:63ce5c4c94b7fb5e21abf4ab20c0f2ac1f10237ec935dcf0041188b60fb2bdd1
+astatine==0.3.3 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:0c58a7844b5890ff16da07dbfeb187341d8324cb4378940f89d795cbebebce08 \
+    --hash=sha256:6d8c914f01fbea252cb8f31563f2e766a9ab03c02b9bcc37d18f7d9138828401
 astor==0.8.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:070a54e890cefb5b3739d19f30f5a5ec840ffc9c50ffa7d23cc9fc1a38ebbfc5 \
     --hash=sha256:6a6effda93f4e1ce9f618779b2dd1d9d84f1e32812c23a29b3fff6fd7f63fa5e
@@ -337,9 +337,9 @@ pyyaml==6.0.1 ; python_version >= "3.9" and python_version < "4.0" \
 rich==13.5.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:146a90b3b6b47cac4a73c12866a499e9817426423f57c5a66949c086191a8808 \
     --hash=sha256:fb9d6c0a0f643c99eed3875b5377a184132ba9be4d61516a55273d3554d75a39
-setuptools==68.0.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:11e52c67415a381d10d6b462ced9cfb97066179f0e871399e006c4ab101fc85f \
-    --hash=sha256:baf1fdb41c6da4cd2eae722e135500da913332ab3f2f5c7d33af9b492acb5235
+setuptools==68.1.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:d59c97e7b774979a5ccb96388efc9eb65518004537e85d52e81eaee89ab6dd91 \
+    --hash=sha256:e13e1b0bc760e9b0127eda042845999b2f913e12437046e663b833aa96d89715
 six==1.16.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926 \
     --hash=sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254
