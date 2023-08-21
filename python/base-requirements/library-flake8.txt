@@ -248,9 +248,9 @@ mccabe==0.7.0 ; python_version >= "3.9" and python_version < "4.0" \
 mdurl==0.1.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8 \
     --hash=sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba
-mistletoe==1.1.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:6a72aebf783bf546cb7c7a85835d1492e3a0be01584aafe021f46118c27f882d \
-    --hash=sha256:c17464a4a20d030524123a9c9ebd6a70e41c5ad96b6e6b54ac48cf07ca3add72
+mistletoe==1.2.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:3ad979a94207792456573604f57df36a22fb1a4c81d7f9d1b9f3eca88608a0ab \
+    --hash=sha256:637a87afacb5eb033b4e47faa059f6c45386e911c7f3defff4e854e061759294
 more-itertools==10.1.0 ; python_version == "3.9" \
     --hash=sha256:626c369fa0eb37bac0291bce8259b332fd59ac792fa5497b59837309cd5b114a \
     --hash=sha256:64e0735fcfdc6f3464ea133afe8ea4483b1c5fe3a3d69852e6503b43a0b222e6
