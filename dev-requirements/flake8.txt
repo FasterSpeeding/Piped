@@ -113,9 +113,9 @@ flake8-printf-formatting==1.1.2 ; python_version >= "3.9" and python_version < "
 flake8-raise==0.0.5 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0a9890e16b851402d9b0d4fafe6c34890eab73835a2c2079c3850a25be575623 \
     --hash=sha256:df26e5c542a58c8f8786d978e18ad7e54126a0ef5c6241c35dafaca7e2bbb808
-flake8-simplify==0.20.0 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:599a47824726c93fadcf0274e569daed45052e38cd906360d9080eaa3bd76d61 \
-    --hash=sha256:7b8796bbea8aed45f56621c389d0556cc86f0afa5d992581139451240a8fbeca
+flake8-simplify==0.21.0 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:439391e762a9370b371208add0b5c5c40c3d25a98e1f5421d263215d08194183 \
+    --hash=sha256:c95ff1dcc1de5949af47e0087cbf1164445881131b15bcd7a71252670f492f4d
 flake8-use-fstring==1.4 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:6550bf722585eb97dffa8343b0f1c372101f5c4ab5b07ebf0edd1c79880cdd39
 flake8-use-pathlib==0.3.0 ; python_version >= "3.9" and python_version < "4.0" \
