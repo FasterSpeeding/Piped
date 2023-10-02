@@ -38,9 +38,9 @@ mypy==1.5.1 ; python_version >= "3.9" and python_version < "4.0" \
 nodeenv==1.8.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:d51e0c37e64fbf47d017feac3145cdbb58836d7eee8c6f6d3b6880c5456227d2 \
     --hash=sha256:df865724bb3c3adc86b3876fa209771517b0cfe596beff01a92700e0e8be4cec
-pyright==1.1.327 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:3462cda239e9140276238bbdbd0b59d77406f1c2e14d8cb8c20c8e25639c6b3c \
-    --hash=sha256:ba74148ad64f22020dbbed6781c4bdb38ecb8a7ca90dc3c87a4f08d1c0e11592
+pyright==1.1.329 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:5baf82ff5ecb8c8b3ac400e8536348efbde0b94a09d83d5b440c0d143fd151a8 \
+    --hash=sha256:c16f88a7ac14ddd0513e62fec56d69c37e3c6b412161ad16aa23a9c7e3dabaf4
 setuptools==68.2.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:4ac1475276d2f1c48684874089fefcd83bd7162ddaafb81fac866ba0db282a87 \
     --hash=sha256:b454a35605876da60632df1a60f736524eb73cc47bbc9f3f1ef1b644de74fd2a
