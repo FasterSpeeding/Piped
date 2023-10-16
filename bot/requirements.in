@@ -7,4 +7,4 @@ python-dateutil==2.8.2
 python-dotenv==1.0.0
 tomli==2.0.1
 uvicorn==0.23.2
-uvloop==0.17; platform_system != "Windows"
+uvloop==0.18.0; platform_system != "Windows"
