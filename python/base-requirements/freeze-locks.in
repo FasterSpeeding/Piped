@@ -1,1 +1,3 @@
 pip-compile-cross-platform>=1.1
+# poetry-plugin-export needs to be temporarily added as a dep to work around a pip compile bug.
+poetry-plugin-export
