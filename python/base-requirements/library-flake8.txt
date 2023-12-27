@@ -126,6 +126,9 @@ flake8-implicit-str-concat==0.4.0 ; python_version >= "3.9" and python_version <
 flake8-isort==6.1.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0fec4dc3a15aefbdbe4012e51d5531a2eb5fa8b981cdfbc882296a59b54ede12 \
     --hash=sha256:c1f82f3cf06a80c13e1d09bfae460e9666255d5c780b859f19f8318d420370b3
+flake8-mock==0.4 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:4a05bac5f66e77661994880dd050705132d19000f17d928a894dfd92d55d4867 \
+    --hash=sha256:a67c3d22b2e7873c72d3f01d3eb5d06405cd09dc1abea74a0bf6fcf29095e8e6
 flake8-mutable==1.2.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:38fd9dadcbcda6550a916197bc40ed76908119dabb37fbcca30873666c31d2d5 \
     --hash=sha256:ee9b77111b867d845177bbc289d87d541445ffcc6029a0c5c65865b42b18c6a6
