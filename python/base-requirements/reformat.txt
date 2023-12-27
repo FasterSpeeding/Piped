@@ -4,7 +4,9 @@
 #
 #    pip-compile-cross-platform python/base-requirements/reformat.in --output-file python/base-requirements/reformat.txt --min-python-version 3.9
 #
-
+Warning: poetry-plugin-export will not be installed by default in a future version of Poetry.
+In order to avoid a breaking change and make your automation forward-compatible, please install poetry-plugin-export explicitly. See https://python-poetry.org/docs/plugins/#using-plugins for details on how to install a plugin.
+To disable this warning run 'poetry config warnings.export false'.
 black==23.12.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0808494f2b2df923ffc5723ed3c7b096bd76341f6213989759287611e9837d50 \
     --hash=sha256:1fa88a0f74e50e4487477bc0bb900c6781dbddfdfa32691e780bf854c3b4a47f \

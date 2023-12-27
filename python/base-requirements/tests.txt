@@ -4,7 +4,9 @@
 #
 #    pip-compile-cross-platform python/base-requirements/tests.in --output-file python/base-requirements/tests.txt --min-python-version 3.9
 #
-
+Warning: poetry-plugin-export will not be installed by default in a future version of Poetry.
+In order to avoid a breaking change and make your automation forward-compatible, please install poetry-plugin-export explicitly. See https://python-poetry.org/docs/plugins/#using-plugins for details on how to install a plugin.
+To disable this warning run 'poetry config warnings.export false'.
 colorama==0.4.6 ; python_version >= "3.9" and python_version < "4.0" and sys_platform == "win32" \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
