@@ -4,9 +4,6 @@
 #
 #    pip-compile-cross-platform python/base-requirements/library-flake8.in --output-file python/base-requirements/library-flake8.txt --min-python-version 3.9
 #
-Warning: poetry-plugin-export will not be installed by default in a future version of Poetry.
-In order to avoid a breaking change and make your automation forward-compatible, please install poetry-plugin-export explicitly. See https://python-poetry.org/docs/plugins/#using-plugins for details on how to install a plugin.
-To disable this warning run 'poetry config warnings.export false'.
 astatine==0.3.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:0c58a7844b5890ff16da07dbfeb187341d8324cb4378940f89d795cbebebce08 \
     --hash=sha256:6d8c914f01fbea252cb8f31563f2e766a9ab03c02b9bcc37d18f7d9138828401

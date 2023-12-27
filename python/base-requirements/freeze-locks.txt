@@ -4,9 +4,6 @@
 #
 #    pip-compile-cross-platform python/base-requirements/freeze-locks.in --output-file python/base-requirements/freeze-locks.txt --min-python-version 3.9
 #
-Warning: poetry-plugin-export will not be installed by default in a future version of Poetry.
-In order to avoid a breaking change and make your automation forward-compatible, please install poetry-plugin-export explicitly. See https://python-poetry.org/docs/plugins/#using-plugins for details on how to install a plugin.
-To disable this warning run 'poetry config warnings.export false'.
 attrs==23.1.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
     --hash=sha256:6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015
