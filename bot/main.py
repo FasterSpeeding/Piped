@@ -327,7 +327,8 @@ class _CachedReceive:
         if not self._data:
             return await self._receive()
 
-        data = self._data
+        # Bytearray does work here, just this isn't typed as allowing it.
+        data = typing.cast("bytes", self._data)
         self._data = None
         return {"type": "http.request", "body": data, "more_body": False}
 
