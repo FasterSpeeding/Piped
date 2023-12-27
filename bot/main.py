@@ -50,12 +50,12 @@ from collections import abc as collections
 from typing import Self
 
 import anyio
+import anyio.to_thread
 import dotenv
 import fastapi
 import httpx
 import jwt
 import piped_shared
-import anyio.to_thread
 import starlette.middleware
 from anyio.streams import memory as streams
 from asgiref import typing as asgiref
