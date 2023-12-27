@@ -4,9 +4,7 @@
 #
 #    pip-compile-cross-platform python/base-requirements/docs.in --output-file python/base-requirements/docs.txt --min-python-version 3.9
 #
-Warning: poetry-plugin-export will not be installed by default in a future version of Poetry.
-In order to avoid a breaking change and make your automation forward-compatible, please install poetry-plugin-export explicitly. See https://python-poetry.org/docs/plugins/#using-plugins for details on how to install a plugin.
-To disable this warning run 'poetry config warnings.export false'.
+
 babel==2.14.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:6919867db036398ba21eb5c7a0f6b28ab8cbc3ae7a73a44ebe34ae74a4e7d363 \
     --hash=sha256:efb1a25b7118e67ce3a259bed20545c29cb68be8ad2c784c83689981b7a57287
