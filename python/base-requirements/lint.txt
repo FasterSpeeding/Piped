@@ -4,13 +4,13 @@
 #
 #    pip-compile-cross-platform python/base-requirements/lint.in --output-file python/base-requirements/lint.txt --min-python-version 3.9
 #
-click==8.1.7 ; python_version >= "3.9" and python_version < "4" \
+click==8.1.7 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:ae74fb96c20a0277a1d615f1e4d73c8414f5a98db8b799a7931d1582f3390c28 \
     --hash=sha256:ca9853ad459e787e2192211578cc907e7594e294c7ccc834310722b41b9ca6de
 codespell==2.2.6 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:9ee9a3e5df0990604013ac2a9f22fa8e57669c827124a2e961fe8a1da4cacc07 \
     --hash=sha256:a8c65d8eb3faa03deabab6b3bbe798bea72e1799c7e9e955d57eca4096abcff9
-colorama==0.4.6 ; python_version >= "3.9" and python_version < "4" and platform_system == "Windows" \
+colorama==0.4.6 ; python_version >= "3.9" and python_version < "4.0" and platform_system == "Windows" \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
 pre-commit-hooks==4.5.0 ; python_version >= "3.9" and python_version < "4.0" \
@@ -70,9 +70,9 @@ ruamel-yaml-clib==0.2.8 ; platform_python_implementation == "CPython" and python
 ruamel-yaml==0.18.5 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:61917e3a35a569c1133a8f772e1226961bf5a1198bea7e23f06a0841dea1ab0e \
     --hash=sha256:a013ac02f99a69cdd6277d9664689eb1acba07069f912823177c5eced21a6ada
-slotscheck==0.17.1 ; python_version >= "3.9" and python_version < "4" \
-    --hash=sha256:214f822016dcc7d3f3b254d5f9b8c731eabdc0e8dd29d0253618f65eb6deade2 \
-    --hash=sha256:fdef47766530df994cf99dda484a15f212eaf6f2e2402026c39348f3f0e62827
+slotscheck==0.17.2 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:4f89d7b3668b645ba0518e497556ebf16eb3d5185092bf22b910959c740191b3 \
+    --hash=sha256:8cc1cc436fdf12d28f5a711d405696216127d3250f63ec28e0ef7954520952f2
 tomli==2.0.1 ; python_version >= "3.9" and python_version < "3.11" \
     --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
     --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
