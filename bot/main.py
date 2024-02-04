@@ -566,8 +566,8 @@ async def _on_shutdown():
     await app.state.index.close()
     await app.state.http.aclose()
 
-
-app = fastapi.FastAPI(middleware=[starlette.middleware.Middleware(AuthMiddleware)])
+auth = starlette.middleware.Middleware(AuthMiddleware)  # pyright: ignore[reportCallIssue, reportArgumentType]
+app = fastapi.FastAPI(middleware=[auth])
 app.router.on_startup.append(_on_startup)
 app.router.on_shutdown.append(_on_shutdown)
 
