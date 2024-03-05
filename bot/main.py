@@ -186,8 +186,15 @@ class _Tokens:
     __slots__ = ("_installation_tokens", "_private_key")
 
     def __init__(self) -> None:
+        private_key = os.environ["PRIVATE_KEY"].strip()
+        if private_key.startswith("-"):
+            private_key = private_key.encode()
+
+        else:
+            private_key = pathlib.Path(private_key).read_bytes()
+
         self._installation_tokens: dict[int, tuple[datetime.datetime, str]] = {}
-        self._private_key = jwt.jwk_from_pem(os.environ["PRIVATE_KEY"].encode())
+        self._private_key = jwt.jwk_from_pem(private_key)
 
     def app_token(self, *, on_gen: collections.Callable[[str], None] | None = None) -> str:
         """Generate an application app token.
