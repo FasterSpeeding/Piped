@@ -193,7 +193,6 @@ class _Tokens:
         else:
             private_key = pathlib.Path(private_key).read_bytes()
 
-
         self._installation_tokens: dict[int, tuple[datetime.datetime, str]] = {}
         self._private_key = jwt.jwk_from_pem(private_key)
 
