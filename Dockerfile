@@ -3,14 +3,10 @@ FROM python:3.12.2
 ARG app_id
 ARG client_secret
 ARG private_key
-ARG ssl_cert
-ARG ssl_key
 ARG webhook_secret
 ENV CLIENT_ID=$app_id
 ENV CLIENT_SECRET=$client_secret
 ENV PRIVATE_KEY=$private_key
-ENV SSL_CERT=$ssl_cet
-ENV SSL_KEY=$ssl_key
 ENV WEBHOOK_SECRET=$webhook_secret
 
 COPY ./bot/main.py ./main.py
