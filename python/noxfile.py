@@ -270,6 +270,7 @@ class _Action:
 
 _ACTIONS: dict[str, _Action] = {
     "clippy": _Action(),
+    "docker-publish": _Action(defaults={"DOCKER_DEPLOY_CONTEXT": "."}),
     "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _resync_filter}),
     "lint": _Action(),
     "pr-docs": _Action(),
