@@ -76,7 +76,7 @@ jobs:
         uses: docker/build-push-action@af5a7ed5ba88268d5278f7203fb52cd833f66d6e # v5.2.0
         with:
           context: {{ DOCKER_DEPLOY_CONTEXT }}
-          push: {% raw %}${{ github.event_name != "pull_request" }}{% endraw %}
+          push: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}
           tags: {% raw %}${{ steps.meta.outputs.tags }}{% endraw %}
           labels: {% raw %}${{ steps.meta.outputs.labels }}{% endraw %}
           cache-from: type=gha
@@ -88,7 +88,7 @@ jobs:
       # transparency data even for private images, pass --force to cosign below.
       # https://github.com/sigstore/cosign
       - name: Sign the published Docker image
-        if: {% raw %}${{ github.event_name != "pull_request" }}{% endraw %}
+        if: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
           TAGS: {% raw %}${{ steps.meta.outputs.tags }}{% endraw %}
