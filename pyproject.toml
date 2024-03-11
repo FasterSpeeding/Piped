@@ -92,6 +92,7 @@ default_py_ver = "3.11"
 nox_dep_path = "./python/base-requirements/nox.txt"
 
 [tool.piped.github_actions.freeze_for_pr]
+[tool.piped.github_actions.docker_publish]
 [tool.piped.github_actions.lint]
 [tool.piped.github_actions.reformat]
 [tool.piped.github_actions.resync_piped]
