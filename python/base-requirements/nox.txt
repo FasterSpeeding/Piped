@@ -175,9 +175,9 @@ pydantic-core==2.16.3 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:f651dd19363c632f4abe3480a7c87a9773be27cfe1341aef06e8759599454120 \
     --hash=sha256:fc4ad7f7ee1a13d9cb49d8198cd7d7e3aa93e425f371a68235f784e99741561f \
     --hash=sha256:fee427241c2d9fb7192b658190f9f5fd6dfe41e02f3c1489d2ec1e6a5ab1e04a
-pydantic==2.6.3 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:72c6034df47f46ccdf81869fddb81aade68056003900a8724a4f160700016a2a \
-    --hash=sha256:e07805c4c7f5c6826e33a1d4c9d47950d7eaf34868e2690f8594d2e30241f11f
+pydantic==2.6.4 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:b1704e0847db01817624a6b86766967f552dd9dbf3afba4004409f908dcc84e6 \
+    --hash=sha256:cc46fce86607580867bdc3361ad462bab9c222ef042d3da86f2fb333e1d916c5
 tomli==2.0.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
     --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
