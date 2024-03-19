@@ -34,6 +34,27 @@ max-function-length = 100
 max-line-length = 130
 show_source = false
 statistics = false
+ignore = [
+    "A003",    # class attribute is shadowing a builtin
+    "CFQ004",  # Function has too many returns.
+    "CFQ002",  # Function has too many arguments.
+    "E402",    # Module level import not at top of file (isn't compatible with our import style).
+    "IFS001",  # "use a oneliner here".
+    "N818",    # Exceptions should have an "Error" suffix in their name
+    "SIM105",  # Use contextlib.suppress
+    "TRY003",  # Avoid specifying long messages outside the exception class (this hits way too many std exceptions rn)
+    "T101",    # TO-DO comment detection (T102 is FIX-ME and T103 is XXX).
+    "W503",    # line break before binary operator.
+    "W504",    # line break before binary operator (again, I guess).
+    "S101",    # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+    "E203",    # whitespace before ':'
+    "E231",    # missing whitespace after ','
+]
+per-file-ignores = [
+    "noxfile.py: F401, F403",
+    "python/*.py: UNT001",
+    "python/noxfile.template.py: F401, F403"
+]
 
 [tool.isort]
 profile = "black"
