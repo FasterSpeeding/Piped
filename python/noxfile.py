@@ -433,7 +433,7 @@ def flake8(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined flake8 linters."""
     _install_deps(session, names=["flake8"])
     session.log("Running flake8")
-    session.run("pflake8", *_config.top_level_targets, log=False)
+    session.run("flake8", *_config.top_level_targets, log=False)
 
 
 @_filtered_session(reuse_venv=True, name="slot-check")
