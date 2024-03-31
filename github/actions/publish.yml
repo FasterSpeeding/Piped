@@ -10,7 +10,7 @@ jobs:{% if "release_docs" in config.github_actions %}
   publish-docs:
     uses: ./.github/workflows/release-docs.yml
 {% endif %}
-  pypi-publish:
+  publish:
     name: upload release to PyPI
     runs-on: ubuntu-latest
     environment: release
