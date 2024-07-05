@@ -512,7 +512,7 @@ class _IterWorkflows:
 
     async def __aiter__(self) -> collections.AsyncIterator[_Workflow]:
         timeout_at = time.time() + 5
-        waiting_on = {name: False for name in self._filter}
+        waiting_on = dict.fromkeys(self._filter, False)
 
         while waiting_on:
             if not any(waiting_on.values()):
