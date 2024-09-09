@@ -23,7 +23,7 @@ jobs:{% if "release_docs" in config.github_actions %}
           submodules: "true"
 
       - name: Set up Python {{ DEFAULT_PY_VER }}
-        uses: actions/setup-python@39cd14951b08e74b54015e9e001cdefcf80e669f
+        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
         with:
           python-version: "{{ DEFAULT_PY_VER }}"
 
