@@ -1,4 +1,4 @@
-FROM python:3.12.5
+FROM python:3.12.6
 
 COPY ./bot/main.py ./main.py
 COPY ./python ./shared
