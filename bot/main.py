@@ -824,7 +824,7 @@ async def _process_repo(
         async with run_ctx, _with_cloned(run_ctx.output, git_url, branch=head_ref) as temp_dir_path:
             config = await piped_shared.Config.read_async(temp_dir_path)
             if not config.bot_actions:
-                _LOGGER.warn("Received event from %s repo with no bot_wait_for", full_name)
+                _LOGGER.warning("Received event from %s repo with no bot_wait_for", full_name)
                 return
 
             await run_ctx.mark_running()
