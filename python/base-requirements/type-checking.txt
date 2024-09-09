@@ -38,9 +38,9 @@ mypy==1.11.2 ; python_version >= "3.9" and python_version < "4.0" \
 nodeenv==1.9.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f \
     --hash=sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9
-pyright==1.1.378 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:78a043be2876d12d0af101d667e92c7734f3ebb9db71dccc2c220e7e7eb89ca2 \
-    --hash=sha256:8853776138b01bc284da07ac481235be7cc89d3176b073d2dba73636cb95be79
+pyright==1.1.379 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:01954811ac71db8646f50de1577576dc275ffb891a9e7324350e676cf6df323f \
+    --hash=sha256:6f426cb6443786fa966b930c23ad1941c8cb9fe672e4589daea8d80bb34193ea
 tomli==2.0.1 ; python_version >= "3.9" and python_version < "3.11" \
     --hash=sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc \
     --hash=sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f
