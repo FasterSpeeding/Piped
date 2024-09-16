@@ -277,7 +277,11 @@ _ACTIONS: dict[str, _Action] = {
     "publish": _Action(),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
-        defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]", "REQUIRES_RUST": ""},
+        defaults={
+            "CODECLIMATE_TOKEN": "",
+            "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
+            "REQUIRES_RUST": "",
+        },
     ),
     "reformat": _Action(),
     "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
