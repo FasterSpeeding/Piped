@@ -277,17 +277,21 @@ _ACTIONS: dict[str, _Action] = {
     "publish": _Action(),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
-        defaults={"CODECLIMATE_TOKEN": "", "OSES": "[ubuntu-latest, macos-latest, windows-latest]"},
+        defaults={
+            "CODECLIMATE_TOKEN": "",
+            "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
+            "REQUIRES_RUST": "",
+        },
     ),
     "reformat": _Action(),
     "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
     "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
     "rustfmt": _Action(),
-    "type-check": _Action(),
+    "type-check": _Action(defaults={"REQUIRES_RUST": ""}),
     "update-licence": _Action(),
     "upgrade-locks": _Action(),
     "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _verify_filter}),
-    "verify-types": _Action(),
+    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}),
 }
 
 
