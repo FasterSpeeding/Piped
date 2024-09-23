@@ -77,9 +77,9 @@ packaging==24.1 ; python_version >= "3.9" and python_version < "4.0" \
 pathspec==0.12.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:a0d503e138a4c123b27490a4f7beda6a01c6f288df0e4a8b79c7eb0dc7b4cc08 \
     --hash=sha256:a482d51503a1ab33b1c67a6c3813a26953dbdc71c31dacaef9a838c4e29f5712
-platformdirs==4.3.3 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:50a5450e2e84f44539718293cbb1da0a0885c9d14adf21b77bae4e66fc99d9b5 \
-    --hash=sha256:d4e0b7d8ec176b341fb03cb11ca12d0276faa8c485f9cd218f613840463fc2c0
+platformdirs==4.3.6 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:357fb2acbc885b0419afd3ce3ed34564c13c9b95c89360cd9563f73aa5e2b907 \
+    --hash=sha256:73e575e1408ab8103900836b97580d5307456908a03e92031bab39e4554cc3fb
 pre-commit-hooks==4.6.0 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:a69199e6a2d45ec59c1020a81ca1549abddc2afb798276d9a0d951752d6abbfe \
     --hash=sha256:eb1f43ee67869cd41b4c59017fad4a0f9d4d61201d163f2135535aaf65035a2b
