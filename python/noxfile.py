@@ -358,6 +358,7 @@ def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
         target.unlink(missing_ok=True)
         session.run(
             "pip-compile-cross-platform",
+            "--generate-hashes",
             "-o",
             str(target),
             "--min-python-version",
