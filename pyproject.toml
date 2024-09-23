@@ -49,6 +49,7 @@ ignore = [
     "S101",    # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
     "E203",    # whitespace before ':'
     "E231",    # missing whitespace after ','
+    "S113",    # Call to httpx without timeout (this defaults to 5 seconds which is fine)
 ]
 per-file-ignores = [
     "noxfile.py: F401, F403",
