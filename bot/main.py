@@ -66,12 +66,13 @@ if sys.version_info < (3, 11):
 
 _LOGGER = logging.getLogger("piped.bot")
 _LOGGER.setLevel("INFO")
+_HTTP_TIMEOUT = datetime.timedelta(minutes=10)
 
 dotenv.load_dotenv()
 
 _username = os.environ.get("CLIENT_NAME", default="always-on-duty") + "[bot]"
 
-with httpx.Client() as client:
+with httpx.Client(timeout=_HTTP_TIMEOUT) as client:
     _user_id = int(client.get(f"https://api.github.com/users/{_username}").json()["id"])
 
 APP_ID = os.environ["APP_ID"]
@@ -561,7 +562,7 @@ class _IterWorkflows:
 
 
 async def _on_startup():
-    app.state.http = httpx.AsyncClient()
+    app.state.http = httpx.AsyncClient(timeout=_HTTP_TIMEOUT)
     app.state.index = _ProcessingIndex()
     app.state.tokens = _Tokens()
     app.state.workflows = _WorkflowDispatch()
