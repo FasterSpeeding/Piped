@@ -80,7 +80,7 @@ jobs:
           tags: {% raw %}${{ steps.meta.outputs.tags }}{% endraw %}
           labels: {% raw %}${{ steps.meta.outputs.labels }}{% endraw %}
           cache-from: type=gha
-          cache-to: type=gha,mode=max{% if SIGN_IMAGES %}
+          cache-to: type=gha,mode=max{% if SIGN_IMAGES.lower() == "true" %}
 
       # Sign the resulting Docker image digest except on PRs.
       # This will only write to the public Rekor transparency log when the Docker
