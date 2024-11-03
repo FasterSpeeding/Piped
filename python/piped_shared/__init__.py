@@ -50,7 +50,7 @@ except ImportError:
 if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
-ConfigEntryT = typing.Union[dict[str, str], list[str], str, None, bool]
+ConfigEntryT = typing.Union[dict[str, str], list[str], str, None]
 ConfigT = dict[str, ConfigEntryT]
 
 
