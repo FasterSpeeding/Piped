@@ -43,12 +43,12 @@ mypy==1.13.0 ; python_version >= "3.9" and python_version < "4.0" \
 nodeenv==1.9.1 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:6ec12890a2dab7946721edbfbcd91f3319c6ccc9aec47be7c7e6b7011ee6645f \
     --hash=sha256:ba11c9782d29c27c70ffbdda2d7415098754709be8a7056d79a737cd901155c9
-pyright==1.1.387 ; python_version >= "3.9" and python_version < "4.0" \
-    --hash=sha256:577de60224f7fe36505d5b181231e3a395d427b7873be0bbcaa962a29ea93a60 \
-    --hash=sha256:6a1f495a261a72e12ad17e20d1ae3df4511223c773b19407cfa006229b1b08a5
-tomli==2.0.2 ; python_version >= "3.9" and python_version < "3.11" \
-    --hash=sha256:2ebe24485c53d303f690b0ec092806a085f07af5a5aa1464f3931eec36caaa38 \
-    --hash=sha256:d46d457a85337051c36524bc5349dd91b1877838e2979ac5ced3e710ed8a60ed
+pyright==1.1.389 ; python_version >= "3.9" and python_version < "4.0" \
+    --hash=sha256:41e9620bba9254406dc1f621a88ceab5a88af4c826feb4f614d95691ed243a60 \
+    --hash=sha256:716bf8cc174ab8b4dcf6828c3298cac05c5ed775dda9910106a5dcfe4c7fe220
+tomli==2.1.0 ; python_version >= "3.9" and python_version < "3.11" \
+    --hash=sha256:3f646cae2aec94e17d04973e4249548320197cfabdf130015d023de4b74d8ab8 \
+    --hash=sha256:a5c57c3d1c56f5ccdf89f6523458f60ef716e210fc47c4cfb188c5ba473e0391
 typing-extensions==4.12.2 ; python_version >= "3.9" and python_version < "4.0" \
     --hash=sha256:04e5ca0351e0f3f85c6853954072df659d0d13fac324d0072316b67d7794700d \
     --hash=sha256:1a7ead55c7e559dd4dee8856e3a88b41225abfe1ce8df57b7c13915fe121ffb8
