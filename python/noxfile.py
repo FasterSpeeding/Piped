@@ -54,12 +54,12 @@ import datetime
 import itertools
 import pathlib
 import re
+import tomllib
 import typing
 from collections import abc as collections
 
 import nox
 import piped_shared
-import tomllib
 
 _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
 
@@ -67,7 +67,6 @@ _config = piped_shared.Config.read(pathlib.Path("./"))
 nox.options.sessions = _config.default_sessions
 _DEPS_DIR = pathlib.Path("./dev-requirements")
 _SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
-
 
 
 def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collections.Iterable[str]:
@@ -249,11 +248,9 @@ if _config.dep_locks:
 def copy_actions(session: nox.Session) -> None:
     """Copy over the github actions from Piped without updating the git reference."""
     _install_deps(session, "templating")
-    env = {
-        "RESYNC_FILTER": ",".join(_resync_filter),
-        "VERIFY_FILTER": ",".join(_verify_filter)
-    }
-    session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"), env=env,)
+    env = {"RESYNC_FILTER": ",".join(_resync_filter), "VERIFY_FILTER": ",".join(_verify_filter)}
+    session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"), env=env)
+
 
 def _pyproject_toml() -> dict[str, typing.Any] | None:
     try:

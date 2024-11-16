@@ -38,10 +38,9 @@ import dataclasses
 import enum
 import pathlib
 import re
+import tomllib
 import typing
 from collections import abc as collections
-import tomllib
-
 from typing import Self
 
 _T = typing.TypeVar("_T")
@@ -64,7 +63,14 @@ _NoValue = typing.Literal[_NoValueEnum.VALUE]
 _NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
 
 
-def _validate_list(data: dict[str, typing.Any], key: str, expected_type: type[_T], /, *, default_factory: collections.Callable[[], list[_T]] | None = None) -> list[_T]:
+def _validate_list(
+    data: dict[str, typing.Any],
+    key: str,
+    expected_type: type[_T],
+    /,
+    *,
+    default_factory: collections.Callable[[], list[_T]] | None = None,
+) -> list[_T]:
     try:
         found = data[key]
 
@@ -88,17 +94,14 @@ def _validate_list(data: dict[str, typing.Any], key: str, expected_type: type[_T
 
 
 @typing.overload
-def _validate_entry(
-    data: dict[str, typing.Any], key: str, expected_type: type[_T], /
-) -> _T:
-    ...
+def _validate_entry(data: dict[str, typing.Any], key: str, expected_type: type[_T], /) -> _T: ...
 
 
 @typing.overload
 def _validate_entry(
     data: dict[str, typing.Any], key: str, expected_type: type[_T], /, *, default: _DefaultT
-) -> _T | _DefaultT:
-    ...
+) -> _T | _DefaultT: ...
+
 
 def _validate_entry(
     data: dict[str, typing.Any], key: str, expected_type: type[_T], /, *, default: _NoValue | _DefaultT = _NO_VALUE
@@ -184,14 +187,19 @@ class Config:
         project_name = _validate_entry(data, "project_name", str, default=None)
         top_level_targets = _validate_list(data, "top_level_targets", str)
         version_constraint = _validate_entry(data, "version_constraint", str, default=None)
-        return cls(bot_actions=bot_actions, default_sessions=default_sessions, dep_locks=dep_locks,
-                     extra_test_installs=extra_test_installs,
-                     hide=hide,
-                     mypy_allowed_to_fail=mypy_allowed_to_fail,
-                     mypy_targets=mypy_targets,
-                     path_ignore=path_ignore,
-                     project_name=project_name,
-                     top_level_targets=top_level_targets,version_constraint=version_constraint)
+        return cls(
+            bot_actions=bot_actions,
+            default_sessions=default_sessions,
+            dep_locks=dep_locks,
+            extra_test_installs=extra_test_installs,
+            hide=hide,
+            mypy_allowed_to_fail=mypy_allowed_to_fail,
+            mypy_targets=mypy_targets,
+            path_ignore=path_ignore,
+            project_name=project_name,
+            top_level_targets=top_level_targets,
+            version_constraint=version_constraint,
+        )
 
     @classmethod
     async def read_async(cls, base_path: pathlib.Path, /) -> Self:

@@ -34,14 +34,13 @@ from __future__ import annotations
 
 __all__ = []
 
-import piped_shared.config as config
-
-import pathlib
-from collections import abc as collections
 import itertools
 import os
-import jinja2
+import pathlib
+from collections import abc as collections
 
+import jinja2
+import piped_shared.config as config
 
 _DEFAULT_COMMITER_USERNAME = "always-on-duty[bot]"
 _ACTION_DEFAULTS = {
@@ -56,12 +55,11 @@ _config = config.Config.read(pathlib.Path("./"))
 _RESYNC_FILTER = os.environ["RESYNC_FILTER"].split(",")
 _VERIFY_FILTER = os.environ["VERIFY_FILTER"].split(",")
 
+
 class _Action:
     __slots__ = ("defaults", "required_names")
 
-    def __init__(
-        self, *, required: collections.Sequence[str] = (), defaults: config.ConfigT | None = None
-    ) -> None:
+    def __init__(self, *, required: collections.Sequence[str] = (), defaults: config.ConfigT | None = None) -> None:
         self.defaults: config.ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
@@ -70,6 +68,7 @@ class _Action:
         output: config.ConfigT = dict(self.defaults)
         output.update(**config)
         return output
+
 
 _ACTIONS: dict[str, _Action] = {
     "clippy": _Action(),
@@ -109,14 +108,10 @@ def main() -> None:
     to_write: dict[pathlib.Path, str] = {}
     if isinstance(_config.github_actions, dict):
         actions = iter(_config.github_actions.items())
-        wild_card: collections.ItemsView[str, config.ConfigEntryT] = (
-            _config.github_actions.get("*") or {}
-        ).items()
+        wild_card: collections.ItemsView[str, config.ConfigEntryT] = (_config.github_actions.get("*") or {}).items()
 
     else:
-        actions: collections.Iterable[tuple[str, config.ConfigT]] = (
-            (name, {}) for name in _config.github_actions
-        )
+        actions: collections.Iterable[tuple[str, config.ConfigT]] = ((name, {}) for name in _config.github_actions)
         wild_card = {}.items()
 
     for file_name, config in actions:
