@@ -64,7 +64,7 @@ force_single_line = true
 
 [tool.mypy]
 # some good strict settings
-python_version = 3.8
+python_version = "3.11"
 strict = true
 warn_unreachable = true
 
@@ -86,7 +86,7 @@ hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish",
 dep_locks = ["./bot/requirements.in", "./dev-requirements", "./python/base-requirements/"]
 path_ignore = "github\\/actions\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]
-version_constraint = "3.9"
+version_constraint = "3.11"
 
 [tool.piped.github_actions."*"]
 default_py_ver = "3.11"
@@ -107,7 +107,6 @@ FILTERS = ["github/actions/*", "pyproject.toml"]
 [tool.pyright]
 include = ["bot/main.py", "noxfile.py", "python"]
 
-# TODO: only the bot logic is 3.11+, everything else is 3.8+
 pythonVersion = "3.11"
 typeCheckingMode = "strict"
 reportMissingModuleSource = "error"  # Is only "warning" on strict mode.
