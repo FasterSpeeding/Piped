@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-__all__: typing.List[str] = [
+__all__: list[str] = [
     "build",
     "cleanup",
     "copy_actions",
