@@ -225,7 +225,9 @@ class Config:
             github_actions = _DEFAULT_GITHUB_ACTIONS.copy()
 
         elif isinstance(raw_github_actions, list):
-            github_actions: dict[str, ConfigT] = {key: {} for key in _validate_list("github_actions", raw_github_actions, str)}
+            github_actions: dict[str, ConfigT] = {
+                key: {} for key in _validate_list("github_actions", raw_github_actions, str)
+            }
 
         elif isinstance(raw_github_actions, dict):
             github_actions = {}
