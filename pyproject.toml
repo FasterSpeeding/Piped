@@ -39,6 +39,7 @@ ignore = [
     "CFQ004",  # Function has too many returns.
     "CFQ002",  # Function has too many arguments.
     "E402",    # Module level import not at top of file (isn't compatible with our import style).
+    "E704",    # multiple statements on one line (def) (conflicts with formatting)
     "IFS001",  # "use a oneliner here".
     "N818",    # Exceptions should have an "Error" suffix in their name
     "SIM105",  # Use contextlib.suppress

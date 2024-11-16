@@ -52,7 +52,7 @@ ConfigT = dict[str, ConfigEntryT]
 
 _DEFAULT_ACTIONS = ["Freeze PR dependency changes", "Resync piped", "Reformat PR code", "Run Rustfmt"]
 _DEFAULT_DEP_LOCKS = [pathlib.Path("./dev-requirements/")]
-_DEFAULTP_GITHUB_ACTIONS = ["resync-piped"]
+_DEFAULT_GITHUB_ACTIONS: ConfigT = {"resync-piped": {}}
 
 
 class _NoValueEnum(enum.Enum):
@@ -63,10 +63,44 @@ _NoValue = typing.Literal[_NoValueEnum.VALUE]
 _NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
 
 
+def _validate_dict(
+    path_to: str, mapping: dict[typing.Any, _T], expected_type: type[_T] | tuple[type[_T], ...]
+) -> dict[str, _T]:
+    results: dict[str, _T] = {}
+
+    for key, value in mapping.items():
+        if not isinstance(key, str):
+            raise TypeError(
+                f"Unexpected key {key!r} found in {path_to}, expected a string but found a {type(key)}"
+            )
+
+        if not isinstance(value, expected_type):
+            raise TypeError(
+                f"Unexpected value found at {path_to}[{key!r}], expected a {expected_type} but found {value!r}"
+            )
+
+        results[key] = value
+
+    return results
+
+
 def _validate_list(
+    path_to: str, array: list[typing.Any], expected_type: type[_T] | tuple[type[_T], ...],
+) -> list[_T]:
+    results: list[_T] = []
+    for index, value in enumerate(array):
+        if not isinstance(value, expected_type):
+            raise TypeError(f"Expected a {expected_type} for {path_to}[{index}] but found {type(value)}")
+
+        results.append(value)
+
+    return results
+
+
+def _validate_list_entry(
     data: dict[str, typing.Any],
     key: str,
-    expected_type: type[_T],
+    expected_type: type[_T] | tuple[type[_T], ...],
     /,
     *,
     default_factory: collections.Callable[[], list[_T]] | None = None,
@@ -78,33 +112,27 @@ def _validate_list(
         if default_factory is not None:
             return default_factory()
 
-        raise RuntimeError("Missing required key")
+        raise RuntimeError("Missing required key") from None
 
-    if not isinstance(found, collections.Sequence):
-        raise RuntimeError(f"Expected a list for [{key!r}], found {type(found)}")
+    path_to = f"[{key!r}]"
+    if not isinstance(found, list):
+        raise TypeError(f"Expected a list for {path_to}, found {type(found)}")
 
-    results: list[_T] = []
-    for index, value in enumerate(found):
-        if not isinstance(value, expected_type):
-            raise RuntimeError(f"Expected a {expected_type} for [{key!r}][{index}] but found {type(value)}")
-
-        results.append(value)
-
-    return results
+    return _validate_list(path_to, found, expected_type)
 
 
 @typing.overload
-def _validate_entry(data: dict[str, typing.Any], key: str, expected_type: type[_T], /) -> _T: ...
+def _validate_entry(data: dict[str, typing.Any], key: str, expected_type: type[_T] | tuple[type[_T], ...], /) -> _T: ...
 
 
 @typing.overload
 def _validate_entry(
-    data: dict[str, typing.Any], key: str, expected_type: type[_T], /, *, default: _DefaultT
+    data: dict[str, typing.Any], key: str, expected_type: type[_T] | tuple[type[_T], ...], /, *, default: _DefaultT
 ) -> _T | _DefaultT: ...
 
 
 def _validate_entry(
-    data: dict[str, typing.Any], key: str, expected_type: type[_T], /, *, default: _NoValue | _DefaultT = _NO_VALUE
+    data: dict[str, typing.Any], key: str, expected_type: type[_T] | tuple[type[_T], ...], /, *, default: _NoValue | _DefaultT = _NO_VALUE
 ) -> _T | _DefaultT:
     try:
         value = data[key]
@@ -113,10 +141,10 @@ def _validate_entry(
         if default is not _NO_VALUE:
             return default
 
-        raise RuntimeError(f"Missing required key {key!r}")
+        raise RuntimeError(f"Missing required key {key!r}") from None
 
     if not isinstance(value, expected_type):
-        raise RuntimeError(f"Expected a {expected_type} for [{key!r}] but found {type(value)}")
+        raise TypeError(f"Expected a {expected_type} for [{key!r}] but found {type(value)}")
 
     return value
 
@@ -129,6 +157,32 @@ def _ensure_path(value: str, /) -> pathlib.Path:
     return path
 
 
+def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT:
+    if not isinstance(raw_config, dict):
+        raise TypeError(f"Unexpected value found for {path_to}, expected a dictionary but found {raw_config!r}")
+
+    config: ConfigT = {}
+
+    for key, value in raw_config.items():
+        if not isinstance(key, str):
+            raise TypeError(
+                f"Unexpected key {key} found in {path_to}, expected a string but found type {type(key)}"
+            )
+
+        path_to = f"{path_to}[{key!r}]"
+        if isinstance(value, dict):
+            value = _validate_dict(path_to, value, str)
+
+        elif isinstance(value, list):
+            value = _validate_list(path_to, value, str)
+
+        elif value is not None and not isinstance(value, str):
+            raise TypeError(
+                f"Unexpected value found for {path_to}, expected a string, list, or mapping, found {type(value)}")
+
+    return config
+
+
 @dataclasses.dataclass(kw_only=True, slots=True)
 class Config:
     """Configuration class for the project config."""
@@ -137,7 +191,7 @@ class Config:
     default_sessions: list[str]
     dep_locks: list[pathlib.Path]
     extra_test_installs: list[str]
-    github_actions: dict[str, ConfigT] | list[str] = dataclasses.field(default_factory=_DEFAULTP_GITHUB_ACTIONS.copy)
+    github_actions: dict[str, ConfigT]
     hide: list[str]
     mypy_allowed_to_fail: bool
     mypy_targets: list[str]
@@ -166,32 +220,44 @@ class Config:
         else:
             raise RuntimeError("Couldn't find config file")
 
-        bot_actions = set(_validate_list(data, "bot_actions", str, default_factory=_DEFAULT_ACTIONS.copy))
-        default_sessions = _validate_list(data, "default_sessions", str)
+        bot_actions = set(_validate_list_entry(data, "bot_actions", str, default_factory=_DEFAULT_ACTIONS.copy))
+        default_sessions = _validate_list_entry(data, "default_sessions", str)
 
         if "dep_locks" in data:
-            dep_locks = [_ensure_path(path) for path in _validate_list(data, "dep_locks", str)]
+            dep_locks = [_ensure_path(path) for path in _validate_list_entry(data, "dep_locks", str)]
 
         else:
             dep_locks = _DEFAULT_DEP_LOCKS
 
-        extra_test_installs = _validate_list(data, "extra_test_installs", str, default_factory=list)
-        hide = _validate_list(data, "hide", str, default_factory=list)
+        github_actions: dict[str, ConfigT] = {}
+        raw_github_actions = _validate_entry(data, "github_actions", dict, default=_DEFAULT_GITHUB_ACTIONS.copy())
+
+        for key, value in raw_github_actions.items():
+            if not isinstance(key, str):
+                raise TypeError(
+                    f"Unexpected key {key!r} found in ['github_actions'], expected a string but found a {type(key)}"
+                )
+
+            github_actions[key] = _validate_github_actions(f"['github_actions'][{key!r}]", value)
+
+        extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=list)
+        hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
-        mypy_targets = _validate_list(data, "mypy_targets", str, default_factory=list)
+        mypy_targets = _validate_list_entry(data, "mypy_targets", str, default_factory=list)
         path_ignore = _validate_entry(data, "path_ignore", str, default=None)
 
         if path_ignore is not None:
             path_ignore = re.compile(path_ignore)
 
         project_name = _validate_entry(data, "project_name", str, default=None)
-        top_level_targets = _validate_list(data, "top_level_targets", str)
+        top_level_targets = _validate_list_entry(data, "top_level_targets", str)
         version_constraint = _validate_entry(data, "version_constraint", str, default=None)
         return cls(
             bot_actions=bot_actions,
             default_sessions=default_sessions,
             dep_locks=dep_locks,
             extra_test_installs=extra_test_installs,
+            github_actions=github_actions,
             hide=hide,
             mypy_allowed_to_fail=mypy_allowed_to_fail,
             mypy_targets=mypy_targets,

@@ -40,7 +40,7 @@ import pathlib
 from collections import abc as collections
 
 import jinja2
-import piped_shared.config as config
+import piped_shared  
 
 _DEFAULT_COMMITER_USERNAME = "always-on-duty[bot]"
 _ACTION_DEFAULTS = {
@@ -51,7 +51,7 @@ _ACTION_DEFAULTS = {
 }
 
 
-_config = config.Config.read(pathlib.Path("./"))
+_config = piped_shared.Config.read(pathlib.Path("./"))
 _RESYNC_FILTER = os.environ["RESYNC_FILTER"].split(",")
 _VERIFY_FILTER = os.environ["VERIFY_FILTER"].split(",")
 
@@ -59,13 +59,13 @@ _VERIFY_FILTER = os.environ["VERIFY_FILTER"].split(",")
 class _Action:
     __slots__ = ("defaults", "required_names")
 
-    def __init__(self, *, required: collections.Sequence[str] = (), defaults: config.ConfigT | None = None) -> None:
-        self.defaults: config.ConfigT = dict(_ACTION_DEFAULTS)
+    def __init__(self, *, required: collections.Sequence[str] = (), defaults: piped_shared.ConfigT | None = None) -> None:
+        self.defaults: piped_shared.ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
 
-    def process_config(self, config: config.ConfigT, /) -> config.ConfigT:
-        output: config.ConfigT = dict(self.defaults)
+    def process_config(self, config: piped_shared.ConfigT, /) -> piped_shared.ConfigT:
+        output: piped_shared.ConfigT = dict(self.defaults)
         output.update(**config)
         return output
 
@@ -106,13 +106,8 @@ def main() -> None:
     env.filters["quoted"] = '"{}"'.format  # noqa: FS002
 
     to_write: dict[pathlib.Path, str] = {}
-    if isinstance(_config.github_actions, dict):
-        actions = iter(_config.github_actions.items())
-        wild_card: collections.ItemsView[str, config.ConfigEntryT] = (_config.github_actions.get("*") or {}).items()
-
-    else:
-        actions: collections.Iterable[tuple[str, config.ConfigT]] = ((name, {}) for name in _config.github_actions)
-        wild_card = {}.items()
+    actions = iter(_config.github_actions.items())
+    wild_card: collections.ItemsView[str, piped_shared.ConfigEntryT] = (_config.github_actions.get("*") or {}).items()
 
     for file_name, config in actions:
         if file_name == "*":
