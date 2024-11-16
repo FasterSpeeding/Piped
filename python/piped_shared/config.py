@@ -66,8 +66,6 @@ _NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
 def _validate_dict(
     path_to: str, mapping: dict[typing.Any, _T], expected_type: type[_T] | tuple[type[_T], ...]
 ) -> dict[str, _T]:
-    results: dict[str, _T] = {}
-
     for key, value in mapping.items():
         if not isinstance(key, str):
             raise TypeError(f"Unexpected key {key!r} found in {path_to}, expected a string but found a {type(key)}")
@@ -77,20 +75,15 @@ def _validate_dict(
                 f"Unexpected value found at {path_to}[{key!r}], expected a {expected_type} but found {value!r}"
             )
 
-        results[key] = value
-
-    return results
+    return typing.cast("dict[str, _T]", mapping)
 
 
 def _validate_list(path_to: str, array: list[typing.Any], expected_type: type[_T] | tuple[type[_T], ...]) -> list[_T]:
-    results: list[_T] = []
     for index, value in enumerate(array):
         if not isinstance(value, expected_type):
             raise TypeError(f"Expected a {expected_type} for {path_to}[{index}] but found {type(value)}")
 
-        results.append(value)
-
-    return results
+    return typing.cast("list[_T]", array)
 
 
 def _validate_list_entry(
@@ -162,27 +155,23 @@ def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT
     if not isinstance(raw_config, dict):
         raise TypeError(f"Unexpected value found for {path_to}, expected a dictionary but found {raw_config!r}")
 
-    config: ConfigT = {}
-
     for key, value in raw_config.items():
         if not isinstance(key, str):
             raise TypeError(f"Unexpected key {key} found in {path_to}, expected a string but found type {type(key)}")
 
         path_to = f"{path_to}[{key!r}]"
         if isinstance(value, dict):
-            value = _validate_dict(path_to, value, str)
+            _validate_dict(path_to, value, str)
 
         elif isinstance(value, list):
-            value = _validate_list(path_to, value, str)
+            _validate_list(path_to, value, str)
 
         elif value is not None and not isinstance(value, str):
             raise TypeError(
                 f"Unexpected value found for {path_to}, expected a string, list, or mapping, found {type(value)}"
             )
 
-        config[key] = value
-
-    return config
+    return typing.cast(ConfigT, raw_config)
 
 
 @dataclasses.dataclass(kw_only=True, slots=True)
