@@ -70,9 +70,7 @@ def _validate_dict(
 
     for key, value in mapping.items():
         if not isinstance(key, str):
-            raise TypeError(
-                f"Unexpected key {key!r} found in {path_to}, expected a string but found a {type(key)}"
-            )
+            raise TypeError(f"Unexpected key {key!r} found in {path_to}, expected a string but found a {type(key)}")
 
         if not isinstance(value, expected_type):
             raise TypeError(
@@ -84,9 +82,7 @@ def _validate_dict(
     return results
 
 
-def _validate_list(
-    path_to: str, array: list[typing.Any], expected_type: type[_T] | tuple[type[_T], ...],
-) -> list[_T]:
+def _validate_list(path_to: str, array: list[typing.Any], expected_type: type[_T] | tuple[type[_T], ...]) -> list[_T]:
     results: list[_T] = []
     for index, value in enumerate(array):
         if not isinstance(value, expected_type):
@@ -132,7 +128,12 @@ def _validate_entry(
 
 
 def _validate_entry(
-    data: dict[str, typing.Any], key: str, expected_type: type[_T] | tuple[type[_T], ...], /, *, default: _NoValue | _DefaultT = _NO_VALUE
+    data: dict[str, typing.Any],
+    key: str,
+    expected_type: type[_T] | tuple[type[_T], ...],
+    /,
+    *,
+    default: _NoValue | _DefaultT = _NO_VALUE,
 ) -> _T | _DefaultT:
     try:
         value = data[key]
@@ -165,9 +166,7 @@ def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT
 
     for key, value in raw_config.items():
         if not isinstance(key, str):
-            raise TypeError(
-                f"Unexpected key {key} found in {path_to}, expected a string but found type {type(key)}"
-            )
+            raise TypeError(f"Unexpected key {key} found in {path_to}, expected a string but found type {type(key)}")
 
         path_to = f"{path_to}[{key!r}]"
         if isinstance(value, dict):
@@ -178,7 +177,8 @@ def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT
 
         elif value is not None and not isinstance(value, str):
             raise TypeError(
-                f"Unexpected value found for {path_to}, expected a string, list, or mapping, found {type(value)}")
+                f"Unexpected value found for {path_to}, expected a string, list, or mapping, found {type(value)}"
+            )
 
     return config
 

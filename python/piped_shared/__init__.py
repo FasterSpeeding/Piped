@@ -34,4 +34,6 @@ from __future__ import annotations
 
 __all__ = ["Config", "ConfigEntryT", "ConfigT"]
 
-from .config import Config, ConfigEntryT, ConfigT
+from .config import Config
+from .config import ConfigEntryT
+from .config import ConfigT

@@ -40,7 +40,7 @@ import pathlib
 from collections import abc as collections
 
 import jinja2
-import piped_shared  
+import piped_shared
 
 _DEFAULT_COMMITER_USERNAME = "always-on-duty[bot]"
 _ACTION_DEFAULTS = {
@@ -59,7 +59,9 @@ _VERIFY_FILTER = os.environ["VERIFY_FILTER"].split(",")
 class _Action:
     __slots__ = ("defaults", "required_names")
 
-    def __init__(self, *, required: collections.Sequence[str] = (), defaults: piped_shared.ConfigT | None = None) -> None:
+    def __init__(
+        self, *, required: collections.Sequence[str] = (), defaults: piped_shared.ConfigT | None = None
+    ) -> None:
         self.defaults: piped_shared.ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
