@@ -2,9 +2,7 @@ asgiref
 fastapi
 httpx[http2]
 jwt
-pydantic
 python-dateutil
 python-dotenv
-tomli
 uvicorn
 uvloop; platform_system != "Windows"

@@ -1,3 +1,4 @@
 -r ../python/base-requirements/nox.in
+-r ../python/base-requirements/templating.in
 -r ../python/base-requirements/type-checking.in
 -r ../bot/requirements.in

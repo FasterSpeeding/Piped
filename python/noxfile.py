@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
-__all__: typing.List[str] = [
+__all__: list[str] = [
     "build",
     "cleanup",
     "copy_actions",
@@ -54,12 +54,12 @@ import datetime
 import itertools
 import pathlib
 import re
+import tomllib
 import typing
 from collections import abc as collections
 
 import nox
 import piped_shared
-import tomli
 
 _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
 
@@ -79,7 +79,7 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     return output.splitlines()
 
 
-def _dev_path(value: str, /) -> typing.Optional[pathlib.Path]:
+def _dev_path(value: str, /) -> pathlib.Path | None:
     for path in [_DEPS_DIR / f"{value}.txt", pathlib.Path(__file__).parent / "base-requirements" / f"{value}.txt"]:
         if path.exists():
             return path
@@ -140,8 +140,8 @@ def _install_deps(
 
 
 def _try_find_option(
-    session: nox.Session, name: str, /, *other_names: str, when_empty: typing.Optional[str] = None
-) -> typing.Optional[str]:
+    session: nox.Session, name: str, /, *other_names: str, when_empty: str | None = None
+) -> str | None:
     args_iter = iter(session.posargs)
     names = {name, *other_names}
 
@@ -152,17 +152,17 @@ def _try_find_option(
 
 def _filtered_session(
     *,
-    python: typing.Union[str, collections.Sequence[str], bool, None] = None,
-    py: typing.Union[str, collections.Sequence[str], bool, None] = None,
-    reuse_venv: typing.Optional[bool] = None,
-    name: typing.Optional[str] = None,
+    python: str | collections.Sequence[str] | bool | None = None,
+    py: str | collections.Sequence[str] | bool | None = None,
+    reuse_venv: bool | None = None,
+    name: str | None = None,
     venv_backend: typing.Any = None,
     venv_params: typing.Any = None,
-    tags: typing.Optional[list[str]] = None,
-) -> collections.Callable[[_CallbackT], typing.Union[_CallbackT, None]]:
+    tags: list[str] | None = None,
+) -> collections.Callable[[_CallbackT], _CallbackT | None]:
     """Filtering version of `nox.session`."""
 
-    def decorator(callback: _CallbackT, /) -> typing.Optional[_CallbackT]:
+    def decorator(callback: _CallbackT, /) -> _CallbackT | None:
         name_ = name or callback.__name__
         if name_ in _config.hide:
             return None
@@ -220,14 +220,6 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
 
-_DEFAULT_COMMITER_USERNAME = "always-on-duty[bot]"
-
-_ACTION_DEFAULTS = {
-    "ACTION_COMMITTER_EMAIL": f"120557446+{_DEFAULT_COMMITER_USERNAME}@users.noreply.github.com",
-    "ACTION_COMMITTER_USERNAME": _DEFAULT_COMMITER_USERNAME,
-    "DEFAULT_PY_VER": "3.9",
-    "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt",
-}
 _resync_filter: list[str] = ["piped", "pyproject.toml", "requirements.in"]
 _verify_filter: list[str] = []
 _dep_locks: list[pathlib.Path] = []
@@ -252,101 +244,18 @@ if _config.dep_locks:
             _dep_locks.append(_path)
 
 
-class _Action:
-    __slots__ = ("defaults", "required_names")
-
-    def __init__(
-        self, *, required: collections.Sequence[str] = (), defaults: typing.Optional[piped_shared.ConfigT] = None
-    ) -> None:
-        self.defaults: piped_shared.ConfigT = dict(_ACTION_DEFAULTS)
-        self.defaults.update(defaults or ())
-        self.required_names = frozenset(required or ())
-
-    def process_config(self, config: piped_shared.ConfigT, /) -> piped_shared.ConfigT:
-        output: piped_shared.ConfigT = dict(self.defaults)
-        output.update(**config)
-        return output
-
-
-_ACTIONS: dict[str, _Action] = {
-    "clippy": _Action(),
-    "docker-publish": _Action(defaults={"DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
-    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _resync_filter}),
-    "lint": _Action(),
-    "pr-docs": _Action(),
-    "publish": _Action(),
-    "py-test": _Action(
-        required=["PYTHON_VERSIONS"],
-        defaults={
-            "CODECLIMATE_TOKEN": "",
-            "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
-            "REQUIRES_RUST": "",
-        },
-    ),
-    "reformat": _Action(),
-    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
-    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
-    "rustfmt": _Action(),
-    "type-check": _Action(defaults={"REQUIRES_RUST": ""}),
-    "update-licence": _Action(),
-    "upgrade-locks": _Action(),
-    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _verify_filter}),
-    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}),
-}
-
-
 @nox.session(name="copy-actions")
-def copy_actions(_: nox.Session) -> None:
+def copy_actions(session: nox.Session) -> None:
     """Copy over the github actions from Piped without updating the git reference."""
-    import jinja2
-
-    env = jinja2.Environment(  # noqa: S701
-        keep_trailing_newline=True,
-        loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions"),
-    )
-
-    env.filters["quoted"] = '"{}"'.format  # noqa: FS002
-
-    to_write: dict[pathlib.Path, str] = {}
-    if isinstance(_config.github_actions, dict):
-        actions = iter(_config.github_actions.items())
-        wild_card: collections.ItemsView[str, piped_shared.ConfigEntryT] = (
-            _config.github_actions.get("*") or {}
-        ).items()
-
-    else:
-        actions: collections.Iterable[tuple[str, piped_shared.ConfigT]] = (
-            (name, {}) for name in _config.github_actions
-        )
-        wild_card = {}.items()
-
-    for file_name, config in actions:
-        if file_name == "*":
-            continue
-
-        config = {key.upper(): value for key, value in itertools.chain(wild_card, config.items())}
-        file_name = file_name.replace("_", "-")
-        action = _ACTIONS[file_name]
-        if missing := action.required_names.difference(config.keys()):
-            raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
-
-        file_name = f"{file_name}.yml"
-        template = env.get_template(file_name)
-
-        full_config = action.process_config(config)
-        to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_config)
-
-    pathlib.Path("./.github/workflows").mkdir(exist_ok=True, parents=True)
-
-    for path, value in to_write.items():
-        with path.open("w+") as file:
-            file.write(value)
+    _install_deps(session, "templating")
+    env = {"RESYNC_FILTER": ",".join(_resync_filter), "VERIFY_FILTER": ",".join(_verify_filter)}
+    session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"), env=env)
 
 
-def _pyproject_toml() -> typing.Optional[dict[str, typing.Any]]:
+def _pyproject_toml() -> dict[str, typing.Any] | None:
     try:
         with pathlib.Path("pyproject.toml").open("rb") as _file:
-            return tomli.load(_file)
+            return tomllib.load(_file)
 
     except FileNotFoundError:
         return None
@@ -525,7 +434,7 @@ def verify_markup(session: nox.Session):
     )
 
 
-def _publish(session: nox.Session, /, *, env: typing.Optional[dict[str, str]] = None) -> None:
+def _publish(session: nox.Session, /, *, env: dict[str, str] | None = None) -> None:
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, names=["publish"])
 
