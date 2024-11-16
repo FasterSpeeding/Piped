@@ -52,7 +52,7 @@ ConfigT = dict[str, ConfigEntryT]
 
 _DEFAULT_ACTIONS = ["Freeze PR dependency changes", "Resync piped", "Reformat PR code", "Run Rustfmt"]
 _DEFAULT_DEP_LOCKS = [pathlib.Path("./dev-requirements/")]
-_DEFAULT_GITHUB_ACTIONS: ConfigT = {"resync-piped": {}}
+_DEFAULT_GITHUB_ACTIONS: dict[str, ConfigT] = {"resync-piped": {}}
 
 
 class _NoValueEnum(enum.Enum):
@@ -180,6 +180,8 @@ def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT
                 f"Unexpected value found for {path_to}, expected a string, list, or mapping, found {type(value)}"
             )
 
+        config[key] = value
+
     return config
 
 
@@ -229,16 +231,31 @@ class Config:
         else:
             dep_locks = _DEFAULT_DEP_LOCKS
 
-        github_actions: dict[str, ConfigT] = {}
-        raw_github_actions = _validate_entry(data, "github_actions", dict, default=_DEFAULT_GITHUB_ACTIONS.copy())
+        raw_github_actions = data.get("github_actions", ...)
+        if raw_github_actions is ...:
+            github_actions = _DEFAULT_GITHUB_ACTIONS.copy()
 
-        for key, value in raw_github_actions.items():
-            if not isinstance(key, str):
-                raise TypeError(
-                    f"Unexpected key {key!r} found in ['github_actions'], expected a string but found a {type(key)}"
-                )
+        elif isinstance(raw_github_actions, list):
+            github_actions: dict[str, ConfigT] = {key: {} for key in _validate_list("github_actions", raw_github_actions, str)}
 
-            github_actions[key] = _validate_github_actions(f"['github_actions'][{key!r}]", value)
+        elif isinstance(raw_github_actions, dict):
+            github_actions = {}
+
+            for key, value in raw_github_actions.items():
+                if not isinstance(key, str):
+                    raise TypeError(
+                        f"Unexpected key {key!r} found in ['github_actions'], expected a string but found a {type(key)}"
+                    )
+
+                github_actions[key] = _validate_github_actions(f"['github_actions'][{key!r}]", value)
+
+        elif raw_github_actions is None:
+            github_actions = {}
+
+        else:
+            raise TypeError(
+                "Unexpected value found at ['github_actions'], expected a dict or list but found {raw_github_actions!r}"
+            )
 
         extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=list)
         hide = _validate_list_entry(data, "hide", str, default_factory=list)
