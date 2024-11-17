@@ -143,14 +143,6 @@ def _validate_entry(
     return value
 
 
-def _ensure_path(value: str, /) -> pathlib.Path:
-    path = pathlib.Path(value)
-    if not path.exists():
-        raise RuntimeError(f"Configured path {value!s} does not exist")
-
-    return path
-
-
 def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT:
     if not isinstance(raw_config, dict):
         raise TypeError(f"Unexpected value found for {path_to}, expected a dictionary but found {raw_config!r}")
@@ -215,7 +207,7 @@ class Config:
         default_sessions = _validate_list_entry(data, "default_sessions", str)
 
         if "dep_locks" in data:
-            dep_locks = [_ensure_path(path) for path in _validate_list_entry(data, "dep_locks", str)]
+            dep_locks = [pathlib.Path(path) for path in _validate_list_entry(data, "dep_locks", str)]
 
         else:
             dep_locks = _DEFAULT_DEP_LOCKS
