@@ -292,7 +292,7 @@ class Config:
         except KeyError:
             pass
 
-        return "3.11,<3.14"
+        return "3.11,<3.15"
 
 
 _TOML_PARSER: dict[str, collections.Callable[[dict[str, typing.Any]], dict[str, typing.Any]]] = {
