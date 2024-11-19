@@ -1,28 +1,33 @@
-name: Reformat PR code
+name: Run Rustfmt
 
 concurrency:
   {% raw %}group: ${{ github.workflow }}-${{ github.ref }}{% endraw %}
   cancel-in-progress: true
 
-on:
-  pull_request:
-    branches:
-      - master
+on: pull_request
 
 jobs:
-  reformat:
+  rustfmt:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: "true"
 
       - name: Install Python
-        uses: {{ PIPED_PATH }}/github/actions/setup-py.yml
+        uses: {{ PIPED_PATH }}/github/actions/setup-py
+
+      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af
+        with:
+            toolchain: nightly
+            components: rustfmt
+            override: true
 
       - name: Reformat
-        run: nox -s reformat bot-package-diff
+        run: cargo +nightly fmt
+
+      - name: Package
+        run: nox -s bot-package-diff
 
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
         with:

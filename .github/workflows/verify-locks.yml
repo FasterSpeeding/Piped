@@ -23,7 +23,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: {{ PIPED_PATH }}/github/actions/setup-py.yml
+        uses: {{ PIPED_PATH }}/github/actions/setup-py
 
       - name: Verify dependency locks
         run: nox -s verify-deps

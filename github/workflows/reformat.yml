@@ -1,4 +1,4 @@
-name: Resync piped
+name: Reformat PR code
 
 concurrency:
   {% raw %}group: ${{ github.workflow }}-${{ github.ref }}{% endraw %}
@@ -8,10 +8,9 @@ on:
   pull_request:
     branches:
       - master
-    paths: [{{ FILTERS | map("quoted") | join(", ") }}]
 
 jobs:
-  resync-piped:
+  reformat:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,10 +19,10 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: {{ PIPED_PATH }}/github/actions/setup-py.yml
+        uses: {{ PIPED_PATH }}/github/actions/setup-py
 
-      - name: Resync Piped
-        run: nox -s copy-piped bot-package-diff
+      - name: Reformat
+        run: nox -s reformat bot-package-diff
 
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
         with:

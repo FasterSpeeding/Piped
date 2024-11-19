@@ -1,12 +1,12 @@
-name: Update licence
+name: Upgrade dependency locks
 
 on:
   schedule:
-    - cron: "0 7 1 1 *"
+    - cron: "0 12 1 * *"
   workflow_dispatch:
 
 jobs:
-  update-licence:
+  upgrade-deps:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,17 +15,17 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: {{ PIPED_PATH }}/github/actions/setup-py.yml
+        uses: {{ PIPED_PATH }}/github/actions/setup-py
 
-      - name: Update licence
-        run: nox -s update-licence
+      - name: Upgrade dependency locks
+        run: nox -s freeze-locks
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f
         with:
           author: "{{ ACTION_COMMITTER_USERNAME }} <{{ ACTION_COMMITTER_EMAIL }}>"
-          branch: task/update-licence
-          commit-message: Update licence
+          branch: task/upgrade-deps
+          commit-message: Upgrade dependency locks
           committer: "{{ ACTION_COMMITTER_USERNAME }} <{{ ACTION_COMMITTER_EMAIL }}>"
-          title: Update licence
+          title: Upgrade dependency locks
           {% raw %}token: ${{ secrets.ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}{% endraw %}

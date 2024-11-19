@@ -115,7 +115,7 @@ def _normalise_path(path: str, /) -> str:
 def main() -> None:
     env = jinja2.Environment(  # noqa: S701
         keep_trailing_newline=True,
-        loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions"),
+        loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "workflows"),
     )
 
     env.filters["quoted"] = '"{}"'.format  # noqa: FS002

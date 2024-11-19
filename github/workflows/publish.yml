@@ -23,7 +23,7 @@ jobs:{% if "release_docs" in config.github_actions %}
           submodules: "true"
 
       - name: Install Python
-        uses: {{ PIPED_PATH }}/github/actions/setup-py.yml
+        uses: {{ PIPED_PATH }}/github/actions/setup-py
 
       - name: Build project
         run: nox -s build
