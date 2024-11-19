@@ -15,7 +15,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./.github/workflows/setup-py.yml
+        uses: ./setup-py.yml
 
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af
         with:
