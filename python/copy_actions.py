@@ -96,7 +96,6 @@ _ACTIONS: dict[str, _Action] = {
     "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
     "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
     "rustfmt": _Action(),
-    _SETUP_PY: _Action(),
     "type-check": _Action(defaults={"REQUIRES_RUST": ""}),
     "update-licence": _Action(),
     "upgrade-locks": _Action(),
