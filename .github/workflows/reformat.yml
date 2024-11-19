@@ -18,7 +18,7 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Install Pythpn
+      - name: Install Python
         uses: setup-py.yml
 
       - name: Reformat
