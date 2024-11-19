@@ -16,3 +16,4 @@ runs:
 
     - name: Install Nox
       run: pipx install nox --python {% raw %}"${{ steps.install-py.outputs.python-path }}"{% endraw %}
+      shell: bash
