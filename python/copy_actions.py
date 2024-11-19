@@ -135,7 +135,7 @@ def main() -> None:
 
         for dep_name in action.requires:
             dep_name = _normalise_path(dep_name)
-            if not dep_name in actions:
+            if dep_name not in actions:
                 actions[dep_name] = (_ACTIONS[dep_name], {})
 
     for file_name, (action, config) in actions.items():
