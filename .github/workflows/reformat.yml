@@ -18,14 +18,8 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
-        id: install-py
-        with:
-          python-version: "3.11"
-
-      - name: Install Nox
-        run: pipx install nox --python "${{ steps.install-py.outputs.python-path }}"
+      - name: Install Pythpn
+        uses: ./setup-py.yml
 
       - name: Reformat
         run: nox -s reformat bot-package-diff
