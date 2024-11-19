@@ -15,5 +15,5 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: Install Nox
-      run: pipx install nox --python "${{ steps.install-py.outputs.python-path }}" --pip-args=-c=./piped/python/base-requirements/nox.txt
+      run: pipx install nox --python "${{ steps.install-py.outputs.python-path }}" --pip-args=--constraint=./piped/python/base-requirements/nox.txt
       shell: bash
