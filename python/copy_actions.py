@@ -114,12 +114,12 @@ def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
         loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions" / name),
     )
 
-    template = env.get_template("action.yaml")
+    template = env.get_template("action.yml")
     env.filters["quoted"] = '"{}"'.format  # noqa: FS002
 
     dest = pathlib.Path(".github/actions/") / name 
     dest.mkdir(parents=True)
-    (dest / "action.yaml").write_text(template.render(**config, config=_CONFIG))
+    (dest / "action.yml").write_text(template.render(**config, config=_CONFIG))
 
 
 
