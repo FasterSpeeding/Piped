@@ -118,7 +118,7 @@ def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
     env.filters["quoted"] = '"{}"'.format  # noqa: FS002
 
     dest = pathlib.Path(".github/actions/") / name 
-    dest.mkdir(parents=True)
+    dest.mkdir(exist_ok=True, parents=True)
     (dest / "action.yml").write_text(template.render(**config, config=_CONFIG))
 
 
