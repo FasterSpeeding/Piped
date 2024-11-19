@@ -36,7 +36,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./github/actions/setup-py
+        uses: ./.github/actions/setup-py
         with:
           python-version: {% raw %}${{ matrix.python-version }}{% endraw %}
 
@@ -55,7 +55,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./github/actions/setup-py
+        uses: ./.github/actions/setup-py
 
       - name: Record coverage
         run: nox -s test-coverage

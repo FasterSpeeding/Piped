@@ -25,7 +25,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./github/actions/setup-py{% if "verify-markup" not in config.hide %}
+        uses: ./.github/actions/setup-py{% if "verify-markup" not in config.hide %}
 
       - name: Lint markup
         run: nox -s verify-markup{% endif %}{% if "spell-check" not in config.hide %}
