@@ -77,15 +77,13 @@ class _Action:
         return output
 
 
-_SETUP_PY = "setup-py"
-
 _ACTIONS: dict[str, _Action] = {
     "clippy": _Action(),
     "docker-publish": _Action(defaults={"DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
-    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}, requires=(_SETUP_PY,)),
-    "lint": _Action(requires=(_SETUP_PY,)),
-    "pr-docs": _Action(requires=(_SETUP_PY,)),
-    "publish": _Action(requires=(_SETUP_PY,)),
+    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}),
+    "lint": _Action(),
+    "pr-docs": _Action(),
+    "publish": _Action(),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
         defaults={
@@ -93,18 +91,17 @@ _ACTIONS: dict[str, _Action] = {
             "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
             "REQUIRES_RUST": "",
         },
-        requires=(_SETUP_PY,),
     ),
-    "reformat": _Action(requires=(_SETUP_PY,)),
-    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}, requires=(_SETUP_PY,)),
-    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}, requires=(_SETUP_PY,)),
-    "rustfmt": _Action(requires=(_SETUP_PY,)),
+    "reformat": _Action(),
+    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
+    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
+    "rustfmt": _Action(),
     _SETUP_PY: _Action(),
-    "type-check": _Action(defaults={"REQUIRES_RUST": ""}, requires=(_SETUP_PY,)),
-    "update-licence": _Action(requires=(_SETUP_PY,)),
-    "upgrade-locks": _Action(requires=(_SETUP_PY,)),
-    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _VERIFY_FILTER}, requires=(_SETUP_PY,)),
-    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}, requires=(_SETUP_PY,)),
+    "type-check": _Action(defaults={"REQUIRES_RUST": ""}),
+    "update-licence": _Action(),
+    "upgrade-locks": _Action(),
+    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _VERIFY_FILTER}),
+    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}),
 }
 
 
