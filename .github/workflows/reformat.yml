@@ -24,7 +24,7 @@ jobs:
           python-version: "3.11"
 
       - name: Reformat
-        run: pipx run nox -s reformat bot-package-diff
+        run: python -m pipx run nox -s reformat bot-package-diff
 
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
         with:
