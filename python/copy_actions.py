@@ -77,13 +77,14 @@ class _Action:
         return output
 
 
+_SETUP_PY = "setup-py"
 _ACTIONS: dict[str, _Action] = {
     "clippy": _Action(),
     "docker-publish": _Action(defaults={"DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
-    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}),
-    "lint": _Action(),
-    "pr-docs": _Action(),
-    "publish": _Action(),
+    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}, requires=[_SETUP_PY]),
+    "lint": _Action(requires=[_SETUP_PY]),
+    "pr-docs": _Action(requires=[_SETUP_PY]),
+    "publish": _Action(requires=[_SETUP_PY]),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
         defaults={
@@ -91,17 +92,20 @@ _ACTIONS: dict[str, _Action] = {
             "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
             "REQUIRES_RUST": "",
         },
+        requires=[_SETUP_PY],
     ),
-    "reformat": _Action(),
-    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
-    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
-    "rustfmt": _Action(),
-    "type-check": _Action(defaults={"REQUIRES_RUST": ""}),
-    "update-licence": _Action(),
-    "upgrade-locks": _Action(),
-    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _VERIFY_FILTER}),
-    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}),
+    "reformat": _Action(requires=[_SETUP_PY]),
+    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}, requires=[_SETUP_PY]),
+    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}, requires=[_SETUP_PY]),
+    "rustfmt": _Action(requires=[_SETUP_PY]),
+    "type-check": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
+    "update-licence": _Action(requires=[_SETUP_PY]),
+    "upgrade-locks": _Action(requires=[_SETUP_PY]),
+    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _VERIFY_FILTER}, requires=[_SETUP_PY]),
+    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
 }
+
+
 
 
 def _normalise_path(path: str, /) -> str:
@@ -130,25 +134,16 @@ def main() -> None:
 
     env.filters["quoted"] = '"{}"'.format  # noqa: FS002
 
+    dependencies: set[str] = set()
     to_write: dict[pathlib.Path, str] = {}
-    actions: dict[str, tuple[_Action, piped_shared.ConfigT]] = {}
-    wild_card = {}
+    wild_card = _CONFIG.github_actions.get("*") or {}
 
-    for file_name, values in _CONFIG.github_actions.items():
-        file_name = _normalise_path(file_name)
+    for file_name, config in _CONFIG.github_actions.items():
         if file_name == "*":
-            wild_card = values
             continue
 
+        file_name = _normalise_path(file_name)
         action = _ACTIONS[file_name]
-        actions[file_name] = (action, values)
-
-        for dep_name in action.requires:
-            dep_name = _normalise_path(dep_name)
-            if dep_name not in actions:
-                actions[dep_name] = (_ACTIONS[dep_name], {})
-
-    for file_name, (action, config) in actions.items():
         config = {key.upper(): value for key, value in itertools.chain(wild_card.items(), config.items())}
         if missing := action.required_names.difference(config.keys()):
             raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
@@ -158,13 +153,15 @@ def main() -> None:
 
         full_config = action.process_config(config)
         to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_CONFIG)
+        dependencies.update(action.requires)
 
     pathlib.Path("./.github/workflows").mkdir(exist_ok=True, parents=True)
 
     for path, value in to_write.items():
         path.write_text(value)
 
-    _copy_composable_action("setup-py", {**_ACTION_DEFAULTS, **wild_card})
+    if _SETUP_PY in dependencies:
+       _copy_composable_action(_SETUP_PY, {**_ACTION_DEFAULTS, **wild_card})
 
 
 if __name__ == "__main__":
