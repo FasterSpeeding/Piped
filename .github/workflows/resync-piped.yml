@@ -21,8 +21,6 @@ jobs:
 
       - name: Install Python
         uses: ./.github/actions/setup-py
-        with:
-         python-version: 3.11
 
       - name: Resync Piped
         run: nox -s copy-piped bot-package-diff
