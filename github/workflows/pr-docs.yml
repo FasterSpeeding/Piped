@@ -29,7 +29,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: {{ PIPED_PATH }}/github/actions/setup-py
+        uses: ./github/actions/setup-py
 
       - name: Build docs
         if: github.event.action != 'closed'
