@@ -47,7 +47,7 @@ _ACTION_DEFAULTS = {
     "ACTION_COMMITTER_EMAIL": f"120557446+{_DEFAULT_COMMITER_USERNAME}@users.noreply.github.com",
     "ACTION_COMMITTER_USERNAME": _DEFAULT_COMMITER_USERNAME,
     "DEFAULT_PY_VER": "3.11",
-    "NOX_DEP_PATH": "./piped/python/base-requirements/nox.txt",
+    "PIPED_PATH": "./piped",
 }
 
 
