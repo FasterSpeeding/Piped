@@ -25,7 +25,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./.github/workflows/setup-py.yml
+        uses: .github/workflows/setup-py.yml
 
       - name: Lint markup
         run: nox -s verify-markup

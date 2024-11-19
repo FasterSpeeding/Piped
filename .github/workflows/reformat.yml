@@ -19,7 +19,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./.github/workflows/setup-py.yml
+        uses: .github/workflows/setup-py.yml
 
       - name: Reformat
         run: nox -s reformat bot-package-diff
