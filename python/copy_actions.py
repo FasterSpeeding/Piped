@@ -108,6 +108,21 @@ def _normalise_path(path: str, /) -> str:
     return path.replace("_", "-").strip()
 
 
+def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
+    env = jinja2.Environment(  # noqa: S701
+        keep_trailing_newline=True,
+        loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions" / name),
+    )
+
+    template = env.get_template("action.yaml")
+    env.filters["quoted"] = '"{}"'.format  # noqa: FS002
+
+    dest = pathlib.Path(".github/actions/") / name 
+    dest.mkdir(parents=True)
+    (dest / "action.yaml").write_text(template.render(**config, config=_CONFIG))
+
+
+
 def main() -> None:
     env = jinja2.Environment(  # noqa: S701
         keep_trailing_newline=True,
@@ -148,8 +163,9 @@ def main() -> None:
     pathlib.Path("./.github/workflows").mkdir(exist_ok=True, parents=True)
 
     for path, value in to_write.items():
-        with path.open("w+") as file:
-            file.write(value)
+        path.write_text(value)
+
+    _copy_composable_action("setup-py", wild_card)
 
 
 if __name__ == "__main__":
