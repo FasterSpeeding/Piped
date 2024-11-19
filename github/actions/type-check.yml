@@ -30,7 +30,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: setup-py.yml
+        uses: ./setup-py.yml
 
       - name: Run type checker
         run: nox -s type-check
