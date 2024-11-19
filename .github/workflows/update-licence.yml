@@ -15,7 +15,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./setup-py.yml
+        uses: {{ PIPED_PATH }}/github/actions/setup-py.yml
 
       - name: Update licence
         run: nox -s update-licence
