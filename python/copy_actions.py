@@ -165,7 +165,7 @@ def main() -> None:
     for path, value in to_write.items():
         path.write_text(value)
 
-    _copy_composable_action("setup-py", wild_card)
+    _copy_composable_action("setup-py", {**_ACTION_DEFAULTS, **wild_card})
 
 
 if __name__ == "__main__":
