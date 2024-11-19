@@ -24,24 +24,17 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Set up Python {{ DEFAULT_PY_VER }}
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
-        with:
-          python-version: "{{ DEFAULT_PY_VER }}"
-
-      - name: install prerequisites
-        run: |
-          python -m pip install --upgrade pip wheel
-          python -m pip install -r {{ NOX_DEP_PATH }}{% if "verify-markup" not in config.hide %}
+      - name: Install Python
+        uses: setup-py.yml
 
       - name: Lint markup
-        run: python -m nox -s verify-markup{% endif %}{% if "spell-check" not in config.hide %}
+        run: nox -s verify-markup{% endif %}{% if "spell-check" not in config.hide %}
 
       - name: Check spelling
-        run: python -m nox -s spell-check{% endif %}{% if "flake8" not in config.hide %}
+        run: nox -s spell-check{% endif %}{% if "flake8" not in config.hide %}
 
       - name: Lint with flake8
-        run: python -m nox -s flake8{% endif %}{% if "slot-check" not in config.hide %}
+        run: nox -s flake8{% endif %}{% if "slot-check" not in config.hide %}
 
       - name: Check slotting
-        run: python -m nox -s slot-check{% endif %}
+        run: nox -s slot-check{% endif %}

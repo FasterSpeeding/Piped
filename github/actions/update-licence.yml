@@ -14,13 +14,8 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Set up Python {{ DEFAULT_PY_VER }}
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
-        with:
-          python-version: "{{ DEFAULT_PY_VER }}"
-
-      - name: Install Nox
-        run: pipx install nox --pip-args=--constraint={{ NOX_DEP_PATH }} --python $(which python)
+      - name: Install Python
+        uses: setup-py.yml
 
       - name: Update licence
         run: nox -s update-licence
