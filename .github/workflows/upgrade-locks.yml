@@ -15,7 +15,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./setup-py.yml
+        uses ./.github/workflows/setup-py.yml
 
       - name: Upgrade dependency locks
         run: nox -s freeze-locks
