@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "{{ DEFAULT_PY_VER }}"
 
-      - name: install prerequisites
+      - name: Install Nox
         run: |
           pipx install nox --pip-args=--constraint={{ NOX_DEP_PATH }}
 
