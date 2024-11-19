@@ -139,7 +139,7 @@ def main() -> None:
                 actions[dep_name] = (_ACTIONS[dep_name], {})
 
     for file_name, (action, config) in actions.items():
-        config = {key.upper(): value for key, value in itertools.chain(wild_card, config.items())}
+        config = {key.upper(): value for key, value in itertools.chain(wild_card.items(), config.items())}
         if missing := action.required_names.difference(config.keys()):
             raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
 
