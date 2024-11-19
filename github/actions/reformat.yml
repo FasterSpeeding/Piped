@@ -35,4 +35,4 @@ jobs:
           path: gogo.patch
 
       - name: Check diff file
-        run: python -m nox -s is-diff-file-empty
+        run: nox -s is-diff-file-empty
