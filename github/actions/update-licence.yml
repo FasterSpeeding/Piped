@@ -20,11 +20,10 @@ jobs:
           python-version: "{{ DEFAULT_PY_VER }}"
 
       - name: Install Nox
-        run: |
-          python -m pipx install nox --pip-args=--constraint={{ NOX_DEP_PATH }}
+        run: pipx install nox --pip-args=--constraint={{ NOX_DEP_PATH }} --python $(which python)
 
       - name: Update licence
-        run: python -m nox -s update-licence
+        run: nox -s update-licence
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f
