@@ -23,8 +23,11 @@ jobs:
         with:
           python-version: "{{ DEFAULT_PY_VER }}"
 
+      - name: Install Nox
+        run: pipx install nox --pip-args=--constraint={{ NOX_DEP_PATH }} --python $(which python)
+
       - name: Reformat
-        run: python -m pipx run nox -s reformat bot-package-diff
+        run: nox -s reformat bot-package-diff
 
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882
         with:
