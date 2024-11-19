@@ -25,7 +25,7 @@ jobs:
           python-version: "{{ DEFAULT_PY_VER }}"
 
       - name: Install Nox
-        run: pipx install nox --python {% raw %}"${{ steps.install-py.outputs.python-path }}" {% endraw %}
+        run: pipx install nox --python {% raw %}"${{ steps.install-py.outputs.python-path }}"{% endraw %}
 
       - name: Reformat
         run: nox -s reformat bot-package-diff
