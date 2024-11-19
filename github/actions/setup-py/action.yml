@@ -1,4 +1,3 @@
-
 name: "Install Python"
 description: "Install a specific Python version"
 inputs:
