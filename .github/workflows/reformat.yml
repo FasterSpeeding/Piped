@@ -25,7 +25,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install Nox
-        run: pipx install nox --python "${{ steps.install-py.outputs.python-path }}"  --pip-args=--constraint=./python/base-requirements/nox.txt
+        run: pipx install nox --python "${{ steps.install-py.outputs.python-path }}" 
 
       - name: Reformat
         run: nox -s reformat bot-package-diff
