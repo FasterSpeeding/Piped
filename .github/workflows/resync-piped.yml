@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-    paths: ["github/workflows/*", "pyproject.toml"]
+    paths: ["github/actions/**", "github/workflows/*", "pyproject.toml"]
 
 jobs:
   resync-piped:
