@@ -21,7 +21,7 @@ jobs:
 
       - name: Install Nox
         run: |
-          pipx install nox --pip-args=--constraint=./python/base-requirements/nox.txt
+          python -m pipx install nox --pip-args=--constraint=./python/base-requirements/nox.txt
 
       - name: Update licence
         run: python -m nox -s update-licence
