@@ -19,12 +19,8 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Nox
-        run: |
-          pipx install nox --pip-args=--constraint=./python/base-requirements/nox.txt
-
       - name: Update licence
-        run: nox -s update-licence
+        run: pipx run nox -s update-licence
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f
