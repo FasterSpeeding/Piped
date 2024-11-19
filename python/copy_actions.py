@@ -106,8 +106,6 @@ _ACTIONS: dict[str, _Action] = {
 }
 
 
-
-
 def _normalise_path(path: str, /) -> str:
     return path.replace("_", "-").strip()
 
@@ -161,7 +159,7 @@ def main() -> None:
         path.write_text(value)
 
     if _SETUP_PY in dependencies:
-       _copy_composable_action(_SETUP_PY, {**_ACTION_DEFAULTS, **wild_card})
+        _copy_composable_action(_SETUP_PY, {**_ACTION_DEFAULTS, **wild_card})
 
 
 if __name__ == "__main__":
