@@ -51,20 +51,25 @@ _ACTION_DEFAULTS = {
 }
 
 
-_config = piped_shared.Config.read(pathlib.Path("./"))
+_CONFIG = piped_shared.Config.read(pathlib.Path("./"))
 _RESYNC_FILTER = os.environ["RESYNC_FILTER"].split(",")
 _VERIFY_FILTER = os.environ["VERIFY_FILTER"].split(",")
 
 
 class _Action:
-    __slots__ = ("defaults", "required_names")
+    __slots__ = ("defaults", "required_names", "requires")
 
     def __init__(
-        self, *, required: collections.Sequence[str] = (), defaults: piped_shared.ConfigT | None = None
+        self,
+        *,
+        required: collections.Sequence[str] = (),
+        defaults: piped_shared.ConfigT | None = None,
+        requires: collections.Sequence[str] = (),
     ) -> None:
         self.defaults: piped_shared.ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
+        self.requires = frozenset(requires)
 
     def process_config(self, config: piped_shared.ConfigT, /) -> piped_shared.ConfigT:
         output: piped_shared.ConfigT = dict(self.defaults)
@@ -72,13 +77,15 @@ class _Action:
         return output
 
 
+_SETUP_PY = "setup-py"
+
 _ACTIONS: dict[str, _Action] = {
     "clippy": _Action(),
     "docker-publish": _Action(defaults={"DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
-    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}),
-    "lint": _Action(),
-    "pr-docs": _Action(),
-    "publish": _Action(),
+    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}, requires=(_SETUP_PY,)),
+    "lint": _Action(requires=(_SETUP_PY,)),
+    "pr-docs": _Action(requires=(_SETUP_PY,)),
+    "publish": _Action(requires=(_SETUP_PY,)),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
         defaults={
@@ -86,17 +93,23 @@ _ACTIONS: dict[str, _Action] = {
             "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
             "REQUIRES_RUST": "",
         },
+        requires=(_SETUP_PY,),
     ),
-    "reformat": _Action(),
-    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
-    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
-    "rustfmt": _Action(),
-    "type-check": _Action(defaults={"REQUIRES_RUST": ""}),
-    "update-licence": _Action(),
-    "upgrade-locks": _Action(),
-    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _VERIFY_FILTER}),
-    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}),
+    "reformat": _Action(requires=(_SETUP_PY,)),
+    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}, requires=(_SETUP_PY,)),
+    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}, requires=(_SETUP_PY,)),
+    "rustfmt": _Action(requires=(_SETUP_PY,)),
+    _SETUP_PY: _Action(),
+    "type-check": _Action(defaults={"REQUIRES_RUST": ""}, requires=(_SETUP_PY,)),
+    "update-licence": _Action(requires=(_SETUP_PY,)),
+    "upgrade-locks": _Action(requires=(_SETUP_PY,)),
+    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _VERIFY_FILTER}, requires=(_SETUP_PY,)),
+    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}, requires=(_SETUP_PY,)),
 }
+
+
+def _normalise_path(path: str, /) -> str:
+    return path.replace("_", "-").strip()
 
 
 def main() -> None:
@@ -108,16 +121,25 @@ def main() -> None:
     env.filters["quoted"] = '"{}"'.format  # noqa: FS002
 
     to_write: dict[pathlib.Path, str] = {}
-    actions = iter(_config.github_actions.items())
-    wild_card: collections.ItemsView[str, piped_shared.ConfigEntryT] = (_config.github_actions.get("*") or {}).items()
+    actions: dict[str, tuple[_Action, piped_shared.ConfigT]] = {}
+    wild_card = {}
 
-    for file_name, config in actions:
+    for file_name, values in _CONFIG.github_actions.items():
+        file_name = _normalise_path(file_name)
         if file_name == "*":
+            wild_card = values
             continue
 
-        config = {key.upper(): value for key, value in itertools.chain(wild_card, config.items())}
-        file_name = file_name.replace("_", "-")
         action = _ACTIONS[file_name]
+        actions[file_name] = (action, values)
+
+        for dep_name in action.requires:
+            dep_name = _normalise_path(dep_name)
+            if not dep_name in actions:
+                actions[dep_name] = (_ACTIONS[dep_name], {})
+
+    for file_name, (action, config) in actions.items():
+        config = {key.upper(): value for key, value in itertools.chain(wild_card, config.items())}
         if missing := action.required_names.difference(config.keys()):
             raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
 
@@ -125,7 +147,7 @@ def main() -> None:
         template = env.get_template(file_name)
 
         full_config = action.process_config(config)
-        to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_config)
+        to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_CONFIG)
 
     pathlib.Path("./.github/workflows").mkdir(exist_ok=True, parents=True)
 
