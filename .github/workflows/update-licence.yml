@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: install prerequisites
+      - name: Install Nox
         run: |
           pipx install nox --pip-args=--constraint=./python/base-requirements/nox.txt
 
