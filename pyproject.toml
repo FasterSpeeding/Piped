@@ -98,7 +98,7 @@ piped_path = "."
 [tool.piped.github_actions.lint]
 [tool.piped.github_actions.reformat]
 [tool.piped.github_actions.resync_piped]
-FILTERS = ["github/workflows/*", "pyproject.toml"]
+FILTERS = ["github/actions/*", "github/workflows/*", "pyproject.toml"]
 
 [tool.piped.github_actions.type_check]
 [tool.piped.github_actions.update_licence]
