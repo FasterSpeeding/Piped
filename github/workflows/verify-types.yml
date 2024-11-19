@@ -1,4 +1,4 @@
-name: Type check
+name: Verify type-completeness
 
 concurrency:
   {% raw %}group: ${{ github.workflow }}-${{ github.ref }}{% endraw %}
@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  type-check:
+  verify-types:
     runs-on: ubuntu-latest
 
     steps:{% if REQUIRES_RUST %}
@@ -29,15 +29,8 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Set up Python {{ DEFAULT_PY_VER }}
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
-        with:
-          python-version: "{{ DEFAULT_PY_VER }}"
+      - name: Install Python
+        uses: ./.github/actions/setup-py
 
-      - name: install prerequisites
-        run: |
-          python -m pip install --upgrade pip wheel
-          python -m pip install -r {{ NOX_DEP_PATH }}
-
-      - name: Run type checker
-        run: python -m nox -s type-check
+      - name: Run verify types
+        run: nox -s verify-types

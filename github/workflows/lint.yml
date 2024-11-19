@@ -1,7 +1,7 @@
 name: Lint
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  {% raw %}group: ${{ github.workflow }}-${{ github.ref }}{% endraw %}
   cancel-in-progress: true
 
 on:
@@ -25,13 +25,16 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./.github/actions/setup-py
+        uses: ./.github/actions/setup-py{% if "verify-markup" not in config.hide %}
 
       - name: Lint markup
-        run: nox -s verify-markup
+        run: nox -s verify-markup{% endif %}{% if "spell-check" not in config.hide %}
 
       - name: Check spelling
-        run: nox -s spell-check
+        run: nox -s spell-check{% endif %}{% if "flake8" not in config.hide %}
 
       - name: Lint with flake8
-        run: nox -s flake8
+        run: nox -s flake8{% endif %}{% if "slot-check" not in config.hide %}
+
+      - name: Check slotting
+        run: nox -s slot-check{% endif %}
