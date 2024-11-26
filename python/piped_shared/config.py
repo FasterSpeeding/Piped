@@ -51,7 +51,7 @@ ConfigT = dict[str, ConfigEntryT]
 
 
 _DEFAULT_ACTIONS = ["Freeze PR dependency changes", "Resync piped", "Reformat PR code", "Run Rustfmt"]
-_DEFAULT_DEP_LOCKS = [pathlib.Path("./dev-requirements/")]
+_DEFAULT_DEP_SOURCES: list[pathlib.Path] = [pathlib.Path("./pyproject.toml")]
 _DEFAULT_GITHUB_ACTIONS: dict[str, ConfigT] = {"resync-piped": {}}
 
 
@@ -172,8 +172,9 @@ class Config:
 
     bot_actions: set[str]
     default_sessions: list[str]
-    dep_locks: list[pathlib.Path]
+    dep_sources: list[pathlib.Path]
     extra_test_installs: list[str]
+    extra_typing_installs: list[str]
     github_actions: dict[str, ConfigT]
     hide: list[str]
     mypy_allowed_to_fail: bool
@@ -206,11 +207,11 @@ class Config:
         bot_actions = set(_validate_list_entry(data, "bot_actions", str, default_factory=_DEFAULT_ACTIONS.copy))
         default_sessions = _validate_list_entry(data, "default_sessions", str)
 
-        if "dep_locks" in data:
-            dep_locks = [pathlib.Path(path) for path in _validate_list_entry(data, "dep_locks", str)]
+        if "dep_sources" in data:
+            dep_sources = [pathlib.Path(path) for path in _validate_list_entry(data, "dep_sources", str)]
 
         else:
-            dep_locks = _DEFAULT_DEP_LOCKS
+            dep_sources = _DEFAULT_DEP_SOURCES
 
         raw_github_actions = data.get("github_actions", ...)
         if raw_github_actions is ...:
@@ -241,6 +242,7 @@ class Config:
             )
 
         extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=list)
+        extra_typing_installs = _validate_list_entry(data, "extra_typing_installs", str, default_factory=list)
         hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
         mypy_targets = _validate_list_entry(data, "mypy_targets", str, default_factory=list)
@@ -255,8 +257,9 @@ class Config:
         return cls(
             bot_actions=bot_actions,
             default_sessions=default_sessions,
-            dep_locks=dep_locks,
+            dep_sources=dep_sources,
             extra_test_installs=extra_test_installs,
+            extra_typing_installs=extra_typing_installs,
             github_actions=github_actions,
             hide=hide,
             mypy_allowed_to_fail=mypy_allowed_to_fail,

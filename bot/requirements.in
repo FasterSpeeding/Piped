@@ -1,8 +1,0 @@
-asgiref
-fastapi
-httpx[http2]
-jwt
-python-dateutil
-python-dotenv
-uvicorn
-uvloop; platform_system != "Windows"
