@@ -156,6 +156,7 @@ disable_error_code = ["type-abstract"]
 [tool.piped]
 codespell_ignore = "PullRequest"
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
+extra_typing_install = ["./python/piped_shared"]
 hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
 path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]

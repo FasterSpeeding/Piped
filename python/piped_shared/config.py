@@ -173,6 +173,8 @@ class Config:
     bot_actions: set[str]
     default_sessions: list[str]
     dep_sources: list[pathlib.Path]
+    extra_test_installs: list[str]
+    extra_typing_installs: list[str]
     github_actions: dict[str, ConfigT]
     hide: list[str]
     mypy_allowed_to_fail: bool
@@ -239,6 +241,8 @@ class Config:
                 "Unexpected value found at ['github_actions'], expected a dict or list but found {raw_github_actions!r}"
             )
 
+        extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=list)
+        extra_typing_installs = _validate_list_entry(data, "extra_typing_installs", str, default_factory=list)
         hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
         mypy_targets = _validate_list_entry(data, "mypy_targets", str, default_factory=list)
@@ -254,6 +258,8 @@ class Config:
             bot_actions=bot_actions,
             default_sessions=default_sessions,
             dep_sources=dep_sources,
+            extra_test_installs=extra_test_installs,
+            extra_typing_installs=extra_typing_installs,
             github_actions=github_actions,
             hide=hide,
             mypy_allowed_to_fail=mypy_allowed_to_fail,
