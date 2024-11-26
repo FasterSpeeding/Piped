@@ -49,8 +49,8 @@ from collections import abc as collections
 from typing import Self
 
 import anyio
-import anyio.to_thread
 import anyio.lowlevel
+import anyio.to_thread
 import dotenv
 import fastapi
 import httpx
