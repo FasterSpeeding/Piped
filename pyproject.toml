@@ -67,6 +67,7 @@ type-checking = [
     "mypy>=0.991",
     "nox",
     "pyright>=1.1.285",
+    {include-group = "bot"},
     {include-group = "templating"},
 ]
 
