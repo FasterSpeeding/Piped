@@ -50,7 +50,6 @@ __all__: list[str] = [
 ]
 
 import datetime
-import itertools
 import pathlib
 import re
 import tomllib
@@ -91,7 +90,7 @@ def _install_deps(session: nox.Session, *groups: str, only_dev: bool = True) -> 
         "uv",
         "sync",
         "--locked",
-        *map(f"--{target_type}={{}}".format, groups),
+        *map(f"--{target_type}={{}}".format, groups),  # noqa: FS002  # '.format' used
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
 
