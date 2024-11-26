@@ -34,7 +34,7 @@ __all__: list[str] = [
     "build",
     "cleanup",
     "copy_actions",
-    "flake8",
+    "lint",
     "freeze_locks",
     "generate_docs",
     "publish",
@@ -199,11 +199,11 @@ def generate_docs(session: nox.Session) -> None:
 
 
 @_filtered_session(reuse_venv=True)
-def flake8(session: nox.Session) -> None:
-    """Run this project's modules against the pre-defined flake8 linters."""
+def lint(session: nox.Session) -> None:
+    """Run this project's modules against the pre-defined ruff linters."""
     _install_deps(session, "lint")
-    session.log("Running flake8")
-    session.run("flake8", *_CONFIG.top_level_targets, log=False)
+    session.log("Running ruff")
+    session.run("ruff", "check", *_CONFIG.top_level_targets, log=False)
 
 
 @_filtered_session(reuse_venv=True, name="slot-check")
