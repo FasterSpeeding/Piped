@@ -152,7 +152,7 @@ def _validate_entry(
 
 
 def _validate_github_actions(
-    path_to: str, raw_config: typing.Any, /  # noqa: ANN401 # Dynamically typed expressions are not alowed
+    path_to: str, raw_config: typing.Any, /  # noqa: ANN401 # Dynamically typed expressions are not allowed
 ) -> ConfigT:
     if not isinstance(raw_config, dict):
         error_message = f"Unexpected value found for {path_to}, expected a dictionary but found {raw_config!r}"
