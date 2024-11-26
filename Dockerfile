@@ -8,7 +8,7 @@ COPY ./python ./shared
 
 RUN pip install uv && \
     uv sync --locked --only-group bot && \
-    ./.venv/bin/python -m pip install ./shared
+    uv pip install ./shared
 
 FROM python:3.13.0
 
