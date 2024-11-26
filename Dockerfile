@@ -7,7 +7,7 @@ COPY ./uv.lock ./
 COPY ./python ./shared
 
 RUN pip install uv && \
-    uv sync --locked --only-group bot && \
+    uv sync --frozen --only-group bot && \
     uv pip install ./shared
 
 FROM python:3.13.0
