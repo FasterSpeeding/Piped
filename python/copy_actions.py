@@ -75,7 +75,7 @@ class _Action:
 
 
 _RESYNC_FILTER = ["piped"]
-_RESYNC_FILTER.extend(str(path.relative_to(pathlib.Path.cwd())) for path in _CONFIG.dep_sources)
+_RESYNC_FILTER.extend(str(path.absolute().relative_to(pathlib.Path.cwd())) for path in _CONFIG.dep_sources)
 
 _SETUP_PY = "setup-py"
 _ACTIONS: dict[str, _Action] = {
