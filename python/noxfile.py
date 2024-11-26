@@ -90,7 +90,7 @@ def _install_deps(
         target_type = "only-group"
 
     session.install("uv")
-    # session.run_install("uv", "sync", "--locked", *map(f"--{target_type}={{}}".format, groups), env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location})
+    session.run_install("uv", "sync", "--locked", *map(f"--{target_type}={{}}".format, groups), env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location})
 
 
 
