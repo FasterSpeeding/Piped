@@ -52,7 +52,6 @@ __all__: list[str] = [
 import datetime
 import pathlib
 import re
-import tomllib
 import typing
 from collections import abc as collections
 
@@ -63,8 +62,6 @@ _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing
 
 _CONFIG = piped_shared.Config.read(pathlib.Path("./"))
 nox.options.sessions = _CONFIG.default_sessions
-_DEPS_DIR = pathlib.Path("./dev-requirements")
-_SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
 
 
 def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collections.Iterable[str]:
@@ -182,32 +179,6 @@ def copy_actions(session: nox.Session) -> None:
     _install_deps(session, "templating")
     session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"))
 
-
-def _pyproject_toml() -> dict[str, typing.Any] | None:
-    try:
-        with pathlib.Path("pyproject.toml").open("rb") as _file:
-            return tomllib.load(_file)
-
-    except FileNotFoundError:
-        return None
-
-
-def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
-    if not path.is_symlink():
-        target = path.with_name(path.name[:-3] + ".txt")
-        target.unlink(missing_ok=True)
-        session.run(
-            "pip-compile-cross-platform",
-            "--generate-hashes",
-            "-o",
-            str(target),
-            "--min-python-version",
-            _CONFIG.version(_pyproject_toml()),
-            str(path),
-        )
-
-
-_EXTRAS_FILTER = re.compile(r"\[.+\]")
 
 
 @nox.session(name="freeze-locks", reuse_venv=True)
