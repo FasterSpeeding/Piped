@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -28,6 +27,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+"""Development tasks implemented by Piped."""
+
 from __future__ import annotations
 
 __all__: list[str] = [
@@ -52,6 +53,7 @@ __all__: list[str] = [
 import datetime
 import pathlib
 import re
+import sys
 import typing
 from collections import abc as collections
 
@@ -87,7 +89,7 @@ def _install_deps(session: nox.Session, *groups: str, only_dev: bool = True) -> 
         "uv",
         "sync",
         "--frozen",
-        *map(f"--{target_type}={{}}".format, groups),  # noqa: FS002  # '.format' used
+        *map(f"--{target_type}={{}}".format, groups),
         env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
 
@@ -102,6 +104,8 @@ def _try_find_option(
         if arg in names:
             return next(args_iter, when_empty)
 
+    return None
+
 
 def _filtered_session(
     *,
@@ -109,11 +113,11 @@ def _filtered_session(
     py: str | collections.Sequence[str] | bool | None = None,
     reuse_venv: bool | None = None,
     name: str | None = None,
-    venv_backend: typing.Any = "uv",
-    venv_params: typing.Any = None,
+    venv_backend: typing.Any = "uv",  # noqa: ANN401  # Dynamically typed expressions
+    venv_params: typing.Any = None,  # noqa: ANN401  # Dynamically typed expressions
     tags: list[str] | None = None,
 ) -> collections.Callable[[_CallbackT], _CallbackT | None]:
-    """Filtering version of `nox.session`."""
+    """Register a `nox.session` unless it is in `_CONFIG.hide`."""
 
     def decorator(callback: _CallbackT, /) -> _CallbackT | None:
         name_ = name or callback.__name__
@@ -151,8 +155,8 @@ def cleanup(session: nox.Session) -> None:
         except FileNotFoundError:
             session.warn(f"[ SKIP ] '{raw_path}'")
 
-        except Exception as exc:
-            session.error(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")  # noqa: TC400
+        except Exception as exc:  # noqa: BLE001  # Do not catch blind exception: `Exception`
+            session.error(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")
 
         else:
             session.log(f"[  OK  ] Removed '{raw_path}'")
@@ -166,8 +170,8 @@ def cleanup(session: nox.Session) -> None:
         except FileNotFoundError:
             session.warn(f"[ SKIP ] '{raw_path}'")
 
-        except Exception as exc:
-            session.error(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")  # noqa: TC400
+        except Exception as exc:  # noqa: BLE001  # Do not catch blind exception: `Exception`
+            session.error(f"[ FAIL ] Failed to remove '{raw_path}': {exc!s}")
 
         else:
             session.log(f"[  OK  ] Removed '{raw_path}'")
@@ -237,7 +241,7 @@ _LICENCE_PATTERN = re.compile(r"(Copyright \(c\) (\d+-?\d*))")
 def _update_licence(match: re.Match[str]) -> str:
     licence_str, date_range = match.groups()
     start = date_range.split("-", 1)[0]
-    current_year = str(datetime.datetime.now().year)
+    current_year = str(datetime.datetime.now(tz=datetime.UTC).year)
 
     if start == current_year:
         return licence_str
@@ -249,7 +253,7 @@ _LICENCE_FILE_PATTERN = re.compile(r".*(rs|py)|LICENSE")
 
 
 @_filtered_session(name="update-licence", venv_backend="none")
-def update_licence(session: nox.Session):
+def update_licence(session: nox.Session) -> None:
     """Bump the end year of the project's licence to the current year."""
     for path in map(pathlib.Path, _tracked_files(session)):
         if not _LICENCE_FILE_PATTERN.fullmatch(path.name):
@@ -263,7 +267,7 @@ def update_licence(session: nox.Session):
 
 
 @_filtered_session(name="verify-markup", reuse_venv=True)
-def verify_markup(session: nox.Session):
+def verify_markup(session: nox.Session) -> None:
     """Verify the syntax of the repo's markup files."""
     _install_deps(session, "lint")
     tracked_files = list(_tracked_files(session))
@@ -283,7 +287,7 @@ def verify_markup(session: nox.Session):
         "python",
         "-m",
         "pre_commit_hooks.check_yaml",
-        *(path for path in tracked_files if path.endswith(".yml") or path.endswith(".yaml")),
+        *(path for path in tracked_files if path.endswith((".yml", ".yaml"))),
         success_codes=[0, 1],
         log=False,
     )
@@ -305,7 +309,7 @@ def _publish(session: nox.Session, /, *, env: dict[str, str] | None = None) -> N
 
 
 @_filtered_session(reuse_venv=True)
-def publish(session: nox.Session):
+def publish(session: nox.Session) -> None:
     """Publish this project to pypi."""
     _publish(session)
 
@@ -407,7 +411,7 @@ def type_check(session: nox.Session) -> None:
 def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
     project_name = _CONFIG.assert_project_name()
-    # TODO is installing . necessary here?
+    # TODO: is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "type-checking")
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
@@ -445,6 +449,6 @@ def bot_package_diff(session: nox.Session) -> None:
 
 
 @nox.session(name="is-diff-file-empty", venv_backend="none")
-def is_diff_file_empty(_: nox.Session):
+def is_diff_file_empty(_: nox.Session) -> None:
     if pathlib.Path("./gogo.patch").exists():
-        exit("Diff created")
+        sys.exit("Diff created")

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -36,10 +35,14 @@ __all__ = []
 
 import itertools
 import pathlib
-from collections import abc as collections
+import typing
 
 import jinja2
 import piped_shared
+
+if typing.TYPE_CHECKING:
+    from collections import abc as collections
+
 
 _DEFAULT_COMMITER_USERNAME = "always-on-duty[bot]"
 _ACTION_DEFAULTS = {
@@ -116,7 +119,7 @@ def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
     )
 
     template = env.get_template("action.yml")
-    env.filters["quoted"] = '"{}"'.format  # noqa: FS002
+    env.filters["quoted"] = '"{}"'.format
 
     dest = pathlib.Path(".github/actions/") / name
     dest.mkdir(exist_ok=True, parents=True)
@@ -129,27 +132,27 @@ def main() -> None:
         loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "workflows"),
     )
 
-    env.filters["quoted"] = '"{}"'.format  # noqa: FS002
+    env.filters["quoted"] = '"{}"'.format
 
     dependencies: set[str] = set()
     to_write: dict[pathlib.Path, str] = {}
     wild_card = _CONFIG.github_actions.get("*") or {}
 
-    for file_name, config in _CONFIG.github_actions.items():
-        if file_name == "*":
+    for raw_file_name, raw_config in _CONFIG.github_actions.items():
+        if raw_file_name == "*":
             continue
 
-        file_name = _normalise_path(file_name)
+        file_name = _normalise_path(raw_file_name)
         action = _ACTIONS[file_name]
-        config = {key.upper(): value for key, value in itertools.chain(wild_card.items(), config.items())}
+        config = {key.upper(): value for key, value in itertools.chain(wild_card.items(), raw_config.items())}
         if missing := action.required_names.difference(config.keys()):
             raise RuntimeError(f"Missing the following required fields for {file_name} actions: " + ", ".join(missing))
 
-        file_name = f"{file_name}.yml"
-        template = env.get_template(file_name)
+        file_path = f"{file_name}.yml"
+        template = env.get_template(file_path)
 
-        full_config = action.process_config(config)
-        to_write[pathlib.Path("./.github/workflows") / file_name] = template.render(**full_config, config=_CONFIG)
+        config = action.process_config(config)
+        to_write[pathlib.Path("./.github/workflows") / file_path] = template.render(**config, config=_CONFIG)
         dependencies.update(action.requires)
 
     pathlib.Path("./.github/workflows").mkdir(exist_ok=True, parents=True)

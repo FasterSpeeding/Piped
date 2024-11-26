@@ -63,6 +63,45 @@ exclude_lines = [
 
 [tool.ruff.lint]
 select = ["ALL"]
+ignore = [
+    "COM812",  # Trailing comma missing (incompatible with black)
+    "FIX002",  # Line contains TODO, consider resolving the issue
+    "I001",    # [*] Import block is un-sorted or un-formatted
+    "S101",    # Use of `assert` detected
+    "SIM108",  # Use ternary operator `` instead of `if`-`else`-block
+    "TD002",   # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
+    "TD003",   # Missing issue link on the line following this TODO
+]
+
+[tool.ruff.lint.per-file-ignores]
+"bot/**/*.py" = [
+    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
+    "PT017",   # Found assertion on exception `exc` in `except` block, use `pytest.raises()` instead
+]
+"noxfile.py" = [
+    "F403",    # `from noxfile import *` used; unable to detect undefined name
+]
+"python/*.py" = [
+    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
+]
+"python/noxfile.template.py" = [
+    "F403",    # `from noxfile import *` used; unable to detect undefined name
+    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 20
+
+[tool.ruff.lint.pycodestyle]
+# Technically this is 120, but black has a policy of "1 or 2 over is fine if it is tidier", so we have to raise this.
+max-line-length = 130
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.pylint]
+max-args = 12
+max-branches = 15
 
 [tool.isort]
 profile = "black"
@@ -88,7 +127,7 @@ disable_error_code = ["type-abstract"]
 
 [tool.piped]
 codespell_ignore = "PullRequest"
-default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
+default_sessions = ["reformat", "verify-markup", "lint", "spell-check", "type-check"]
 extra_typing_installs = ["./python"]
 hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
 path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -28,7 +27,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+"""Github webhook bot which runs alongside github Actions to elevate actions."""
+import asyncio
 import contextlib
 import dataclasses
 import datetime
@@ -38,7 +38,7 @@ import io
 import logging
 import os
 import pathlib
-import subprocess  # noqa: S404
+import subprocess
 import sys
 import tempfile
 import time
@@ -60,9 +60,6 @@ import starlette.middleware
 from anyio.streams import memory as streams
 from asgiref import typing as asgiref
 from dateutil import parser as dateutil
-
-if sys.version_info < (3, 11):
-    raise RuntimeError("Only supports Python 3.11+")
 
 _LOGGER = logging.getLogger("piped.bot")
 _LOGGER.setLevel("INFO")
@@ -107,7 +104,7 @@ class _ProcessingIndex:
         for scope in prs.values():
             scope.cancel()
 
-        await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
+        await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
 
     def clear_for_repo(self, repo_id: int, /, *, repo_name: str | None = None) -> None:
         """Cancel the active PR processing tasks for a Repo.
@@ -250,7 +247,7 @@ class _Tokens:
             The generated installation token.
         """
         if token_info := self._installation_tokens.get(installation_id):
-            expire_by = datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(seconds=60)
+            expire_by = datetime.datetime.now(tz=datetime.UTC) - datetime.timedelta(seconds=60)
             if token_info[0] >= (expire_by):
                 return token_info[1]
 
@@ -285,9 +282,11 @@ async def _request(
     """Make a request to Github's API.
 
     Parameters
-    ---------
+    ----------
     http
         The REST client to use to make the request.
+    method
+        HTTP method to use for this request.
     endpoint
         Endpoint to request to.
 
@@ -297,6 +296,8 @@ async def _request(
         Dict of the JSON payload to include in this request.
     query
         Dict of the query string parameters to include for this request.
+    output
+        IO object to print error output to on failed requests.
     token
         The authorisation token to use.
     """
@@ -315,8 +316,8 @@ async def _request(
     try:
         response.raise_for_status()
     except Exception:
-        print("Response body:", file=output or sys.stderr)  # noqa: T201
-        print(response.read().decode(), file=output or sys.stderr)  # noqa: T201
+        print("Response body:", file=output or sys.stderr)
+        print(response.read().decode(), file=output or sys.stderr)
         raise
 
     return response
@@ -342,7 +343,7 @@ class _CachedReceive:
 
 
 async def _error_response(send: asgiref.ASGISendCallable, body: bytes, /, *, status_code: int = 400) -> None:
-    """Helper function for returning a quick error response.
+    """Return a quick RESTful error response.
 
     Parameters
     ----------
@@ -365,7 +366,7 @@ async def _error_response(send: asgiref.ASGISendCallable, body: bytes, /, *, sta
 
 
 def _find_headers(scope: asgiref.HTTPScope, headers: collections.Collection[bytes]) -> dict[bytes, bytes]:
-    """Helper function for extracting specific headers from an ASGI request.
+    """Extract specific headers from an ASGI request.
 
     Parameters
     ----------
@@ -373,13 +374,18 @@ def _find_headers(scope: asgiref.HTTPScope, headers: collections.Collection[byte
         The ASGI HTTP scope payload to get the headers from.
     headers
         Collection of the headers to find.
+
+    Returns
+    -------
+    dict[bytes, bytes]
+        Dictionary of the found headers.
     """
     results: dict[bytes, bytes] = {}
 
     for header_name, header_value in scope["headers"]:
-        header_name = header_name.lower()
-        if header_name in headers:
-            results[header_name] = header_value
+        name = header_name.lower()
+        if name in headers:
+            results[name] = header_value
 
             if len(results) == len(headers):
                 break
@@ -400,11 +406,29 @@ class AuthMiddleware:
             [asgiref.Scope, asgiref.ASGIReceiveCallable, asgiref.ASGISendCallable], collections.Awaitable[None]
         ],
     ) -> None:
+        """Initialise an Auth Middleware.
+
+        Parameters
+        ----------
+        app
+            The ASGI App this middleware wraps.
+        """
         self.app = app
 
     async def __call__(
         self, scope: asgiref.Scope, receive: asgiref.ASGIReceiveCallable, send: asgiref.ASGISendCallable
     ) -> None:
+        """Execute a REST request received as an ASGI event.
+
+        Parameters
+        ----------
+        scope
+            Scope of the ASGI event.
+        receive
+            ASGI callback used to receive the request's body/data.
+        send
+            ASGI callback used to respond to the request.
+        """
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
@@ -482,6 +506,12 @@ class _WorkflowDispatch:
 
         Parameters
         ----------
+        repo_id
+            ID of the repository to track workflows in.
+        head_repo_id
+            ID of the Repo the commit these workflows are targeting is in.
+        head_sha
+            Hash of the commit these workflows are targeting.
 
         Returns
         -------
@@ -560,14 +590,14 @@ class _IterWorkflows:
         return self
 
 
-async def _on_startup():
+async def _on_startup() -> None:
     app.state.http = httpx.AsyncClient()
     app.state.index = _ProcessingIndex()
     app.state.tokens = _Tokens()
     app.state.workflows = _WorkflowDispatch()
 
 
-async def _on_shutdown():
+async def _on_shutdown() -> None:
     assert isinstance(app.state.index, _ProcessingIndex)
     assert isinstance(app.state.http, httpx.AsyncClient)
     await app.state.index.close()
@@ -585,8 +615,9 @@ async def post_webhook(
     body: dict[str, typing.Any],
     request: fastapi.Request,
     tasks: fastapi.BackgroundTasks,
-    x_github_event: str = fastapi.Header(),
+    x_github_event: typing.Annotated[str, fastapi.Header()],
 ) -> fastapi.Response:
+    """Receive Github action triggered event webhooks."""
     assert isinstance(request.app.state.http, httpx.AsyncClient)
     assert isinstance(request.app.state.index, _ProcessingIndex)
     assert isinstance(request.app.state.tokens, _Tokens)
@@ -598,7 +629,7 @@ async def post_webhook(
     match (x_github_event, body):
         case ("pull_request", {"action": "closed", "number": number, "repository": repo_data}):
             index.stop_for_pr(int(repo_data["id"]), int(number), repo_name=repo_data["full_name"])
-            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
+            await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
 
         case ("pull_request", {"action": "opened" | "reopened" | "synchronize"}):
             tasks.add_task(_process_repo, http, tokens, index, workflows, body)
@@ -611,13 +642,13 @@ async def post_webhook(
             for repo in repositories_removed:
                 index.clear_for_repo(int(repo["id"]))
 
-            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
+            await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
 
         case ("installation_repositories", {"action": "removed", "repositories": repositories}):
             for repo in repositories:
                 index.clear_for_repo(int(repo["id"]))
 
-            await anyio.sleep(0)  # Yield to the loop to let these cancels propagate
+            await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
 
         # Guard to let these expected but ignored cases still return 204
         case (
@@ -776,13 +807,14 @@ class _RunCheck:
             If called outside of this context manager's context.
         """
         if self._check_id == -1:
-            raise RuntimeError("Not running yet")
+            error_message = "Not running yet"
+            raise RuntimeError(error_message)
 
         await _request(
             self._http,
             "PATCH",
             f"/repos/{self._repo_name}/check-runs/{self._check_id}",
-            json={"started_at": datetime.datetime.now(tz=datetime.timezone.utc).isoformat(), "status": "in_progress"},
+            json={"started_at": datetime.datetime.now(tz=datetime.UTC).isoformat(), "status": "in_progress"},
             output=self._output,
             token=self._token,
         )
@@ -909,19 +941,31 @@ async def run_process(
     check: bool = True,
     cwd: str | bytes | os.PathLike[str] | None = None,
     env: collections.Mapping[str, str] | None = None,
-    start_new_session: bool = False,
 ) -> None:
+    """Run a CLI command asynchronously and capture its output.
+
+    Parameters
+    ----------
+    output
+        IO object to pipe the command call's output to.
+    command
+        The command to execute.
+    input
+        Bytes passed to the standard input of the subprocess.
+    check
+        If [True][], raise [anyio.CalledProcessError][] if
+        the process terminates with a return code other than
+        0.
+    cwd
+        Working directory to run this command in.
+    env
+        Mapping of environment variables to set for the
+        command call.
+    """
     try:
         # TODO: could --3way or --unidiff-zero help with conflicts here?
         result = await anyio.run_process(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            input=input,
-            check=check,
-            cwd=cwd,
-            env=env,
-            start_new_session=start_new_session,
+            command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, input=input, check=check, cwd=cwd, env=env
         )
 
     except subprocess.CalledProcessError as exc:
