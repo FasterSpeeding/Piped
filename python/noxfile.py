@@ -175,7 +175,7 @@ def cleanup(session: nox.Session) -> None:
 def copy_actions(session: nox.Session) -> None:
     """Copy over the github actions from Piped without updating the git reference."""
     _install_deps(session, "templating")
-    session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"), env=env)
+    session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"))
 
 
 def _pyproject_toml() -> dict[str, typing.Any] | None:
