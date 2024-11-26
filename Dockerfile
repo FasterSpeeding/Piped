@@ -1,12 +1,21 @@
+FROM python:3.13.0 as install
+
+WORKDIR /workspace
+
+COPY ./bot/pyproject.toml ./
+COPY ./bot/uv.lock ./
+COPY ./python ./shared
+
+RUN pip install uv && \
+    uv sync --locked && \
+    ./venv/bin/python -m pip install ./shared
+
 FROM python:3.13.0
 
-COPY ./bot/main.py ./main.py
-COPY ./python ./shared
-COPY ./bot/requirements.txt ./requirements.txt
+WORKDIR /workspace
 
-RUN python -m pip install --no-cache-dir wheel && \
-    python -m pip install --no-cache-dir -r requirements.txt && \
-    python -m pip install ./shared
+COPY --from=install /workspace/.venv ./venv
+COPY ./bot/main.py ./main.py
 
 # TODO: https://github.com/ome/devspace/issues/38?
-ENTRYPOINT ["python", "-m", "uvicorn", "main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80"]
+ENTRYPOINT ["./venv/bin/python", "-m", "uvicorn", "main:app", "--proxy-headers", "--host", "0.0.0.0", "--port", "80"]
