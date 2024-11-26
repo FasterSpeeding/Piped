@@ -4,6 +4,16 @@ requires-python = ">=3.11"
 version = "0.1.0"
 
 [dependency-groups]
+bot = [
+    "asgiref",
+    "fastapi",
+    "httpx[http2]",
+    "jwt",
+    "python-dateutil",
+    "python-dotenv",
+    "uvicorn",
+    "uvloop; platform_system != 'Windows'",
+]
 freeze-locks = ["uv"]
 lint = [
     "codespell>=2.2.2",
@@ -146,7 +156,6 @@ disable_error_code = ["type-abstract"]
 codespell_ignore = "PullRequest"
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
 hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
-dep_sources = ["./pyproject.toml", "./bot/pyproject.toml"]
 path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]
 version_constraint = "3.11"

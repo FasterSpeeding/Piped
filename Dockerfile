@@ -1,13 +1,13 @@
-FROM python:3.13.0 AS install
+FROM python:3.13.0 as install
 
 WORKDIR /workspace
 
-COPY ./bot/pyproject.toml ./
-COPY ./bot/uv.lock ./
+COPY ./pyproject.toml ./
+COPY ./uv.lock ./
 COPY ./python ./shared
 
 RUN pip install uv && \
-    uv sync --locked && \
+    uv sync --locked --only-group bot && \
     ./.venv/bin/python -m pip install ./shared
 
 FROM python:3.13.0
