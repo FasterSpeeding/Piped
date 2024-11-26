@@ -12,4 +12,3 @@ dependencies = [
     "uvicorn",
     "uvloop; platform_system != 'Windows'",
 ]
-

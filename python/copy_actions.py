@@ -35,7 +35,6 @@ from __future__ import annotations
 __all__ = []
 
 import itertools
-import os
 import pathlib
 from collections import abc as collections
 

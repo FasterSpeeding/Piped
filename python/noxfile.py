@@ -78,9 +78,7 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     return output.splitlines()
 
 
-def _install_deps(
-    session: nox.Session, *groups: str, only_dev: bool = True
-) -> None:
+def _install_deps(session: nox.Session, *groups: str, only_dev: bool = True) -> None:
     if not groups:
         return
 
@@ -90,8 +88,13 @@ def _install_deps(
         target_type = "only-group"
 
     session.install("uv")
-    session.run_install("uv", "sync", "--locked", *map(f"--{target_type}={{}}".format, groups), env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location})
-
+    session.run_install(
+        "uv",
+        "sync",
+        "--locked",
+        *map(f"--{target_type}={{}}".format, groups),
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
 
 
 def _try_find_option(
