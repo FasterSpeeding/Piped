@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2024, Faster Speeding
@@ -40,8 +39,10 @@ import pathlib
 import re
 import tomllib
 import typing
-from collections import abc as collections
 from typing import Self
+
+if typing.TYPE_CHECKING:
+    from collections import abc as collections
 
 _T = typing.TypeVar("_T")
 _DefaultT = typing.TypeVar("_DefaultT")
@@ -68,12 +69,14 @@ def _validate_dict(
 ) -> dict[str, _T]:
     for key, value in mapping.items():
         if not isinstance(key, str):
-            raise TypeError(f"Unexpected key {key!r} found in {path_to}, expected a string but found a {type(key)}")
+            error_message = f"Unexpected key {key!r} found in {path_to}, expected a string but found a {type(key)}"
+            raise TypeError(error_message)
 
         if not isinstance(value, expected_type):
-            raise TypeError(
+            error_message = (
                 f"Unexpected value found at {path_to}[{key!r}], expected a {expected_type} but found {value!r}"
             )
+            raise TypeError(error_message)
 
     return typing.cast("dict[str, _T]", mapping)
 
@@ -81,7 +84,8 @@ def _validate_dict(
 def _validate_list(path_to: str, array: list[typing.Any], expected_type: type[_T] | tuple[type[_T], ...]) -> list[_T]:
     for index, value in enumerate(array):
         if not isinstance(value, expected_type):
-            raise TypeError(f"Expected a {expected_type} for {path_to}[{index}] but found {type(value)}")
+            error_message = f"Expected a {expected_type} for {path_to}[{index}] but found {type(value)}"
+            raise TypeError(error_message)
 
     return typing.cast("list[_T]", array)
 
@@ -101,11 +105,13 @@ def _validate_list_entry(
         if default_factory is not None:
             return default_factory()
 
-        raise RuntimeError("Missing required key") from None
+        error_message = "Missing required key"
+        raise RuntimeError(error_message) from None
 
     path_to = f"[{key!r}]"
     if not isinstance(found, list):
-        raise TypeError(f"Expected a list for {path_to}, found {type(found)}")
+        error_message = f"Expected a list for {path_to}, found {type(found)}"
+        raise TypeError(error_message)
 
     return _validate_list(path_to, found, expected_type)
 
@@ -135,21 +141,27 @@ def _validate_entry(
         if default is not _NO_VALUE:
             return default
 
-        raise RuntimeError(f"Missing required key {key!r}") from None
+        error_message = f"Missing required key {key!r}"
+        raise RuntimeError(error_message) from None
 
     if not isinstance(value, expected_type):
-        raise TypeError(f"Expected a {expected_type} for [{key!r}] but found {type(value)}")
+        error_message = f"Expected a {expected_type} for [{key!r}] but found {type(value)}"
+        raise TypeError(error_message)
 
     return value
 
 
-def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT:
+def _validate_github_actions(
+    path_to: str, raw_config: typing.Any, /  # noqa: ANN401 # Dynamically typed expressions are not allowed
+) -> ConfigT:
     if not isinstance(raw_config, dict):
-        raise TypeError(f"Unexpected value found for {path_to}, expected a dictionary but found {raw_config!r}")
+        error_message = f"Unexpected value found for {path_to}, expected a dictionary but found {raw_config!r}"
+        raise TypeError(error_message)
 
     for key, value in raw_config.items():
         if not isinstance(key, str):
-            raise TypeError(f"Unexpected key {key} found in {path_to}, expected a string but found type {type(key)}")
+            error_message = f"Unexpected key {key} found in {path_to}, expected a string but found type {type(key)}"
+            raise TypeError(error_message)
 
         path_to = f"{path_to}[{key!r}]"
         if isinstance(value, dict):
@@ -159,9 +171,10 @@ def _validate_github_actions(path_to: str, raw_config: typing.Any, /) -> ConfigT
             _validate_list(path_to, value, str)
 
         elif value is not None and not isinstance(value, str):
-            raise TypeError(
+            error_message = (
                 f"Unexpected value found for {path_to}, expected a string, list, or mapping, found {type(value)}"
             )
+            raise TypeError(error_message)
 
     return typing.cast(ConfigT, raw_config)
 
@@ -186,7 +199,8 @@ class Config:
 
     def assert_project_name(self) -> str:
         if not self.project_name:
-            raise RuntimeError("This CI cannot run without project_name")
+            error_message = "This CI cannot run without project_name"
+            raise RuntimeError(error_message)
 
         return self.project_name
 
@@ -202,7 +216,8 @@ class Config:
                 break
 
         else:
-            raise RuntimeError("Couldn't find config file")
+            error_message = "Couldn't find config file"
+            raise RuntimeError(error_message)
 
         bot_actions = set(_validate_list_entry(data, "bot_actions", str, default_factory=_DEFAULT_ACTIONS.copy))
         default_sessions = _validate_list_entry(data, "default_sessions", str)
@@ -227,9 +242,11 @@ class Config:
 
             for key, value in raw_github_actions.items():
                 if not isinstance(key, str):
-                    raise TypeError(
-                        f"Unexpected key {key!r} found in ['github_actions'], expected a string but found a {type(key)}"
+                    error_message = (
+                        f"Unexpected key {key!r} found in ['github_actions'], "
+                        f"expected a string but found a {type(key)}"
                     )
+                    raise TypeError(error_message)
 
                 github_actions[key] = _validate_github_actions(f"['github_actions'][{key!r}]", value)
 
@@ -237,9 +254,11 @@ class Config:
             github_actions = {}
 
         else:
-            raise TypeError(
-                "Unexpected value found at ['github_actions'], expected a dict or list but found {raw_github_actions!r}"
+            error_message = (
+                f"Unexpected value found at ['github_actions'], expected a "
+                f"dict or list but found {raw_github_actions!r}"
             )
+            raise TypeError(error_message)
 
         extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=list)
         extra_typing_installs = _validate_list_entry(data, "extra_typing_installs", str, default_factory=list)

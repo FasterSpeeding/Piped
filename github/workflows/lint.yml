@@ -31,10 +31,10 @@ jobs:
         run: nox -s verify-markup{% endif %}{% if "spell-check" not in config.hide %}
 
       - name: Check spelling
-        run: nox -s spell-check{% endif %}{% if "flake8" not in config.hide %}
+        run: nox -s spell-check{% endif %}{% if "lint" not in config.hide %}
 
-      - name: Lint with flake8
-        run: nox -s flake8{% endif %}{% if "slot-check" not in config.hide %}
+      - name: Lint with Ruff
+        run: nox -s lint{% endif %}{% if "slot-check" not in config.hide %}
 
       - name: Check slotting
         run: nox -s slot-check{% endif %}

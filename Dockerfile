@@ -1,4 +1,4 @@
-FROM python:3.13.0 as install
+FROM python:3.13.0 AS install
 
 WORKDIR /workspace
 

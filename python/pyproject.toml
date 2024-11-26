@@ -6,10 +6,3 @@ build-backend = "flit_core.buildapi"
 name = "piped_shared"
 version = "0.1.0"
 dynamic = ["description"]
-
-# For some reason this needs to be duped for flake8.
-[tool.black]
-include = ".*pyi?$"
-line-length = 120
-skip-magic-trailing-comma = true
-target-version = ["py311"]
