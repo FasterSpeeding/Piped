@@ -1,4 +1,4 @@
-FROM python:3.13.0 as install
+FROM python:3.13.0 AS install
 
 WORKDIR /workspace
 
@@ -8,7 +8,7 @@ COPY ./python ./shared
 
 RUN pip install uv && \
     uv sync --locked && \
-    ./venv/bin/python -m pip install ./shared
+    ./.venv/bin/python -m pip install ./shared
 
 FROM python:3.13.0
 
