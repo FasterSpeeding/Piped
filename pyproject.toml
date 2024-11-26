@@ -1,3 +1,65 @@
+[project]
+name = "piped"
+requires-python = ">=3.11"
+version = "0.1.0"
+
+[dependency-groups]
+freeze-locks = ["uv"]
+lint = [
+    "codespell>=2.2.2",
+    "pre-commit-hooks>=4.4",
+    "slotscheck>=0.16.1",
+    "flake8>=5.0.4",
+    "Flake8-pyproject",
+    "flake8-bandit>=4.1.1",
+    "flake8-black>=0.3.6",
+    "flake8-broken-line>=0.6",
+    "flake8-builtins>=2.1",
+    # flake8-class-attributes-order>=0.1.3
+    "flake8-coding>=1.3.2",
+    "flake8-comments>=0.1.2",
+    "flake8-comprehensions>=3.10.1",
+    "flake8-deprecated>=2.0.1",
+    "flake8-eradicate>=1.4",
+    "flake8-executable>=2.1.3",
+    "flake8-fixme>=1.1.1",
+    "flake8-functions>=0.0.7",
+    "flake8-if-statements>=1",
+    "flake8-implicit-str-concat>=0.3",
+    "flake8-isort>=6",
+    "flake8-mutable>=1.2",
+    # flake8-noqa>=1.3  # Incompatibility which tryceratops needs to fix
+    "flake8-pep3101>=2",
+    "flake8-pep585>=0.1.6",
+    "flake8-pep604>=1.1",  # TODO: find something which forbids typing.Optional
+    "flake8-print>=5",
+    "flake8-printf-formatting>=1.1.2",
+    "flake8-raise>=0.0.5",
+    "flake8-simplify>=0.19.3",
+    # flake8-type-checking>=2.3
+    "flake8-use-fstring>=1.4",
+    "flake8-use-pathlib>=0.3",
+    "flake8-variables-names>=0.0.5",
+    "pep8-naming>=0.13.3",
+    "tryceratops>=1.1",
+    # See https://github.com/DmytroLitvinov/awesome-flake8-extensions.
+]
+publish = ["flit>=3.8.0"]
+reformat = [
+    "black>=22.10.0",
+    "isort>=5.11.3",
+    "pre-commit-hooks>=4.4",
+    "pycln>=2.1.2",
+    "sort-all>=1.2",
+]
+templating = ["Jinja2>=3.1.2"]
+type-checking = [
+    "mypy>=0.991",
+    "nox",
+    "pyright>=1.1.285",
+    {include-group = "templating"},
+]
+
 [tool.black]
 include = ".*pyi?$"
 line-length = 120
@@ -84,7 +146,7 @@ disable_error_code = ["type-abstract"]
 codespell_ignore = "PullRequest"
 default_sessions = ["reformat", "verify-markup", "flake8", "spell-check", "type-check"]
 hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
-dep_locks = ["./bot/requirements.in", "./dev-requirements", "./python/base-requirements/"]
+dep_sources = ["./pyproject.toml", "./bot/pyproject.toml"]
 path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]
 version_constraint = "3.11"
@@ -103,7 +165,6 @@ FILTERS = ["github/actions/**", "github/workflows/*", "pyproject.toml"]
 [tool.piped.github_actions.type_check]
 [tool.piped.github_actions.update_licence]
 [tool.piped.github_actions.upgrade_locks]
-[tool.piped.github_actions.verify_locks]
 
 [tool.pyright]
 include = ["bot/main.py", "noxfile.py", "python"]

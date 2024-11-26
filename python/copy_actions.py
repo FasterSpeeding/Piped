@@ -52,8 +52,6 @@ _ACTION_DEFAULTS = {
 
 
 _CONFIG = piped_shared.Config.read(pathlib.Path("./"))
-_RESYNC_FILTER = os.environ["RESYNC_FILTER"].split(",")
-_VERIFY_FILTER = os.environ["VERIFY_FILTER"].split(",")
 
 
 class _Action:
@@ -76,6 +74,9 @@ class _Action:
         output.update(**config)
         return output
 
+
+_RESYNC_FILTER = ["piped"]
+_RESYNC_FILTER.extend(str(_path.relative_to(pathlib.Path.cwd())) for path in _config.dep_sources)
 
 _SETUP_PY = "setup-py"
 _ACTIONS: dict[str, _Action] = {
@@ -101,7 +102,6 @@ _ACTIONS: dict[str, _Action] = {
     "type-check": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
     "update-licence": _Action(requires=[_SETUP_PY]),
     "upgrade-locks": _Action(requires=[_SETUP_PY]),
-    "verify-locks": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _VERIFY_FILTER}, requires=[_SETUP_PY]),
     "verify-types": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
 }
 
