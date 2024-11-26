@@ -87,7 +87,13 @@ def _install_deps(session: nox.Session, *groups: str, only_dev: bool = True) -> 
     if only_dev:
         target_type = "only-group"
 
-    session.run_install("uv", "sync", "--locked", *map(f"--{target_type}={{}}".format, groups), env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location})
+    session.run_install(
+        "uv",
+        "sync",
+        "--locked",
+        *map(f"--{target_type}={{}}".format, groups),
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
 
 
 def _try_find_option(
