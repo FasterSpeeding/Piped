@@ -350,7 +350,7 @@ def test(session: nox.Session) -> None:
     _install_deps(session, "tests")
 
     if _CONFIG.extra_test_installs:
-        session.install("uv", "pip", "install", *_CONFIG.extra_test_installs)
+        session.run_install("uv", "pip", "install", *_CONFIG.extra_test_installs)
 
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
@@ -364,7 +364,7 @@ def test_coverage(session: nox.Session) -> None:
     _install_deps(session, "tests")
 
     if _CONFIG.extra_test_installs:
-        session.install("uv", "pip", "install", *_CONFIG.extra_test_installs)
+        session.run_install("uv", "pip", "install", *_CONFIG.extra_test_installs)
 
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
@@ -391,7 +391,7 @@ def type_check(session: nox.Session) -> None:
     _install_deps(session, "type-checking")
 
     if _CONFIG.extra_typing_installs:
-        session.install("uv", "pip", "install", *_CONFIG.extra_typing_installs)
+        session.run_install("uv", "pip", "install", *_CONFIG.extra_typing_installs)
 
     _run_pyright(session)
 
