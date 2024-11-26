@@ -62,8 +62,8 @@ import piped_shared
 
 _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing.Any])
 
-_config = piped_shared.Config.read(pathlib.Path("./"))
-nox.options.sessions = _config.default_sessions
+_CONFIG = piped_shared.Config.read(pathlib.Path("./"))
+nox.options.sessions = _CONFIG.default_sessions
 _DEPS_DIR = pathlib.Path("./dev-requirements")
 _SELF_INSTALL_REGEX = re.compile(r"^\.\[.+\]$")
 
@@ -72,8 +72,8 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     output = session.run("git", "--no-pager", "grep", "--threads=1", "-l", "", external=True, log=False, silent=True)
     assert isinstance(output, str)
 
-    if _config.path_ignore and not force_all:
-        return (path for path in output.splitlines() if not _config.path_ignore.search(path))
+    if _CONFIG.path_ignore and not force_all:
+        return (path for path in output.splitlines() if not _CONFIG.path_ignore.search(path))
 
     return output.splitlines()
 
@@ -91,8 +91,7 @@ def _install_deps(session: nox.Session, *groups: str, only_dev: bool = True) -> 
         "uv",
         "sync",
         "--locked",
-        *map(f"--{target_type}={{}}".format, groups),
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+        *map(f"--{target_type}={{}}".format, groups), env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
     )
 
 
@@ -121,7 +120,7 @@ def _filtered_session(
 
     def decorator(callback: _CallbackT, /) -> _CallbackT | None:
         name_ = name or callback.__name__
-        if name_ in _config.hide:
+        if name_ in _CONFIG.hide:
             return None
 
         return nox.session(
@@ -144,8 +143,8 @@ def cleanup(session: nox.Session) -> None:
 
     # Remove directories
     raw_paths = ["./dist", "./site", "./.nox", "./.pytest_cache", "./coverage_html", ".mypy_cache"]
-    if _config.project_name:
-        raw_paths.append(f"{_config.project_name}.egg-info")
+    if _CONFIG.project_name:
+        raw_paths.append(f"{_CONFIG.project_name}.egg-info")
 
     for raw_path in raw_paths:
         path = pathlib.Path(raw_path)
@@ -203,7 +202,7 @@ def _freeze_file(session: nox.Session, path: pathlib.Path, /) -> None:
             "-o",
             str(target),
             "--min-python-version",
-            _config.version(_pyproject_toml()),
+            _CONFIG.version(_pyproject_toml()),
             str(path),
         )
 
@@ -216,7 +215,7 @@ def freeze_locks(session: nox.Session) -> None:
     """Freeze the dependency locks."""
     _install_deps(session, "freeze-locks")
 
-    for path in _config.dep_sources:
+    for path in _CONFIG.dep_sources:
         session.chdir(path.parent)
         session.run("uv", "lock", "--upgrade")
 
@@ -234,7 +233,7 @@ def flake8(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined flake8 linters."""
     _install_deps(session, "lint")
     session.log("Running flake8")
-    session.run("flake8", *_config.top_level_targets, log=False)
+    session.run("flake8", *_CONFIG.top_level_targets, log=False)
 
 
 @_filtered_session(reuse_venv=True, name="slot-check")
@@ -243,7 +242,7 @@ def slot_check(session: nox.Session) -> None:
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "lint")
-    session.run("slotscheck", "-m", _config.assert_project_name())
+    session.run("slotscheck", "-m", _CONFIG.assert_project_name())
 
 
 @_filtered_session(reuse_venv=True, name="spell-check")
@@ -353,10 +352,10 @@ def test_publish(session: nox.Session) -> None:
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
     _install_deps(session, "reformat")
-    if _config.top_level_targets:
-        session.run("black", *_config.top_level_targets)
-        session.run("isort", *_config.top_level_targets)
-        session.run("pycln", *_config.top_level_targets, "--config", "pyproject.toml")
+    if _CONFIG.top_level_targets:
+        session.run("black", *_CONFIG.top_level_targets)
+        session.run("isort", *_CONFIG.top_level_targets)
+        session.run("pycln", *_CONFIG.top_level_targets, "--config", "pyproject.toml")
 
     tracked_files = list(_tracked_files(session))  # TODO: sometimes force all or more granular controls?
     py_files = [path for path in tracked_files if re.fullmatch(r".+\.pyi?$", path)]
@@ -386,7 +385,7 @@ def test(session: nox.Session) -> None:
 @_filtered_session(name="test-coverage", reuse_venv=True)
 def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
-    project_name = _config.assert_project_name()
+    project_name = _CONFIG.assert_project_name()
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "tests")
     # TODO: can import-mode be specified in the config.
@@ -414,18 +413,18 @@ def type_check(session: nox.Session) -> None:
     _install_deps(session, "type-checking")
     _run_pyright(session)
 
-    if _config.mypy_targets:
+    if _CONFIG.mypy_targets:
         success_codes = [0]
-        if _config.mypy_allowed_to_fail:
+        if _CONFIG.mypy_allowed_to_fail:
             success_codes.append(1)
 
-        session.run("python", "-m", "mypy", *_config.mypy_targets, "--show-error-codes", success_codes=success_codes)
+        session.run("python", "-m", "mypy", *_CONFIG.mypy_targets, "--show-error-codes", success_codes=success_codes)
 
 
 @_filtered_session(name="verify-types", reuse_venv=True)
 def verify_types(session: nox.Session) -> None:
     """Verify the "type completeness" of types exported by the library using Pyright."""
-    project_name = _config.assert_project_name()
+    project_name = _CONFIG.assert_project_name()
     # TODO is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "type-checking")
