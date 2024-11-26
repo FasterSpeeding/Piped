@@ -28,7 +28,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """Github webhook bot which runs alongside github Actions to elevate actions."""
-import asyncio
 import contextlib
 import dataclasses
 import datetime
@@ -51,6 +50,7 @@ from typing import Self
 
 import anyio
 import anyio.to_thread
+import anyio.lowlevel
 import dotenv
 import fastapi
 import httpx
@@ -104,7 +104,7 @@ class _ProcessingIndex:
         for scope in prs.values():
             scope.cancel()
 
-        await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
+        await anyio.lowlevel.checkpoint()  # Yield to the loop to let these cancels propagate
 
     def clear_for_repo(self, repo_id: int, /, *, repo_name: str | None = None) -> None:
         """Cancel the active PR processing tasks for a Repo.
@@ -629,7 +629,7 @@ async def post_webhook(
     match (x_github_event, body):
         case ("pull_request", {"action": "closed", "number": number, "repository": repo_data}):
             index.stop_for_pr(int(repo_data["id"]), int(number), repo_name=repo_data["full_name"])
-            await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
+            await anyio.lowlevel.checkpoint()  # Yield to the loop to let these cancels propagate
 
         case ("pull_request", {"action": "opened" | "reopened" | "synchronize"}):
             tasks.add_task(_process_repo, http, tokens, index, workflows, body)
@@ -642,13 +642,13 @@ async def post_webhook(
             for repo in repositories_removed:
                 index.clear_for_repo(int(repo["id"]))
 
-            await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
+            await anyio.lowlevel.checkpoint()  # Yield to the loop to let these cancels propagate
 
         case ("installation_repositories", {"action": "removed", "repositories": repositories}):
             for repo in repositories:
                 index.clear_for_repo(int(repo["id"]))
 
-            await asyncio.asyncio.checkpoint()  # Yield to the loop to let these cancels propagate
+            await anyio.lowlevel.checkpoint()  # Yield to the loop to let these cancels propagate
 
         # Guard to let these expected but ignored cases still return 204
         case (
