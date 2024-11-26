@@ -1112,10 +1112,18 @@ templating = [
     { name = "jinja2" },
 ]
 type-checking = [
+    { name = "asgiref" },
+    { name = "fastapi" },
+    { name = "httpx", extra = ["http2"] },
     { name = "jinja2" },
+    { name = "jwt" },
     { name = "mypy" },
     { name = "nox" },
     { name = "pyright" },
+    { name = "python-dateutil" },
+    { name = "python-dotenv" },
+    { name = "uvicorn" },
+    { name = "uvloop", marker = "platform_system != 'Windows'" },
 ]
 
 [package.metadata]
@@ -1177,10 +1185,18 @@ reformat = [
 ]
 templating = [{ name = "jinja2", specifier = ">=3.1.2" }]
 type-checking = [
+    { name = "asgiref" },
+    { name = "fastapi" },
+    { name = "httpx", extras = ["http2"] },
     { name = "jinja2", specifier = ">=3.1.2" },
+    { name = "jwt" },
     { name = "mypy", specifier = ">=0.991" },
     { name = "nox" },
     { name = "pyright", specifier = ">=1.1.285" },
+    { name = "python-dateutil" },
+    { name = "python-dotenv" },
+    { name = "uvicorn" },
+    { name = "uvloop", marker = "platform_system != 'Windows'" },
 ]
 
 [[package]]
