@@ -216,7 +216,7 @@ def slot_check(session: nox.Session) -> None:
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "lint")
-    session.install("--no-deps", ".")
+    session.install(".")
     session.run("slotscheck", "-m", _CONFIG.assert_project_name())
 
 
@@ -353,7 +353,7 @@ def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "tests")
-    session.install("--no-deps", ".")
+    session.install(".")
 
     if _CONFIG.extra_test_installs:
         session.run_install("uv", "pip", "install", *_CONFIG.extra_test_installs)
@@ -416,7 +416,7 @@ def verify_types(session: nox.Session) -> None:
     # TODO: is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "type-checking")
-    session.install("--no-deps", ".")
+    session.install(".")
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
