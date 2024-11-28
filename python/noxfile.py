@@ -76,14 +76,13 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     return output.splitlines()
 
 
-def _install_deps(session: nox.Session, *groups: str, only_dev: bool = True) -> None:
+def _install_deps(session: nox.Session, *groups: str, include_standard: bool = False) -> None:
     if not groups:
         return
 
-    target_type = "group"
-
-    if only_dev:
-        target_type = "only-group"
+    target_type = "only-group"
+    if include_standard:
+        target_type = "group"
 
     session.run_install(
         "uv",
@@ -215,7 +214,7 @@ def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "lint")
+    _install_deps(session, "lint", include_standard=True)
     session.install(".")
     session.run("slotscheck", "-m", _CONFIG.assert_project_name())
 
@@ -352,7 +351,7 @@ def reformat(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "tests")
+    _install_deps(session, "tests", include_standard=True)
     session.install(".")
 
     if _CONFIG.extra_test_installs:
@@ -367,7 +366,7 @@ def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _CONFIG.assert_project_name()
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "tests")
+    _install_deps(session, "tests", include_standard=True)
 
     if _CONFIG.extra_test_installs:
         session.run_install("uv", "pip", "install", *_CONFIG.extra_test_installs)
@@ -394,7 +393,7 @@ def _run_pyright(session: nox.Session, /, *args: str) -> None:
 @_filtered_session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    _install_deps(session, "type-checking")
+    _install_deps(session, "type-checking", include_standard=True)
 
     if _CONFIG.extra_typing_installs:
         session.run_install("uv", "pip", "install", *_CONFIG.extra_typing_installs)
@@ -415,7 +414,7 @@ def verify_types(session: nox.Session) -> None:
     project_name = _CONFIG.assert_project_name()
     # TODO: is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "type-checking")
+    _install_deps(session, "type-checking", include_standard=True)
     session.install(".")
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
