@@ -1,4 +1,4 @@
-FROM python:3.13.0 AS install
+FROM registry.access.redhat.com/ubi9/python-312@sha256:d1244378f7ab72506d8d91cadebbf94c893c2828300f9d44aee4678efec62db9 AS install
 
 WORKDIR /workspace
 
@@ -10,7 +10,7 @@ RUN pip install uv && \
     uv sync --frozen --only-group bot && \
     uv pip install ./shared
 
-FROM python:3.13.0
+FROM registry.access.redhat.com/ubi9/python-312@sha256:d1244378f7ab72506d8d91cadebbf94c893c2828300f9d44aee4678efec62db9
 
 WORKDIR /workspace
 
