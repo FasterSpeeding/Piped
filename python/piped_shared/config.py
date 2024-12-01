@@ -260,7 +260,7 @@ class Config:
             )
             raise TypeError(error_message)
 
-        extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=list)
+        extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=lambda: ["."])
         extra_typing_installs = _validate_list_entry(data, "extra_typing_installs", str, default_factory=list)
         hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
