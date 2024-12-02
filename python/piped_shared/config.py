@@ -179,7 +179,7 @@ def _validate_github_actions(
     return typing.cast(ConfigT, raw_config)
 
 
-_DEFAULT_EXTRA_INSTALLS = {"lint": ["."], "test": ["."], "verify_types": ["."]}
+_DEFAULT_EXTRA_INSTALLS = {"slot_check": ["."], "test": ["."], "verify_types": ["."]}
 
 
 @dataclasses.dataclass(kw_only=True, slots=True)

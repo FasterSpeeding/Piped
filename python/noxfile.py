@@ -201,7 +201,7 @@ def generate_docs(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined ruff linters."""
-    _install_deps(session, "lint", name="lint")
+    _install_deps(session, "lint")
     session.log("Running ruff")
     session.run("ruff", "check", *_CONFIG.top_level_targets, log=False)
 
@@ -211,7 +211,7 @@ def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "lint")
+    _install_deps(session, "lint", name="slot_check")
     session.run("slotscheck", "-m", _CONFIG.assert_project_name())
 
 
