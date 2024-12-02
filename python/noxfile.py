@@ -82,7 +82,7 @@ def _install_deps(session: nox.Session, /, *groups: str, name: str | None = None
             "uv",
             "sync",
             "--frozen",
-            *map("--only-group={}".format, groups),
+            *map("--group={}".format, groups),
             env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
         )
 
