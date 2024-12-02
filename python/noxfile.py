@@ -201,7 +201,7 @@ def generate_docs(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined ruff linters."""
-    _install_deps(session, "lint")
+    _install_deps(session, "lint", name="lint")
     session.log("Running ruff")
     session.run("ruff", "check", *_CONFIG.top_level_targets, log=False)
 
