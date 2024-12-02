@@ -97,7 +97,7 @@ def _validate_list_entry(
     /,
     *,
     default_factory: collections.Callable[[], list[_T]] | None = None,
-    path_to: str | None = None
+    path_to: str | None = None,
 ) -> list[_T]:
     try:
         found = data[key]
@@ -268,9 +268,7 @@ class Config:
         for key in raw_extra_installs:
             path_to = "['extra_installs']"
             if not isinstance(key, str):
-                error_message = (
-                    f"Unexpected key found in {path_to}. Expected a string but found {key!r}"
-                )
+                error_message = f"Unexpected key found in {path_to}. Expected a string but found {key!r}"
                 raise TypeError(error_message)
 
             extra_installs[key] = _validate_list_entry(raw_extra_installs, key, str, path_to=f"{path_to}[{key!r}]")
