@@ -64,7 +64,7 @@ _NoValue = typing.Literal[_NoValueEnum.VALUE]
 _NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
 
 
-def _validate_dict_entry(
+def _validate_dict(
     path_to: str, mapping: dict[typing.Any, _T], expected_type: type[_T] | tuple[type[_T], ...]
 ) -> dict[str, _T]:
     for key, value in mapping.items():
@@ -97,6 +97,7 @@ def _validate_list_entry(
     /,
     *,
     default_factory: collections.Callable[[], list[_T]] | None = None,
+    path_to: str | None = None
 ) -> list[_T]:
     try:
         found = data[key]
@@ -108,7 +109,7 @@ def _validate_list_entry(
         error_message = "Missing required key"
         raise RuntimeError(error_message) from None
 
-    path_to = f"[{key!r}]"
+    path_to = path_to or f"[{key!r}]"
     if not isinstance(found, list):
         error_message = f"Expected a list for {path_to}, found {type(found)}"
         raise TypeError(error_message)
@@ -165,7 +166,7 @@ def _validate_github_actions(
 
         path_to = f"{path_to}[{key!r}]"
         if isinstance(value, dict):
-            _validate_dict_entry(path_to, value, str)
+            _validate_dict(path_to, value, str)
 
         elif isinstance(value, list):
             _validate_list(path_to, value, str)
@@ -189,7 +190,7 @@ class Config:
     bot_actions: set[str]
     default_sessions: list[str]
     dep_sources: list[pathlib.Path]
-    extra_installs: dict[str, list]
+    extra_installs: dict[str, list[str]]
     github_actions: dict[str, ConfigT]
     hide: list[str]
     mypy_allowed_to_fail: bool
@@ -263,8 +264,16 @@ class Config:
             raise TypeError(error_message)
 
         extra_installs = _DEFAULT_EXTRA_INSTALLS.copy()
-        if "extra_installs" in data:
-            extra_installs.update(_validate_dict_entry("extra_installs", data, str))
+        raw_extra_installs = _validate_entry(data, "extra_installs", dict, default=None) or {}
+        for key in raw_extra_installs:
+            path_to = "['extra_installs']"
+            if not isinstance(key, str):
+                error_message = (
+                    f"Unexpected key found in {path_to}. Expected a string but found {key!r}"
+                )
+                raise TypeError(error_message)
+
+            extra_installs[key] = _validate_list_entry(raw_extra_installs, key, str, path_to=f"{path_to}[{key!r}]")
 
         hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
