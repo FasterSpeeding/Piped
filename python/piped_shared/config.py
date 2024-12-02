@@ -64,7 +64,7 @@ _NoValue = typing.Literal[_NoValueEnum.VALUE]
 _NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
 
 
-def _validate_dict(
+def _validate_dict_entry(
     path_to: str, mapping: dict[typing.Any, _T], expected_type: type[_T] | tuple[type[_T], ...]
 ) -> dict[str, _T]:
     for key, value in mapping.items():
@@ -165,7 +165,7 @@ def _validate_github_actions(
 
         path_to = f"{path_to}[{key!r}]"
         if isinstance(value, dict):
-            _validate_dict(path_to, value, str)
+            _validate_dict_entry(path_to, value, str)
 
         elif isinstance(value, list):
             _validate_list(path_to, value, str)
@@ -179,6 +179,12 @@ def _validate_github_actions(
     return typing.cast(ConfigT, raw_config)
 
 
+_DEFAULT_EXTRA_INSTALLS = {
+    "test": ["."],
+    "verify_types": ["."],
+}
+
+
 @dataclasses.dataclass(kw_only=True, slots=True)
 class Config:
     """Configuration class for the project config."""
@@ -186,8 +192,7 @@ class Config:
     bot_actions: set[str]
     default_sessions: list[str]
     dep_sources: list[pathlib.Path]
-    extra_test_installs: list[str]
-    extra_typing_installs: list[str]
+    extra_installs: dict[str, list]
     github_actions: dict[str, ConfigT]
     hide: list[str]
     mypy_allowed_to_fail: bool
@@ -260,8 +265,10 @@ class Config:
             )
             raise TypeError(error_message)
 
-        extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=lambda: ["."])
-        extra_typing_installs = _validate_list_entry(data, "extra_typing_installs", str, default_factory=list)
+        extra_installs = _DEFAULT_EXTRA_INSTALLS.copy()
+        if "extra_installs" in data:
+            extra_installs.update(_validate_dict_entry("extra_installs", data, str))
+
         hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
         mypy_targets = _validate_list_entry(data, "mypy_targets", str, default_factory=list)
@@ -277,8 +284,7 @@ class Config:
             bot_actions=bot_actions,
             default_sessions=default_sessions,
             dep_sources=dep_sources,
-            extra_test_installs=extra_test_installs,
-            extra_typing_installs=extra_typing_installs,
+            extra_installs=extra_installs,
             github_actions=github_actions,
             hide=hide,
             mypy_allowed_to_fail=mypy_allowed_to_fail,
