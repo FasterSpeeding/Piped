@@ -77,19 +77,17 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
 
 
 def _install_deps(session: nox.Session, /, *groups: str, name: str | None = None) -> None:
+    if groups:
+        session.run_install(
+            "uv",
+            "sync",
+            "--frozen",
+            *map(f"--only-group={{}}".format, groups),
+            env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+        )
+
     if name and (extras := _CONFIG.extra_installs.get(name)):
         session.install(*extras)
-
-    if not groups:
-        return
-
-    session.run_install(
-        "uv",
-        "sync",
-        "--frozen",
-        *map(f"--only-group={{}}".format, groups),
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-    )
 
 
 def _try_find_option(
