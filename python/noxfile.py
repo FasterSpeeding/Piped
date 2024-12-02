@@ -212,7 +212,7 @@ def slot_check(session: nox.Session) -> None:
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "lint", name="slot_check")
-    session.run("slotscheck", "-m", _CONFIG.assert_project_name())
+    session.run("slotscheck", "-v", "-m", _CONFIG.assert_project_name())
 
 
 @_filtered_session(reuse_venv=True, name="spell-check")
