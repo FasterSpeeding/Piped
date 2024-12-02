@@ -128,11 +128,13 @@ disable_error_code = ["type-abstract"]
 [tool.piped]
 codespell_ignore = "PullRequest"
 default_sessions = ["reformat", "verify-markup", "lint", "spell-check", "type-check"]
-extra_typing_installs = ["./python"]
 hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
 path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup
 top_level_targets = ["./bot", "./noxfile.py", "./python"]
 version_constraint = "3.11"
+
+[tool.piped.extra_installs]
+type_check = ["./python"]
 
 [tool.piped.github_actions."*"]
 default_py_ver = "3.11"

@@ -97,6 +97,7 @@ def _validate_list_entry(
     /,
     *,
     default_factory: collections.Callable[[], list[_T]] | None = None,
+    path_to: str | None = None,
 ) -> list[_T]:
     try:
         found = data[key]
@@ -108,7 +109,7 @@ def _validate_list_entry(
         error_message = "Missing required key"
         raise RuntimeError(error_message) from None
 
-    path_to = f"[{key!r}]"
+    path_to = path_to or f"[{key!r}]"
     if not isinstance(found, list):
         error_message = f"Expected a list for {path_to}, found {type(found)}"
         raise TypeError(error_message)
@@ -179,6 +180,9 @@ def _validate_github_actions(
     return typing.cast(ConfigT, raw_config)
 
 
+_DEFAULT_EXTRA_INSTALLS = {"slot_check": ["."], "test": ["."], "verify_types": ["."]}
+
+
 @dataclasses.dataclass(kw_only=True, slots=True)
 class Config:
     """Configuration class for the project config."""
@@ -186,8 +190,7 @@ class Config:
     bot_actions: set[str]
     default_sessions: list[str]
     dep_sources: list[pathlib.Path]
-    extra_test_installs: list[str]
-    extra_typing_installs: list[str]
+    extra_installs: dict[str, list[str]]
     github_actions: dict[str, ConfigT]
     hide: list[str]
     mypy_allowed_to_fail: bool
@@ -260,8 +263,16 @@ class Config:
             )
             raise TypeError(error_message)
 
-        extra_test_installs = _validate_list_entry(data, "extra_test_installs", str, default_factory=lambda: ["."])
-        extra_typing_installs = _validate_list_entry(data, "extra_typing_installs", str, default_factory=list)
+        extra_installs = _DEFAULT_EXTRA_INSTALLS.copy()
+        raw_extra_installs = _validate_entry(data, "extra_installs", dict, default=None) or {}
+        for key in raw_extra_installs:
+            path_to = "['extra_installs']"
+            if not isinstance(key, str):
+                error_message = f"Unexpected key found in {path_to}. Expected a string but found {key!r}"
+                raise TypeError(error_message)
+
+            extra_installs[key] = _validate_list_entry(raw_extra_installs, key, str, path_to=f"{path_to}[{key!r}]")
+
         hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
         mypy_targets = _validate_list_entry(data, "mypy_targets", str, default_factory=list)
@@ -277,8 +288,7 @@ class Config:
             bot_actions=bot_actions,
             default_sessions=default_sessions,
             dep_sources=dep_sources,
-            extra_test_installs=extra_test_installs,
-            extra_typing_installs=extra_typing_installs,
+            extra_installs=extra_installs,
             github_actions=github_actions,
             hide=hide,
             mypy_allowed_to_fail=mypy_allowed_to_fail,

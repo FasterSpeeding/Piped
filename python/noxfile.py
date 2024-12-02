@@ -76,21 +76,18 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     return output.splitlines()
 
 
-def _install_deps(session: nox.Session, *groups: str, include_standard: bool = False) -> None:
-    if not groups:
-        return
+def _install_deps(session: nox.Session, /, *groups: str, name: str | None = None) -> None:
+    if groups:
+        session.run_install(
+            "uv",
+            "sync",
+            "--frozen",
+            *map("--only-group={}".format, groups),
+            env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+        )
 
-    target_type = "only-group"
-    if include_standard:
-        target_type = "group"
-
-    session.run_install(
-        "uv",
-        "sync",
-        "--frozen",
-        *map(f"--{target_type}={{}}".format, groups),
-        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
-    )
+    if name and (extras := _CONFIG.extra_installs.get(name)):
+        session.install(*extras)
 
 
 def _try_find_option(
@@ -214,8 +211,7 @@ def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "lint", include_standard=True)
-    session.install(".")
+    _install_deps(session, "lint", name="slot_check")
     session.run("slotscheck", "-m", _CONFIG.assert_project_name())
 
 
@@ -351,12 +347,7 @@ def reformat(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "tests", include_standard=True)
-    session.install(".")
-
-    if _CONFIG.extra_test_installs:
-        session.run_install("uv", "pip", "install", *_CONFIG.extra_test_installs)
-
+    _install_deps(session, "tests", name="test")
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -366,11 +357,7 @@ def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _CONFIG.assert_project_name()
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "tests", include_standard=True)
-
-    if _CONFIG.extra_test_installs:
-        session.run_install("uv", "pip", "install", *_CONFIG.extra_test_installs)
-
+    _install_deps(session, "tests", name="test")
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -393,11 +380,7 @@ def _run_pyright(session: nox.Session, /, *args: str) -> None:
 @_filtered_session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    _install_deps(session, "type-checking", include_standard=True)
-
-    if _CONFIG.extra_typing_installs:
-        session.run_install("uv", "pip", "install", *_CONFIG.extra_typing_installs)
-
+    _install_deps(session, "type-checking", name="type_check")
     _run_pyright(session)
 
     if _CONFIG.mypy_targets:
@@ -414,8 +397,7 @@ def verify_types(session: nox.Session) -> None:
     project_name = _CONFIG.assert_project_name()
     # TODO: is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "type-checking", include_standard=True)
-    session.install(".")
+    _install_deps(session, "type-checking", name="verify_types")
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
