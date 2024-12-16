@@ -150,6 +150,7 @@ FILTERS = ["github/actions/**", "github/workflows/*", "pyproject.toml"]
 [tool.piped.github_actions.type_check]
 [tool.piped.github_actions.update_licence]
 [tool.piped.github_actions.upgrade_locks]
+CRON = "0 0 1 * *" 
 
 [tool.pyright]
 include = ["bot/main.py", "noxfile.py", "python"]
