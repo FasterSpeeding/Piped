@@ -103,7 +103,7 @@ _ACTIONS: dict[str, _Action] = {
     "rustfmt": _Action(requires=[_SETUP_PY]),
     "type-check": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
     "update-licence": _Action(requires=[_SETUP_PY]),
-    "upgrade-locks": _Action(requires=[_SETUP_PY]),
+    "upgrade-locks": _Action(default={"CRON": "0 12 1 * *"}, requires=[_SETUP_PY]),
     "verify-types": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
 }
 
