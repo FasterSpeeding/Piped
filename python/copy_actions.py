@@ -83,7 +83,7 @@ _RESYNC_FILTER.extend(str(path.absolute().relative_to(pathlib.Path.cwd())) for p
 _SETUP_PY = "setup-py"
 _ACTIONS: dict[str, _Action] = {
     "clippy": _Action(),
-    "docker-publish": _Action(defaults={"DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
+    "docker-publish": _Action(defaults={"CRON": "25 14 1 * *", "DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
     "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}, requires=[_SETUP_PY]),
     "lint": _Action(requires=[_SETUP_PY]),
     "pr-docs": _Action(requires=[_SETUP_PY]),
@@ -102,8 +102,8 @@ _ACTIONS: dict[str, _Action] = {
     "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}, requires=[_SETUP_PY]),
     "rustfmt": _Action(requires=[_SETUP_PY]),
     "type-check": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
-    "update-licence": _Action(requires=[_SETUP_PY]),
-    "upgrade-locks": _Action(requires=[_SETUP_PY]),
+    "update-licence": _Action(defaults={"CRON": "0 7 1 1 *"}, requires=[_SETUP_PY]),
+    "upgrade-locks": _Action(defaults={"CRON": "0 12 1 * *"}, requires=[_SETUP_PY]),
     "verify-types": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
 }
 
