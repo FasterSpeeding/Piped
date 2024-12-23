@@ -24,8 +24,13 @@ env:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Ubuntu-latest for x86, macos-latest for arm
+        target: [ubuntu-latest, macos-latest]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.target }}
     permissions:
       contents: read
       packages: write
@@ -71,7 +76,7 @@ jobs:
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
+      - name: Build and push Docker image on ${{ matrix.target }}
         id: build-and-push
         uses: docker/build-push-action@48aba3b46d1b1fec4febb7c5d0c644b249a11355 # v6.10.0
         with:
@@ -87,7 +92,7 @@ jobs:
       # repository is public to avoid leaking data.  If you would like to publish
       # transparency data even for private images, pass --force to cosign below.
       # https://github.com/sigstore/cosign
-      - name: Sign the published Docker image
+      - name: Sign the published Docker image on ${{ matrix.target }}
         if: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable

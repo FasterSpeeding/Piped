@@ -18,10 +18,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: {{ OSES }}
+        target: {{ TARGETS }}
         python-version: [{{ PYTHON_VERSIONS | map("quoted") | join(", ") }}]
 
-    {% raw %}runs-on: ${{ matrix.os }}{% endraw %}
+    {% raw %}runs-on: ${{ matrix.target }}{% endraw %}
 
     steps:{% if REQUIRES_RUST %}
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af

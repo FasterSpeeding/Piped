@@ -92,7 +92,7 @@ _ACTIONS: dict[str, _Action] = {
         required=["PYTHON_VERSIONS"],
         defaults={
             "CODECLIMATE_TOKEN": "",
-            "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
+            "TARGETS": "[ubuntu-latest, macos-latest, windows-latest]",
             "REQUIRES_RUST": "",
         },
         requires=[_SETUP_PY],
