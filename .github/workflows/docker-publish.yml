@@ -24,8 +24,13 @@ env:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # Ubuntu-latest for x86, macos-latest for arm
+        target: [ubuntu-latest, macos-latest]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.target }}
     permissions:
       contents: read
       packages: write
