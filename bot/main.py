@@ -79,7 +79,7 @@ COMMIT_ENV = {
 }
 COMMIT_ENV["GIT_COMMITTER_EMAIL"] = COMMIT_ENV["GIT_AUTHOR_EMAIL"]
 CLIENT_SECRET = os.environ["CLIENT_SECRET"].encode()
-WEBHOOK_SECRET = os.environ["WEBHOOK_SECRET"]
+WEBHOOK_SECRET = os.environ["WEBHOOK_SECRET"].encode()
 jwt_instance = jwt.JWT()
 
 
@@ -449,7 +449,7 @@ class AuthMiddleware:
                 case _:
                     raise NotImplementedError
 
-        digest = "sha256=" + hmac.new(CLIENT_SECRET, payload, digestmod="sha256").hexdigest()
+        digest = "sha256=" + hmac.new(WEBHOOK_SECRET, payload, digestmod="sha256").hexdigest()
 
         if not hmac.compare_digest(signature.decode(), digest):
             await _error_response(send, b"Invalid signature", status_code=401)
