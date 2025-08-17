@@ -120,7 +120,7 @@ def _filtered_session(
         if name_ in _CONFIG.hide:
             return None
 
-        return nox.session(
+        return nox.session(  # type: ignore
             python=python,
             py=py,
             reuse_venv=reuse_venv,
@@ -293,7 +293,7 @@ def _publish(session: nox.Session, /, *, env: dict[str, str] | None = None) -> N
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "publish")
 
-    env = env or session.env.copy()
+    env = {}
     if target := session.env.get("PUBLISH_TARGET"):
         env["FLIT_INDEX_URL"] = target
 
@@ -313,8 +313,7 @@ def publish(session: nox.Session) -> None:
 @_filtered_session(name="test-publish", reuse_venv=True)
 def test_publish(session: nox.Session) -> None:
     """Publish this project to test pypi."""
-    env = session.env.copy()
-    env.setdefault("PYPI_TARGET", "https://test.pypi.org/legacy/")
+    env = {"PYPI_TARGET": "https://test.pypi.org/legacy/"}
     _publish(session, env=env)
 
 
