@@ -136,7 +136,7 @@ def _filtered_session(
 @_filtered_session(venv_backend="none")
 def cleanup(session: nox.Session) -> None:
     """Cleanup any temporary files made in this project by its nox tasks."""
-    import shutil
+    import shutil  # noqa: PLC0415  # `import` should be at the top-level of a file
 
     # Remove directories
     raw_paths = ["./dist", "./site", "./.nox", "./.pytest_cache", "./coverage_html", ".mypy_cache"]

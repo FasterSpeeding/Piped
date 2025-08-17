@@ -177,7 +177,7 @@ def _validate_github_actions(
             )
             raise TypeError(error_message)
 
-    return typing.cast(ConfigT, raw_config)
+    return typing.cast("ConfigT", raw_config)
 
 
 _DEFAULT_EXTRA_INSTALLS = {"slot_check": ["."], "test": ["."], "verify_types": ["."]}
@@ -301,7 +301,7 @@ class Config:
 
     @classmethod
     async def read_async(cls, base_path: pathlib.Path, /) -> Self:
-        import anyio.to_thread
+        import anyio.to_thread  # noqa: PLC0415  # `import` should be at the top-level of a file
 
         return await anyio.to_thread.run_sync(cls.read, base_path)
 
