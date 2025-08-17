@@ -67,6 +67,7 @@ ignore = [
     "COM812",  # Trailing comma missing (incompatible with black)
     "FIX002",  # Line contains TODO, consider resolving the issue
     "I001",    # [*] Import block is un-sorted or un-formatted
+    "PGH003",  # Use specific rule codes when ignoring type issues
     "S101",    # Use of `assert` detected
     "SIM108",  # Use ternary operator `` instead of `if`-`else`-block
     "TD002",   # Missing author in TODO; try: `# TODO(<author_name>): ...` or `# TODO @<author_name>: ...`
