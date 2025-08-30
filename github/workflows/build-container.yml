@@ -40,13 +40,13 @@ jobs:
         env:
           EVENT_NAME: github.event_name
         run: |
-          platforms="$(docker system info --format '{{.OSType}}/{{.Architecture}}')"
+          {% raw %}platforms="$(docker system info --format '{{.OSType}}/{{.Architecture}}')"
 
           if [[ $EVENT_NAME != "pull_request" ]]
             platforms="CONTAINER_PLATFORMS=$platforms linux/amd64, linux/i386, linux/ppc64le"
           fi
 
-          echo "CONTAINER_PLATFORMS=$platforms" >> $GITHUB_ENV
+          echo "CONTAINER_PLATFORMS=$platforms" >> $GITHUB_ENV{% endraw %}
 
       - name: Generate container metadata
         id: metadata
@@ -80,8 +80,8 @@ jobs:
           TAGS: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
           DIGEST: {% raw %}${{ steps.push-image.outputs.digest }}{% endraw %}
         run: |
-          images=""
+          {% raw %}images=""
           for tag in ${TAGS}; do
             images+="${tag}@${DIGEST} "
           done
-          cosign sign --yes ${images}
+          cosign sign --yes ${images}{% endraw %}
