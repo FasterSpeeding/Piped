@@ -38,7 +38,7 @@ jobs:
       - name: Set platforms
         if: github.event_name != 'pull_request'
         env:
-          CONTAINER_PLATFORMS: linux/amd64,linux/i386
+          CONTAINER_PLATFORMS: linux/amd64,linux/arm64
         run: echo "CONTAINER_PLATFORMS=$CONTAINER_PLATFORMS" >> $GITHUB_ENV
 
       - name: Generate container metadata
