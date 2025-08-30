@@ -410,7 +410,7 @@ def sync_piped(session: nox.Session) -> None:
 def fetch_piped(session: nox.Session) -> None:
     """Fetch Piped from upstream and resync."""
     session.run("git", "submodule", "update", "--remote", "piped", external=True)
-    _install_deps(session, "nox")
+    _install_deps(session, "templating")
     # We call this through nox's CLI like this to ensure that the updated version
     # of these sessions are called.
     session.run("nox", "-s", "copy-piped")
