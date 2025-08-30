@@ -58,7 +58,7 @@ jobs:
         with:
           tags: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
           labels: {% raw %}${{ steps.metadata.outputs.labels }}{% endraw %}
-          platforms: ${{ env.CONTAINER_PLATFORMS }}
+          platforms: {% raw %}${{ env.CONTAINER_PLATFORMS }}{% endraw %}
           containerfiles: |
             ./Containerfile
           context: {{ CONTAINER_BUILD_CONTEXT }}
