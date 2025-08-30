@@ -35,17 +35,11 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
-      - name: Set dynamic variables
+      - name: Set platforms
+        if: github.event_name != 'pull_request'
         env:
-          EVENT_NAME: $github.event_name
-        run: |
-          platforms="$(docker system info --format '{{.OSType}}/{{.Architecture}}')"
-
-          if [[ $EVENT_NAME != "pull_request" ]]; then
-            platforms="$platforms, linux/amd64, linux/i386, linux/ppc64le"
-          fi
-
-          echo "CONTAINER_PLATFORMS=$platforms" >> $GITHUB_ENV
+          CONTAINER_PLATFORMS: linux/amd64,linux/i386
+        run: echo "CONTAINER_PLATFORMS=$CONTAINER_PLATFORMS" >> $GITHUB_ENV
 
       - name: Generate container metadata
         id: metadata
