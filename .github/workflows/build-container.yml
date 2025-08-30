@@ -58,7 +58,7 @@ jobs:
         with:
           tags: ${{ steps.metadata.outputs.tags }}
           labels: ${{ steps.metadata.outputs.labels }}
-          platforms: $CONTAINER_PLATFORMS
+          platforms: ${{ env.CONTAINER_PLATFORMS }}
           containerfiles: |
             ./Containerfile
           context: .
