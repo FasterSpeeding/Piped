@@ -86,7 +86,7 @@ _ACTIONS: dict[str, _Action] = {
         defaults={
             "CRON": "25 14 1 * *",
             "CONTAINER_BUILD_CONTEXT": ".",
-            # TODO:  enable "linux/i386" and "linux/ppc64le" by default? 
+            # TODO:  enable "linux/i386" and "linux/ppc64le" by default?
             "CONTAINER_PLATFORMS": ["linux/amd64", "linux/arm64"],
         }
     ),
