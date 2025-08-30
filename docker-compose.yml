@@ -5,7 +5,7 @@ services:
     env_file: .env
     build:
       context: .
-      dockerfile: ./Dockerfile
+      dockerfile: ./Containerfile
     expose:
       - "80:80"
     networks:

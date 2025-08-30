@@ -141,7 +141,7 @@ type_check = ["./python"]
 default_py_ver = "3.11"
 piped_path = "."
 
-[tool.piped.github_actions.docker_publish]
+[tool.piped.github_actions.build_container]
 [tool.piped.github_actions.freeze_for_pr]
 [tool.piped.github_actions.lint]
 [tool.piped.github_actions.reformat]
