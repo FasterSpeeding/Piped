@@ -41,7 +41,7 @@ jobs:
         run: |
           {% raw %}platforms="$(docker system info --format '{{.OSType}}/{{.Architecture}}')"
 
-          if [[ $EVENT_NAME != "pull_request" ]]
+          if [[ $EVENT_NAME != "pull_request" ]]; then
             platforms="CONTAINER_PLATFORMS=$platforms linux/amd64, linux/i386, linux/ppc64le"
           fi
 
