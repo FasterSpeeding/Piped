@@ -1,0 +1,87 @@
+name: Build Container
+
+on:
+  schedule:
+    - cron: "{{ CRON }}"
+  push:
+    branches: [ "master" ]
+    tags: [ "v*.*.*" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
+  IMAGE_NAME: {% raw %}${{ github.repository }}{% endraw %}
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          submodules: "true"
+
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 #v3.9.2
+
+      - name: Install QEMU
+        if: github.event_name != 'pull_request'
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+
+      - name: Set dynamic variables
+        env:
+          EVENT_NAME: github.event_name
+        run: |
+          platforms="$(docker system info --format '{{.OSType}}/{{.Architecture}}')"
+
+          if [[ $EVENT_NAME != "pull_request" ]]
+            platforms="CONTAINER_PLATFORMS=$platforms linux/amd64, linux/i386, linux/ppc64le"
+          fi
+
+          echo "CONTAINER_PLATFORMS=$platforms" >> $GITHUB_ENV
+
+      - name: Generate container metadata
+        id: metadata
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+        with:
+          images: {% raw %}${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}{% endraw %}
+
+      - name: Build image
+        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
+        with:
+          tags: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
+          labels: {% raw %}${{ steps.metadata.outputs.labels }}{% endraw %}
+          platforms: $CONTAINER_PLATFORMS
+          containerfiles: |
+            ./Containerfile
+          context: {{ CONTAINER_BUILD_CONTEXT }}
+
+      - name: Push image
+        id: push-image
+        if: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}
+        uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
+        with:
+          tags: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
+          registry: {% raw %}${{ env.REGISTRY }}{% endraw %}
+          username: {% raw %}${{ github.actor }}{% endraw %}
+          password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+
+      - name: Sign the published container image
+        if: {% raw %}${{ github.event_name != 'pull_request' }}{% endraw %}
+        env:
+          TAGS: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
+          DIGEST: {% raw %}${{ steps.push-image.outputs.digest }}{% endraw %}
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes ${images}

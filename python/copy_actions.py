@@ -82,6 +82,7 @@ _RESYNC_FILTER.extend(str(path.absolute().relative_to(pathlib.Path.cwd())) for p
 
 _SETUP_PY = "setup-py"
 _ACTIONS: dict[str, _Action] = {
+    "build-container": _Action(defaults={"CRON": "25 14 1 * *", "CONTAINER_BUILD_CONTEXT": "."}),
     "clippy": _Action(),
     "docker-publish": _Action(defaults={"CRON": "25 14 1 * *", "DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
     "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}, requires=[_SETUP_PY]),
