@@ -11,7 +11,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_REGISTRY: "ghcr.io/${{ github.repository_owner }}"
   IMAGE_NAME: {% raw %}${{ github.repository }}{% endraw %}
 
 jobs:
@@ -38,7 +37,7 @@ jobs:
 
       - name: Set dynamic variables
         env:
-          EVENT_NAME: github.event_name
+          EVENT_NAME: {% raw %}$github.event_name{% endraw %}
         run: |
           {% raw %}platforms="$(docker system info --format '{{.OSType}}/{{.Architecture}}')"
 
