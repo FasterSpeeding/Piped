@@ -82,12 +82,12 @@ _RESYNC_FILTER.extend(str(path.absolute().relative_to(pathlib.Path.cwd())) for p
 
 _SETUP_PY = "setup-py"
 _ACTIONS: dict[str, _Action] = {
-    # TODO: "linux/ppc64le"?
     "build-container": _Action(
         defaults={
             "CRON": "25 14 1 * *",
             "CONTAINER_BUILD_CONTEXT": ".",
-            "CONTAINER_PLATFORMS": ["linux/amd64", "linux/i386"],
+            # TODO:  enable "linux/i386" and "linux/ppc64le" by default? 
+            "CONTAINER_PLATFORMS": ["linux/amd64", "linux/arm64"],
         }
     ),
     "clippy": _Action(),
