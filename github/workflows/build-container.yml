@@ -80,4 +80,4 @@ jobs:
         env:
           TAGS: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
           DIGEST: {% raw %}${{ steps.push-image.outputs.digest }}{% endraw %}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}{% endif %}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
