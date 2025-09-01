@@ -63,7 +63,6 @@ jobs:
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
         with:
           tags: ${{ steps.metadata.outputs.tags }}
-          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -81,9 +80,4 @@ jobs:
         env:
           TAGS: ${{ steps.metadata.outputs.tags }}
           DIGEST: ${{ steps.push-image.outputs.digest }}
-        run: |
-          images=""
-          for tag in ${TAGS}; do
-            images+="${tag}@${DIGEST} "
-          done
-          cosign sign --yes ${images}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
