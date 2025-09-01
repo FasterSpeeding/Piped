@@ -63,7 +63,6 @@ jobs:
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
         with:
           tags: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
-          registry: {% raw %}${{ env.REGISTRY }}{% endraw %}
           username: {% raw %}${{ github.actor }}{% endraw %}
           password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
 
@@ -81,9 +80,4 @@ jobs:
         env:
           TAGS: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
           DIGEST: {% raw %}${{ steps.push-image.outputs.digest }}{% endraw %}
-        run: |
-          {% raw %}images=""
-          for tag in ${TAGS}; do
-            images+="${tag}@${DIGEST} "
-          done
-          cosign sign --yes ${images}{% endraw %}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
