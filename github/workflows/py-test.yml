@@ -47,7 +47,7 @@ jobs:
           name: artifacts/coverage/{% raw %}.coverage.${{ matrix.os }}.${{ matrix.python-version }}{% endraw %}
           path: .coverage
           include-hidden-files: true
-          if-no-files-found: error{% endif %}
+          if-no-files-found: error
 
   upload-coverage:
     needs: [test]
