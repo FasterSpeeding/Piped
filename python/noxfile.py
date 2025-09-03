@@ -76,10 +76,17 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     return output.splitlines()
 
 
-def _install_deps(session: nox.Session, /, *groups: str, install_project: bool = False, name: str | None = None, only_groups: bool = True) -> None:
+def _install_deps(
+    session: nox.Session,
+    /,
+    *groups: str,
+    install_project: bool = False,
+    name: str | None = None,
+    only_groups: bool = True,
+) -> None:
     if groups:
-        group_kwarg="only-group" if only_groups else "group"
-        extra_kwargs: list[str]= []
+        group_kwarg = "only-group" if only_groups else "group"
+        extra_kwargs: list[str] = []
 
         if not install_project:
             extra_kwargs.append("--no-install-project")
@@ -98,7 +105,7 @@ def _install_deps(session: nox.Session, /, *groups: str, install_project: bool =
 
 
 def _install_piped_deps(session: nox.Session, /, *groups: str) -> None:
-    with session.chdir(pathlib.Path(__file__).parent):
+    with session.chdir(pathlib.Path(__file__).parent.parent):
         _install_deps(session, *groups)
 
 
