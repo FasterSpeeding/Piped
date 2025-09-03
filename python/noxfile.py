@@ -436,13 +436,11 @@ def test_coverage(session: nox.Session) -> None:
 def combine_coverage(session: nox.Session) -> None:
     _install_piped_deps(session, "coverage")
 
-    data_file = _artifact('.coverage')
-    targets = [
-        str(path) for path in (_ARTIFACTS_DIR / "coverage").glob("**/*.coverage*") if path.is_file()
-    ]
+    data_file = _artifact(".coverage")
+    targets = [str(path) for path in (_ARTIFACTS_DIR / "coverage").glob("**/*.coverage*") if path.is_file()]
 
     session.run("coverage", "combine", "--data-file", data_file, *targets)
-    session.run("coverage", "xml", "-o", _artifact('coverage.xml'))
+    session.run("coverage", "xml", "-o", _artifact("coverage.xml"))
     session.run("coverage", "report", "--data-file", data_file)
 
 
