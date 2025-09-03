@@ -53,6 +53,7 @@ __all__: list[str] = [
 import datetime
 import pathlib
 import re
+import shutil
 import sys
 import typing
 from collections import abc as collections
@@ -65,8 +66,20 @@ _CallbackT = typing.TypeVar("_CallbackT", bound=collections.Callable[..., typing
 _CONFIG = piped_shared.Config.read(pathlib.Path("./"))
 nox.options.sessions = _CONFIG.default_sessions
 
+_ARTIFACTS_DIR = pathlib.Path("./artifacts")
+"""Directory used to store build and CI artifacts."""
+
+PATCH_PATH = _ARTIFACTS_DIR / "gogo.patch"
+"""File used by the CICD to indicate local changes should be marked for merging into a pull request."""
+
+
+def _artifact(name: str, /) -> str:
+    """Get a stringified path to a name in the artifacts directory."""
+    return str(_ARTIFACTS_DIR / name)
+
 
 def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collections.Iterable[str]:
+    """Get an iterable of the local changes currently tracked by GIT."""
     output = session.run("git", "--no-pager", "grep", "--threads=1", "-l", "", external=True, log=False, silent=True)
     assert isinstance(output, str)
 
@@ -84,12 +97,27 @@ def _install_deps(
     name: str | None = None,
     only_groups: bool = True,
 ) -> None:
+    """Install UV dependencies into a Nox session.
+
+    Parameters
+    ----------
+    session
+        The Nox session to install dependencies into.
+    install_project
+        Whether to install the current project into the Nox session.
+    name
+        Name which references the extra installs configuration to
+        allow installing extra dependencies after UV.
+    only_groups
+        Whether to only install dependencies from the specified groups.
+    """
     if groups:
         group_kwarg = "only-group" if only_groups else "group"
         extra_kwargs: list[str] = []
 
         if not install_project:
             extra_kwargs.append("--no-install-project")
+            extra_kwargs.append("--no-install-workspace")
 
         session.run_install(
             "uv",
@@ -105,6 +133,7 @@ def _install_deps(
 
 
 def _install_piped_deps(session: nox.Session, /, *groups: str) -> None:
+    """Install dependencies groups from the Piped project."""
     with session.chdir(pathlib.Path(__file__).parent.parent):
         _install_deps(session, *groups)
 
@@ -112,6 +141,7 @@ def _install_piped_deps(session: nox.Session, /, *groups: str) -> None:
 def _try_find_option(
     session: nox.Session, name: str, /, *other_names: str, when_empty: str | None = None
 ) -> str | None:
+    """Get a parameter which was passed when calling nox session after "--" by name."""
     args_iter = iter(session.posargs)
     names = {name, *other_names}
 
@@ -158,7 +188,7 @@ def cleanup(session: nox.Session) -> None:
     import shutil  # noqa: PLC0415  # `import` should be at the top-level of a file
 
     # Remove directories
-    raw_paths = ["./dist", "./site", "./.nox", "./.pytest_cache", "./coverage_html", ".mypy_cache"]
+    raw_paths = ["./artifacts", "./.nox", "./.pytest_cache", ".mypy_cache"]
     if _CONFIG.project_name:
         raw_paths.append(f"{_CONFIG.project_name}.egg-info")
 
@@ -177,7 +207,7 @@ def cleanup(session: nox.Session) -> None:
             session.log(f"[  OK  ] Removed '{raw_path}'")
 
     # Remove individual files
-    for raw_path in ["./.coverage", "./coverage_html.xml", "./gogo.patch"]:
+    for raw_path in ["./.coverage"]:
         path = pathlib.Path(raw_path)
         try:
             path.unlink()
@@ -213,7 +243,7 @@ def freeze_locks(session: nox.Session) -> None:
 def generate_docs(session: nox.Session) -> None:
     """Generate docs for this project using Mkdoc."""
     _install_deps(session, "docs")
-    output_directory = _try_find_option(session, "-o", "--output") or "./site"
+    output_directory = _try_find_option(session, "-o", "--output") or _artifact("site")
     session.run("mkdocs", "build", "--strict", "-d", output_directory)
 
 
@@ -248,6 +278,9 @@ def build(session: nox.Session) -> None:
     _install_deps(session, "publish")
     session.log("Starting build")
     session.run("flit", "build")
+
+    shutil.rmtree(_artifact("dist"))
+    shutil.move("./dist", _artifact("dist"))
 
 
 _LICENCE_PATTERN = re.compile(r"(Copyright \(c\) (\d+-?\d*))")
@@ -384,10 +417,22 @@ def test_coverage(session: nox.Session) -> None:
         "auto",
         f"--cov={project_name}",
         "--cov-report",
-        "html:coverage_html",
+        "term",
         "--cov-report",
-        "xml:coverage.xml",
+        f"xml:{_artifact('coverage.xml')}",
+        "--cov-report",
+        f"html:.{_artifact('coverage_html')}",
     )
+
+
+@_filtered_session(name="combine-coverage", reuse_venv=True)
+def combine_coverage(session: nox.Session) -> None:
+    _install_piped_deps(session, "coverage")
+
+    with session.chdir(_ARTIFACTS_DIR / "coverage"):
+        session.run("coverage", "combine")
+        session.run("coverage", "xml")
+        session.run("coverage", "report")
 
 
 def _run_pyright(session: nox.Session, /, *args: str) -> None:
@@ -441,16 +486,16 @@ def bot_package_diff(session: nox.Session) -> None:
     output = session.run("git", "diff", "HEAD", external=True, silent=True)
     assert isinstance(output, str)
 
-    path = pathlib.Path("./gogo.patch")
     if output:
-        with path.open("w+") as file:
+        with PATCH_PATH.open("w+") as file:
             file.write(output)
 
     else:
-        path.unlink(missing_ok=True)
+        PATCH_PATH.unlink(missing_ok=True)
 
 
 @nox.session(name="is-diff-file-empty", venv_backend="none")
 def is_diff_file_empty(_: nox.Session) -> None:
-    if pathlib.Path("./gogo.patch").exists():
+    """Session which raises an error if './artifacts/gogo.patch' exists."""
+    if PATCH_PATH.exists():
         sys.exit("Diff created")

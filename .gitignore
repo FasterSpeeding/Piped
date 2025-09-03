@@ -113,9 +113,6 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
-
 # mypy
 .mypy_cache/
 .dmypy.json
@@ -126,4 +123,6 @@ dmypy.json
 
 .idea/
 
-gogo.patch
+# Build and CICD artifacts
+artifacts/**/*/
+!artifacts/README.md

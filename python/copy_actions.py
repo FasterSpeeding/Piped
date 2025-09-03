@@ -98,11 +98,7 @@ _ACTIONS: dict[str, _Action] = {
     "publish": _Action(requires=[_SETUP_PY]),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
-        defaults={
-            "CODECLIMATE_TOKEN": "",
-            "OSES": "[ubuntu-latest, macos-latest, windows-latest]",
-            "REQUIRES_RUST": "",
-        },
+        defaults={"OSES": "[ubuntu-latest, macos-latest, windows-latest]", "REQUIRES_RUST": ""},
         requires=[_SETUP_PY],
     ),
     "reformat": _Action(requires=[_SETUP_PY]),
