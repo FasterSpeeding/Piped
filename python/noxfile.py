@@ -69,7 +69,10 @@ nox.options.sessions = _CONFIG.default_sessions
 _ARTIFACTS_DIR = pathlib.Path("./artifacts")
 """Directory used to store build and CI artifacts."""
 
-PATCH_PATH = _ARTIFACTS_DIR / "gogo.patch"
+DEPRECATED_PATCH_FILE = pathlib.Path("gogo.patch")
+"""Old patch file, replaced by `PATCH_FILE`."""
+
+PATCH_PATH = _ARTIFACTS_DIR / DEPRECATED_PATCH_FILE
 """File used by the CICD to indicate local changes should be marked for merging into a pull request."""
 
 
@@ -488,6 +491,9 @@ def bot_package_diff(session: nox.Session) -> None:
 
     if output:
         with PATCH_PATH.open("w+") as file:
+            file.write(output)
+
+        with DEPRECATED_PATCH_FILE.open("w+") as file:
             file.write(output)
 
     else:
