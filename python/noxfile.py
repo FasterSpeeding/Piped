@@ -441,8 +441,7 @@ def combine_coverage(session: nox.Session) -> None:
 
     session.run("coverage", "combine", "--data-file", data_file, *targets)
     session.run("coverage", "xml", "-o", _artifact("coverage.xml"))
-    #session.run("coverage", "report", "--data-file", data_file)
-
+    # session.run("coverage", "report", "--data-file", data_file)
 
 
 def _run_pyright(session: nox.Session, /, *args: str) -> None:
