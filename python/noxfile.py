@@ -76,18 +76,30 @@ def _tracked_files(session: nox.Session, *, force_all: bool = False) -> collecti
     return output.splitlines()
 
 
-def _install_deps(session: nox.Session, /, *groups: str, name: str | None = None) -> None:
+def _install_deps(session: nox.Session, /, *groups: str, install_project: bool = False, name: str | None = None, only_groups: bool = True) -> None:
     if groups:
+        group_kwarg="only-group" if only_groups else "group"
+        extra_kwargs: list[str]= []
+
+        if not install_project:
+            extra_kwargs.append("--no-install-project")
+
         session.run_install(
             "uv",
             "sync",
             "--frozen",
-            *map("--group={}".format, groups),
+            *map(f"--{group_kwarg}={{}}".format, groups),
+            *extra_kwargs,
             env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
         )
 
     if name and (extras := _CONFIG.extra_installs.get(name)):
         session.install(*extras)
+
+
+def _install_piped_deps(session: nox.Session, /, *groups: str) -> None:
+    with session.chdir(pathlib.Path(__file__).parent):
+        _install_deps(session, *groups)
 
 
 def _try_find_option(
@@ -176,14 +188,14 @@ def cleanup(session: nox.Session) -> None:
 @nox.session(name="copy-actions")
 def copy_actions(session: nox.Session) -> None:
     """Copy over the github actions from Piped without updating the git reference."""
-    _install_deps(session, "templating")
+    _install_piped_deps(session, "templating")
     session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"))
 
 
 @nox.session(name="freeze-locks", reuse_venv=True)
 def freeze_locks(session: nox.Session) -> None:
     """Freeze the dependency locks."""
-    _install_deps(session, "freeze-locks")
+    _install_piped_deps(session, "freeze-locks")
 
     for path in _CONFIG.dep_sources:
         session.chdir(path.parent)
@@ -201,7 +213,7 @@ def generate_docs(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def lint(session: nox.Session) -> None:
     """Run this project's modules against the pre-defined ruff linters."""
-    _install_deps(session, "lint")
+    _install_deps(session, "lint", only_groups=False)
     session.log("Running ruff")
     session.run("ruff", "check", *_CONFIG.top_level_targets, log=False)
 
@@ -211,7 +223,7 @@ def slot_check(session: nox.Session) -> None:
     """Check this project's slotted classes for common mistakes."""
     # TODO: don't require installing .?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "lint", name="slot_check")
+    _install_deps(session, "lint", name="slot_check", install_project=True, only_groups=False)
     session.run("slotscheck", "-v", "-m", _CONFIG.assert_project_name())
 
 
@@ -320,7 +332,7 @@ def test_publish(session: nox.Session) -> None:
 @_filtered_session(reuse_venv=True)
 def reformat(session: nox.Session) -> None:
     """Reformat this project's modules to fit the standard style."""
-    _install_deps(session, "reformat")
+    _install_piped_deps(session, "reformat")
     if _CONFIG.top_level_targets:
         session.run("black", *_CONFIG.top_level_targets)
         session.run("isort", *_CONFIG.top_level_targets)
@@ -346,7 +358,7 @@ def reformat(session: nox.Session) -> None:
 def test(session: nox.Session) -> None:
     """Run this project's tests using pytest."""
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "tests", name="test")
+    _install_deps(session, "tests", name="test", install_project=True, only_groups=False)
     # TODO: can import-mode be specified in the config.
     session.run("pytest", "-n", "auto", "--import-mode", "importlib")
 
@@ -356,7 +368,7 @@ def test_coverage(session: nox.Session) -> None:
     """Run this project's tests while recording test coverage."""
     project_name = _CONFIG.assert_project_name()
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "tests", name="test")
+    _install_deps(session, "tests", name="test", install_project=True, only_groups=False)
     # TODO: can import-mode be specified in the config.
     # https://github.com/nedbat/coveragepy/issues/1002
     session.run(
@@ -379,7 +391,7 @@ def _run_pyright(session: nox.Session, /, *args: str) -> None:
 @_filtered_session(name="type-check", reuse_venv=True)
 def type_check(session: nox.Session) -> None:
     """Statically analyse and veirfy this project using Pyright."""
-    _install_deps(session, "type-checking", name="type_check")
+    _install_deps(session, "type-checking", name="type_check", only_groups=False)
     _run_pyright(session)
 
     if _CONFIG.mypy_targets:
@@ -396,7 +408,7 @@ def verify_types(session: nox.Session) -> None:
     project_name = _CONFIG.assert_project_name()
     # TODO: is installing . necessary here?
     # https://github.com/pypa/pip/issues/10362
-    _install_deps(session, "type-checking", name="verify_types")
+    _install_deps(session, "type-checking", name="verify_types", install_project=True, only_groups=False)
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
 
 
