@@ -14,6 +14,7 @@ bot = [
     "uvicorn",
     "uvloop; platform_system != 'Windows'",
 ]
+coverage = ["coverage[toml]"]
 freeze-locks = ["uv"]
 lint = [
     "codespell>=2.2.2",

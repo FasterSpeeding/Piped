@@ -879,7 +879,7 @@ async def _apply_patch(
     """Apply a patch file from another workflow's artifacts and commit its changes.
 
     This specifically looks for an artefact called `gogo.patch` and unzips it
-    to get the file at `./gogo.patch`.
+    to get the file at `./artifacts/gogo.patch`.
 
     Parameters
     ----------
