@@ -80,6 +80,7 @@ jobs:
         uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0
         with:
           files: ./artifacts/coverage.xml
+          use_oidc: true
 
       - name: Create coverage artifacts
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
