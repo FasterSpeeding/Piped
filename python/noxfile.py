@@ -418,7 +418,7 @@ def test_coverage(session: nox.Session) -> None:
         "pytest",
         "-n",
         "auto",
-        f"--cov",
+        "--cov",
         project_name,
         "--cov-report",
         "term",
