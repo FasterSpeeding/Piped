@@ -87,7 +87,7 @@ _ACTIONS: dict[str, _Action] = {
             "CRON": "25 14 1 * *",
             "CONTAINER_BUILD_CONTEXT": ".",
             # TODO:  enable "linux/i386" and "linux/ppc64le" by default?
-            "CONTAINER_ARCHITECTURES": ["amd64", "arm64v8"],
+            "CONTAINER_ARCHITECTURES": ["amd64", "arm64"],
         }
     ),
     "clippy": _Action(),
