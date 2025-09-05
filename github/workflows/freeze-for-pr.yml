@@ -8,7 +8,7 @@ on:
   pull_request:
     branches:
       - master
-    paths: [{{ (FILTERS + EXTEND_FILTERS) | map("quoted") | join(", ") }}]
+    paths: [{{ (FILTERS + EXTEND_FILTERS) | map("format_string", '"{}"') | join(", ") }}]
 
 jobs:
   freeze-pr-dep-changes:

@@ -87,7 +87,7 @@ _ACTIONS: dict[str, _Action] = {
             "CRON": "25 14 1 * *",
             "CONTAINER_BUILD_CONTEXT": ".",
             # TODO:  enable "linux/i386" and "linux/ppc64le" by default?
-            "CONTAINER_PLATFORMS": ["linux/amd64", "linux/arm64"],
+            "CONTAINER_ARCHITECTURES": ["amd64", "arm64v8"],
         }
     ),
     "clippy": _Action(),
@@ -116,6 +116,11 @@ def _normalise_path(path: str, /) -> str:
     return path.replace("_", "-").strip()
 
 
+def _jinja_format(value: str, format_string: str, *args: typing.Any, **kwargs: typing.Any) -> str:
+    """Jinja filter form formatting a string."""
+    return format_string.format(value, *args, **kwargs)
+
+
 def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
     env = jinja2.Environment(  # noqa: S701
         keep_trailing_newline=True,
@@ -123,7 +128,7 @@ def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
     )
 
     template = env.get_template("action.yml")
-    env.filters["quoted"] = '"{}"'.format
+    env.filters["format_string"] = _jinja_format
 
     dest = pathlib.Path(".github/actions/") / name
     dest.mkdir(exist_ok=True, parents=True)
@@ -136,7 +141,7 @@ def main() -> None:
         loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "workflows"),
     )
 
-    env.filters["quoted"] = '"{}"'.format
+    env.filters["format_string"] = _jinja_format
 
     dependencies: set[str] = set()
     to_write: dict[pathlib.Path, str] = {}

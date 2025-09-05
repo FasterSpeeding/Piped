@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         os: {{ OSES }}
-        python-version: [{{ PYTHON_VERSIONS | map("quoted") | join(", ") }}]
+        python-version: [{{ PYTHON_VERSIONS | map("format_string", '"{}"') | join(", ") }}]
 
     {% raw %}runs-on: ${{ matrix.os }}{% endraw %}
 
