@@ -116,7 +116,7 @@ def _normalise_path(path: str, /) -> str:
     return path.replace("_", "-").strip()
 
 
-def _jinja_format(value: str, format_string: str, *args: typing.Any, **kwargs: typing.Any) -> str:
+def _jinja_format(value: str, format_string: str, *args: typing.Any, **kwargs: typing.Any) -> str:  # noqa: ANN401
     """Jinja filter form formatting a string."""
     return format_string.format(value, *args, **kwargs)
 
