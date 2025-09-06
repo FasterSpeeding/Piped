@@ -9,23 +9,10 @@ inputs:
     description: "Python version to install"
     required: false
     default: "3.11"
-  ref:
-    description: "Reference of a branch, tag of SHA to checkout"
-    required: false
-  repository:
-    description: "Name of the repository to target"
-    required: false
-    default: ${{ github.repository }}
 
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-      with:
-        ref: {{ inputs.ref }}
-        repository: {{ inputs.repository }}
-        submodules: "true"
-
     - name: Install Python
       uses: ./.github/actions/setup-py
       with:

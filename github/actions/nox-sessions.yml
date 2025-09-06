@@ -9,13 +9,6 @@ inputs:
     description: "Python version to install"
     required: false
     default: "{{ DEFAULT_PY_VER }}"
-  ref:
-    description: "Reference of a branch, tag of SHA to checkout"
-    required: false
-  repository:
-    description: "Name of the repository to target"
-    required: false
-    default: {% raw %}${{ github.repository }}{% endraw %}
 
 runs:
   using: composite
