@@ -111,7 +111,7 @@ runs:
     - name: Save image
       id: save
       shell: bash
-      run: |
+      run: |{% raw %}
         OUTPUT_DIR="${{ env.RUNNER_TEMP }}/oci-images/"
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config.outputs.tag }}.oci"
 
