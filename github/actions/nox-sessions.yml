@@ -27,7 +27,7 @@ runs:
         submodules: "true"{% endraw %}
 
     - name: Install Python
-      uses: ./.github/setup-py.yml
+      uses: ./.github/setup-py
       with:
         python-version: {% raw %}${{ inputs.python-version }}{% endraw %}
 

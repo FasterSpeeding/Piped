@@ -16,9 +16,9 @@ jobs:
 
     steps:
       - name: Upgrade dependency locks
-        uses: ./.github/nox-sessions.yml
+        uses: ./.github/nox-sessions
         with:
           nox-sessions: freeze-locks bot-package-diff
 
       - name: Check diff file
-        uses: ./.github/handle-diff-file.yml
+        uses: ./.github/handle-diff-file

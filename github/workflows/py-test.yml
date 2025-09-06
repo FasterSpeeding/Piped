@@ -30,7 +30,7 @@ jobs:
             override: true
 {% endif %}
       - name: Run test session
-        uses: ./.github/nox-sessions.yml
+        uses: ./.github/nox-sessions
         with:
           nox-sessions: test-coverage
           python-version: {% raw %}${{ matrix.python-version }}{% endraw %}
@@ -61,7 +61,7 @@ jobs:
           recurse_submodules: true
 
       - name: Run combine-coverage session
-        uses: ./.github/nox-sessions.yml
+        uses: ./.github/nox-sessions
         with:
           nox-sessions: combine-coverage
 

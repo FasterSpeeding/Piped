@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Run generate-docs session
-        uses: ./.github/nox-sessions.yml
+        uses: ./.github/nox-sessions
         with:
           nox-sessions: generate-docs -- -o ./artifacts/site -j
 

@@ -20,7 +20,7 @@ jobs:{% if "release_docs" in config.github_actions %}
 
     steps:
       - name: Run build session
-        uses: ./.github/nox-sessions.yml
+        uses: ./.github/nox-sessions
         with:
           nox-sessions: build
 

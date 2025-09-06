@@ -27,7 +27,7 @@ runs:
         submodules: "true"
 
     - name: Install Python
-      uses: ./.github/setup-py.yml
+      uses: ./.github/setup-py
       with:
         python-version: ${{ inputs.python-version }}
 

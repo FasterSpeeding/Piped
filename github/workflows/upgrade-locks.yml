@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Run freeze-locks session
-        uses: ./.github/nox-sessions.yml
+        uses: ./.github/nox-sessions
         with:
           nox-sessions: freeze-locks
 
