@@ -32,4 +32,5 @@ runs:
         python-version: ${{ inputs.python-version }}
 
     - name: Run nox
+      shell: bash
       run: nox -s ${{ inputs.nox-sessions }}

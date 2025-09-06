@@ -32,4 +32,5 @@ runs:
         python-version: {% raw %}${{ inputs.python-version }}{% endraw %}
 
     - name: Run nox
+      shell: bash
       run: {% raw %}nox -s ${{ inputs.nox-sessions }}{% endraw %}

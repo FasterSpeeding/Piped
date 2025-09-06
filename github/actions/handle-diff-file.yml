@@ -12,4 +12,5 @@ runs:
           gogo.patch
 
     - name: Check diff file
+      shell: bash
       run: nox -s is-diff-file-empty
