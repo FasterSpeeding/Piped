@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: {{ OSES }}
+        os: [{{ OSES | join(", ") }}]
         python-version: [{{ PYTHON_VERSIONS | map("format_string", '"{}"') | join(", ") }}]
 
     {% raw %}runs-on: ${{ matrix.os }}{% endraw %}
@@ -29,17 +29,11 @@ jobs:
             toolchain: nightly
             override: true
 {% endif %}
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Run test session
+        uses: ./.github/nox-sessions.yml
         with:
-          submodules: "true"
-
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-        with:
+          nox-sessions: test-coverage
           python-version: {% raw %}${{ matrix.python-version }}{% endraw %}
-
-      - name: Run tests
-        run: nox -s test-coverage
 
       - name: Create coverage artifacts
         uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
@@ -58,13 +52,6 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-        with:
-          submodules: "true"
-
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
@@ -73,8 +60,10 @@ jobs:
           path: ./artifacts/coverage/
           recurse_submodules: true
 
-      - name: Combine coverage artifacts
-        run: nox -s combine-coverage
+      - name: Run combine-coverage session
+        uses: ./.github/nox-sessions.yml
+        with:
+          nox-sessions: combine-coverage
 
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@fdcc8476540edceab3de004e990f80d881c6cc00 # v5.5.0

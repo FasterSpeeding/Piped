@@ -1,0 +1,38 @@
+name: "Nox session"
+description: "Run a nox session"
+
+inputs:
+  nox-sessions:
+    description: "Names of the Nox sessions to run"
+    required: true
+  python-version:
+    description: "Python version to install"
+    required: false
+    default: "{{ DEFAULT_PY_VER }}"
+  ref:
+    description: "Reference of a branch, tag of SHA to checkout"
+    required: false
+  repository:
+    description: "Name of the repository to target"
+    required: false
+    default: ${{ github.repository }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      with:
+        ref: {{ inputs.ref }}
+        repository: {{ inputs.repository }}
+        submodules: "true"
+
+    - name: Install Python
+      uses: ./.github/setup-py.yml
+      with:
+        python-version: {% raw %}${{ inputs.python-version }}{% endraw %}
+
+    - name: Install Nox
+      run: pipx install uv nox[uv] --python {% raw %}"${{ steps.install-py.outputs.python-path }}"{% endraw %}
+
+    - name: Run nox 
+      run: nox -s ${{ inputs.nox-sessions }}

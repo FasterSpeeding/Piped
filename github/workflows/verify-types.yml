@@ -23,12 +23,8 @@ jobs:
             toolchain: nightly
             override: true
 {% endif %}
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Run verify-types session
+        uses: ./.github/nox-sessions.yml
         with:
-          submodules: "true"
+          nox-sessions: verify-types
 
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
-      - name: Run verify types
-        run: nox -s verify-types

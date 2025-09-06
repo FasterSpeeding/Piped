@@ -1,14 +1,16 @@
 name: "Install Python"
 description: "Install a specific Python version"
+
 inputs:
   python-version:
     description: "Python version to install"
     required: false
     default: "{{ DEFAULT_PY_VER }}"
+
 runs:
   using: composite
   steps:
-    - name: Set up Python {% raw %}${{ inputs.python-version }}{% endraw %}
+    - name: Set up Python
       uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c
       id: install-py
       with:
