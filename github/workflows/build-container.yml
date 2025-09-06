@@ -105,6 +105,6 @@ jobs:
 
       - name: Sign the published container image
         env:{% raw %}
-          TAGS: ${{ steps.metadata.outputs.tags }}{% endraw %}
+          TAGS: ${{ steps.metadata.outputs.tags }}
           DIGEST: ${{ steps.push-image.outputs.digest }}
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}{% endraw %}
