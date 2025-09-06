@@ -29,7 +29,7 @@ runs:
     - name: Install Python
       uses: ./.github/actions/setup-py
       with:
-        python-version: ${{ inputs.python-version }}
+        python-version: "${{ inputs.python-version }}"
 
     - name: Run nox
       shell: bash
