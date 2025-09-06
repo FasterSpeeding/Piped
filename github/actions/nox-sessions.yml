@@ -15,7 +15,7 @@ inputs:
   repository:
     description: "Name of the repository to target"
     required: false
-    default: ${{ github.repository }}
+    default: {% raw %}${{ github.repository }}{% endraw %}
 
 runs:
   using: composite
@@ -31,8 +31,5 @@ runs:
       with:
         python-version: {% raw %}${{ inputs.python-version }}{% endraw %}
 
-    - name: Install Nox
-      run: pipx install uv nox[uv] --python {% raw %}"${{ steps.install-py.outputs.python-path }}"{% endraw %}
-
-    - name: Run nox 
-      run: nox -s ${{ inputs.nox-sessions }}
+    - name: Run nox
+      run: {% raw %}nox -s ${{ inputs.nox-sessions }}{% endraw %}

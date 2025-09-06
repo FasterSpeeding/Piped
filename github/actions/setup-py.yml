@@ -17,5 +17,5 @@ runs:
         python-version: {% raw %}${{ inputs.python-version }}{% endraw %}
 
     - name: Install Nox
-      run: pipx install uv nox[uv] --python {% raw %}"${{ steps.install-py.outputs.python-path }}"{% endraw %}
+      run: {% raw %}pipx install uv nox[uv] --python "${{ steps.install-py.outputs.python-path }}"{% endraw %}
       shell: bash

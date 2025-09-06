@@ -10,7 +10,7 @@ on:
     branches: [ "master" ]
 
 env:
-  OCI_STORAGE_DIR: ${{ env.RUNNER_TEMP }}/oci-images
+  OCI_STORAGE_DIR: {% raw %}${{ env.RUNNER_TEMP }}/oci-images{% endraw %}
 
 jobs:
   build-x86:
@@ -23,7 +23,7 @@ jobs:
       - name: Build image
         uses: ./.github/build-container.yml
         with:
-          architecture: ${{ matrix.architecture }}
+          architecture: {% raw %}${{ matrix.architecture }}{% endraw %}
 
   build-arm:
     runs-on: ubuntu-24.04-arm
@@ -35,7 +35,7 @@ jobs:
       - name: Build image
         uses: ./.github/build-container.yml
         with:
-          architecture: ${{ matrix.architecture }}
+          architecture: {% raw %}${{ matrix.architecture }}{% endraw %}
 
   push:
     runs-on: ubuntu-24.04
@@ -56,15 +56,15 @@ jobs:
 
       - name: Download images
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
+        with:{% raw %}
           pattern: container-build-*
           merge-multiple: true
           path: ${{ env.OCI_STORAGE_DIR }}/
-          recurse_submodules: true
+          recurse_submodules: true{% endraw %}
 
       - name: Load images into podman
         id: load-images
-        run: |
+        run: |{% raw %}
           tags=""
           for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
             tag="$(basename --suffix='.oci' '$file')"
@@ -73,13 +73,13 @@ jobs:
             loaded_tags+="$tag"
           done
 
-          echo "tags=$tags" >> $GITHUB_OUTPUT
+          echo "tags=$tags" >> $GITHUB_OUTPUT{% endraw %}
 
     - name: Generate container metadata
       id: metadata
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
-        images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}
+        images: {% raw %}${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}{% endraw %}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -90,21 +90,21 @@ jobs:
       - name: Push image
         id: push-image
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
-        with:
-          tags: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
-          username: {% raw %}${{ github.actor }}{% endraw %}
-          password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+        with:{% raw %}
+          tags:${{ steps.metadata.outputs.tags }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}{% endraw %}
 
-      # This log in step is only required to allow signing the container iamge
-      - name: Log into registry {% raw %}${{ env.REGISTRY }}{% endraw %}
+      # This log in step is only required to allow signing the container image{% raw %}
+      - name: Log into registry ${{ env.REGISTRY }}
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
-          registry: {% raw %}${{ env.REGISTRY }}{% endraw %}
-          username: {% raw %}${{ github.actor }}{% endraw %}
-          password: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}{% endraw %}
 
       - name: Sign the published container image
-        env:
-          TAGS: {% raw %}${{ steps.metadata.outputs.tags }}{% endraw %}
-          DIGEST: {% raw %}${{ steps.push-image.outputs.digest }}{% endraw %}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        env:{% raw %}
+          TAGS: ${{ steps.metadata.outputs.tags }}{% endraw %}
+          DIGEST: ${{ steps.push-image.outputs.digest }}
+        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}{% endraw %}
