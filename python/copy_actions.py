@@ -52,7 +52,7 @@ _ACTION_DEFAULTS = {
     "DEFAULT_PY_VER": "3.11",
     "PIPED_PATH": "./piped",
 }
-_REUSABLE_ACTIONS = [*map("{}.yml".format, ("setup-py", "build-container", "nox-sessions", "handle-diff-file"))]
+_REUSABLE_ACTIONS = ["setup-py", "build-container", "nox-sessions", "handle-diff-file"]
 
 
 _CONFIG = piped_shared.Config.read(pathlib.Path("./"))
@@ -133,12 +133,12 @@ def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
         loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions"),
     )
 
-    template = env.get_template(name)
+    template = env.get_template(f"{name}.yml")
     env.filters["format_string"] = _jinja_format
 
-    dest = pathlib.Path(".github/actions")
+    dest = pathlib.Path(".github/actions") / name
     dest.mkdir(exist_ok=True)
-    (dest / name).write_text(template.render(**config, config=_CONFIG))
+    (dest / "action.yml").write_text(template.render(**config, config=_CONFIG))
 
 
 def main() -> None:
