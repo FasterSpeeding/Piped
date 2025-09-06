@@ -62,10 +62,7 @@ class _Action:
     __slots__ = ("defaults", "required_names")
 
     def __init__(
-        self,
-        *,
-        required: collections.Sequence[str] = (),
-        defaults: piped_shared.ConfigT | None = None,
+        self, *, required: collections.Sequence[str] = (), defaults: piped_shared.ConfigT | None = None
     ) -> None:
         self.defaults: piped_shared.ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
@@ -85,18 +82,24 @@ _ACTIONS: dict[str, _Action] = {
     "build-container": _Action(
         defaults={
             # Architectures to build on an ARM runner
-            "ARM_ARCHITECTURES": ["arm64"], 
+            "ARM_ARCHITECTURES": ["arm64"],
             "CRON": "25 14 1 * *",
             # TODO:  enable "linux/i386" and "linux/ppc64le" by default?
             # Architectures to build on an x86 runner
             "X86_ARCHITECTURES": ["amd64"],
-        },
+        }
     ),
     "clippy": _Action(),
     "docker-publish": _Action(defaults={"CRON": "25 14 1 * *", "DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
     "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}),
     "lint": _Action(
-        defaults={"SESSIONS": [session for session in ("verify-markup", "spell-check", "lint", "slot-check") if session not in _CONFIG.hide]},
+        defaults={
+            "SESSIONS": [
+                session
+                for session in ("verify-markup", "spell-check", "lint", "slot-check")
+                if session not in _CONFIG.hide
+            ]
+        }
     ),
     "pr-docs": _Action(),
     "publish": _Action(),
@@ -169,7 +172,6 @@ def main() -> None:
 
     for path, value in to_write.items():
         path.write_text(value)
-
 
     for action in _REUSABLE_ACTIONS:
         _copy_composable_action(action, {**_ACTION_DEFAULTS, **wild_card})
