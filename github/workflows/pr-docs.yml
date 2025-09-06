@@ -21,13 +21,18 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+          {% raw %}ref: ${{ github.event.pull_request.head.sha }}{% endraw %}
+          {% raw %}repository: ${{ github.event.pull_request.head.repo.full_name }}{% endraw %}
+
       - name: Run generate-docs session
         if: github.event.action != 'closed'
         uses: ./.github/actions/nox-sessions
         with:
           nox-sessions: generate-docs -- -o ./artifacts/site
-          {% raw %}ref: ${{ github.event.pull_request.head.sha }}{% endraw %}
-          {% raw %}repository: ${{ github.event.pull_request.head.repo.full_name }}{% endraw %}
 
       - name: Deploy preview
         uses: FasterSpeeding/pr-preview-action@task/override-committer

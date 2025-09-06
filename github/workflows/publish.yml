@@ -19,6 +19,11 @@ jobs:{% if "release_docs" in config.github_actions %}
       id-token: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+
       - name: Run build session
         uses: ./.github/actions/nox-sessions
         with:

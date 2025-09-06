@@ -20,6 +20,11 @@ jobs:
         architecture: [{{ ARM_ARCHITECTURES |  map("format_string", '"{}"') | join(", ") }}]
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+
       - name: Build image
         uses: ./.github/actions/build-container
         with:
@@ -32,6 +37,11 @@ jobs:
         architecture: [{{ ARM_ARCHITECTURES |  map("format_string", '"{}"') | join(", ") }}]
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+
       - name: Build image
         uses: ./.github/actions/build-container
         with:
