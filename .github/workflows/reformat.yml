@@ -14,10 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+
       - name: Run reformat session
-        uses: ./.github/nox-sessions.yml
+        uses: ./.github/actions/nox-sessions
         with:
           nox-sessions: reformat bot-package-diff
 
       - name: Check diff file
-        uses: ./.github/handle-diff-file.yml
+        uses: ./.github/actions/handle-diff-file
