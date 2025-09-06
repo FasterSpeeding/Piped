@@ -21,10 +21,10 @@ runs:
   using: composite
   steps:
     - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-      with:
+      with:{% raw %}
         ref: {{ inputs.ref }}
         repository: {{ inputs.repository }}
-        submodules: "true"
+        submodules: "true"{% endraw %}
 
     - name: Install Python
       uses: ./.github/setup-py.yml
