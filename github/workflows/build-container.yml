@@ -10,7 +10,7 @@ on:
     branches: [ "master" ]
 
 env:
-  OCI_STORAGE_DIR: {% raw %}${{ env.RUNNER_TEMP }}/oci-images{% endraw %}
+  OCI_STORAGE_DIR: /oci-images
 
 jobs:
   build-x86:
@@ -69,14 +69,14 @@ jobs:
         with:{% raw %}
           pattern: container-build-*
           merge-multiple: true
-          path: ${{ env.OCI_STORAGE_DIR }}/
+          path: {% raw %}${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/{% endraw %}
           recurse_submodules: true{% endraw %}
 
       - name: Load images into podman
         id: load-images
         run: |{% raw %}
           tags=""
-          for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
+          for file in ${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/*.oci; do
             tag="$(basename --suffix='.oci' '$file')"
             crane copy "file://$file" "$tag"
             rm "$file"
@@ -85,23 +85,23 @@ jobs:
 
           echo "tags=$tags" >> $GITHUB_OUTPUT{% endraw %}
 
-    - name: Generate container metadata
-      id: metadata
-      uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
-      with:
-        images: {% raw %}${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}{% endraw %}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha
+      - name: Generate container metadata
+        id: metadata
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+        with:
+          images: {% raw %}${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}{% endraw %}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
 
       - name: Push image
         id: push-image
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
         with:{% raw %}
-          tags:${{ steps.metadata.outputs.tags }}
+          tags: ${{ steps.metadata.outputs.tags }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}{% endraw %}
 
