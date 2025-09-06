@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Build image
-        uses: ./.github/build-container
+        uses: ./.github/actions/build-container
         with:
           architecture: {% raw %}${{ matrix.architecture }}{% endraw %}
 
@@ -33,7 +33,7 @@ jobs:
 
     steps:
       - name: Build image
-        uses: ./.github/build-container
+        uses: ./.github/actions/build-container
         with:
           architecture: {% raw %}${{ matrix.architecture }}{% endraw %}
 

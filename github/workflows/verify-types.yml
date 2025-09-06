@@ -24,7 +24,7 @@ jobs:
             override: true
 {% endif %}
       - name: Run verify-types session
-        uses: ./.github/nox-sessions
+        uses: ./.github/actions/nox-sessions
         with:
           nox-sessions: verify-types
 

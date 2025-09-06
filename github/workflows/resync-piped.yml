@@ -16,9 +16,9 @@ jobs:
 
     steps:
       - name: Run copy-piped session
-        uses: ./.github/nox-sessions
+        uses: ./.github/actions/nox-sessions
         with:
           nox-sessions: copy-piped bot-package-diff
 
       - name: Check diff file
-        uses: ./.github/handle-diff-file
+        uses: ./.github/actions/handle-diff-file

@@ -15,7 +15,7 @@ jobs:
           submodules: "true"
 
       - name: Install Python
-        uses: ./.github/setup-py
+        uses: ./.github/actions/setup-py
 
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af
         with:
@@ -30,4 +30,4 @@ jobs:
         run: nox -s bot-package-diff
 
       - name: Check diff file
-        uses: ./.github/handle-diff-file
+        uses: ./.github/actions/handle-diff-file

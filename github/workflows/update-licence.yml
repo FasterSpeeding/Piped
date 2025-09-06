@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Run update-licence session
-        uses: ./.github/nox-sessions
+        uses: ./.github/actions/nox-sessions
         with:
           nox-sessions: update-licence
 

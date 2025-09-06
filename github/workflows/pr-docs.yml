@@ -23,7 +23,7 @@ jobs:
     steps:
       - name: Run generate-docs session
         if: github.event.action != 'closed'
-        uses: ./.github/nox-sessions
+        uses: ./.github/actions/nox-sessions
         with:
           nox-sessions: generate-docs -- -o ./artifacts/site
           {% raw %}ref: ${{ github.event.pull_request.head.sha }}{% endraw %}
