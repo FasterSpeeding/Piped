@@ -18,18 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Run Nox linting sessions
+        uses: ./.github/nox-sessions.yml
         with:
-          submodules: "true"
-
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
-      - name: Lint markup
-        run: nox -s verify-markup
-
-      - name: Check spelling
-        run: nox -s spell-check
-
-      - name: Lint with Ruff
-        run: nox -s lint
+          nox-sessions: ['verify-markup', 'spell-check', 'lint']
