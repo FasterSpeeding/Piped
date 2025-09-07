@@ -89,7 +89,8 @@ jobs:
         run: |{% raw %}
           manifest_tag="$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):$(uuidgen)"
           podman manifest create "$manifest_tag"
-          podman tag "$manifest_tag" ${{ steps.metadata.outputs.tags }}
+          tags="$( | tr '\n' ' ')"
+          echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
 
           for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
             image_tag="$(basename --suffix='.oci' '$file'):latest"
