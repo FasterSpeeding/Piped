@@ -26,4 +26,4 @@ jobs:
       - name: Run Nox linting sessions
         uses: ./.github/actions/nox-sessions
         with:
-          nox-sessions: ['verify-markup', 'spell-check', 'lint']
+          nox-sessions: verify-markup spell-check lint
