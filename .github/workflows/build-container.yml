@@ -10,7 +10,7 @@ on:
     branches: [ "master" ]
 
 env:
-  OCI_STORAGE_DIR: oci-images
+  OCI_STORAGE_DIR: ./oci-images
 
 jobs:
   build-x86:
@@ -69,7 +69,7 @@ jobs:
         with:
           pattern: container-build-*
           merge-multiple: true
-          path: ${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/
+          path: ${{ env.OCI_STORAGE_DIR }}/
           recurse_submodules: true
 
       - name: Generate container metadatatag
@@ -91,7 +91,7 @@ jobs:
           podman manifest create "$manifest_tag"
           podman tag "$manifest_tag" ${{ steps.metadata.outputs.tags }}
 
-          for file in ${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/*.oci; do
+          for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
             image_tag="$(basename --suffix='.oci' '$file'):latest"
 
             crane copy "file://$file" $image_tag
