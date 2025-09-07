@@ -11,7 +11,13 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      install-rust:
+        description: "Whether to install Rust to enable checks"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   type-check:
@@ -22,6 +28,12 @@ jobs:
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
           submodules: "true"
+
+      - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af
+        if: inputs.install-rust == true
+        with:
+            toolchain: nightly
+            override: true
 
       - name: Run type-check session
         uses: ./.github/actions/nox-sessions

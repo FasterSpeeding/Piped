@@ -53,7 +53,6 @@ ConfigT = dict[str, ConfigEntryT]
 
 _DEFAULT_ACTIONS = ["Freeze PR dependency changes", "Resync piped", "Reformat PR code", "Run Rustfmt"]
 _DEFAULT_DEP_SOURCES: list[pathlib.Path] = [pathlib.Path("./pyproject.toml")]
-_DEFAULT_GITHUB_ACTIONS: dict[str, ConfigT] = {"resync-piped": {}}
 
 
 class _NoValueEnum(enum.Enum):
@@ -62,23 +61,6 @@ class _NoValueEnum(enum.Enum):
 
 _NoValue = typing.Literal[_NoValueEnum.VALUE]
 _NO_VALUE: typing.Literal[_NoValueEnum.VALUE] = _NoValueEnum.VALUE
-
-
-def _validate_dict(
-    path_to: str, mapping: dict[typing.Any, _T], expected_type: type[_T] | tuple[type[_T], ...]
-) -> dict[str, _T]:
-    for key, value in mapping.items():
-        if not isinstance(key, str):
-            error_message = f"Unexpected key {key!r} found in {path_to}, expected a string but found a {type(key)}"
-            raise TypeError(error_message)
-
-        if not isinstance(value, expected_type):
-            error_message = (
-                f"Unexpected value found at {path_to}[{key!r}], expected a {expected_type} but found {value!r}"
-            )
-            raise TypeError(error_message)
-
-    return typing.cast("dict[str, _T]", mapping)
 
 
 def _validate_list(path_to: str, array: list[typing.Any], expected_type: type[_T] | tuple[type[_T], ...]) -> list[_T]:
@@ -152,34 +134,6 @@ def _validate_entry(
     return value
 
 
-def _validate_github_actions(
-    path_to: str, raw_config: typing.Any, /  # noqa: ANN401 # Dynamically typed expressions are not allowed
-) -> ConfigT:
-    if not isinstance(raw_config, dict):
-        error_message = f"Unexpected value found for {path_to}, expected a dictionary but found {raw_config!r}"
-        raise TypeError(error_message)
-
-    for key, value in raw_config.items():
-        if not isinstance(key, str):
-            error_message = f"Unexpected key {key} found in {path_to}, expected a string but found type {type(key)}"
-            raise TypeError(error_message)
-
-        path_to = f"{path_to}[{key!r}]"
-        if isinstance(value, dict):
-            _validate_dict(path_to, value, str)
-
-        elif isinstance(value, list):
-            _validate_list(path_to, value, str)
-
-        elif value is not None and not isinstance(value, str):
-            error_message = (
-                f"Unexpected value found for {path_to}, expected a string, list, or mapping, found {type(value)}"
-            )
-            raise TypeError(error_message)
-
-    return typing.cast("ConfigT", raw_config)
-
-
 _DEFAULT_EXTRA_INSTALLS = {"slot_check": ["."], "test": ["."], "verify_types": ["."]}
 
 
@@ -191,7 +145,6 @@ class Config:
     default_sessions: list[str]
     dep_sources: list[pathlib.Path]
     extra_installs: dict[str, list[str]]
-    github_actions: dict[str, ConfigT]
     hide: list[str]
     mypy_allowed_to_fail: bool
     mypy_targets: list[str]
@@ -231,38 +184,6 @@ class Config:
         else:
             dep_sources = _DEFAULT_DEP_SOURCES
 
-        raw_github_actions = data.get("github_actions", ...)
-        if raw_github_actions is ...:
-            github_actions = _DEFAULT_GITHUB_ACTIONS.copy()
-
-        elif isinstance(raw_github_actions, list):
-            github_actions: dict[str, ConfigT] = {
-                key: {} for key in _validate_list("github_actions", raw_github_actions, str)
-            }
-
-        elif isinstance(raw_github_actions, dict):
-            github_actions = {}
-
-            for key, value in raw_github_actions.items():
-                if not isinstance(key, str):
-                    error_message = (
-                        f"Unexpected key {key!r} found in ['github_actions'], "
-                        f"expected a string but found a {type(key)}"
-                    )
-                    raise TypeError(error_message)
-
-                github_actions[key] = _validate_github_actions(f"['github_actions'][{key!r}]", value)
-
-        elif raw_github_actions is None:
-            github_actions = {}
-
-        else:
-            error_message = (
-                f"Unexpected value found at ['github_actions'], expected a "
-                f"dict or list but found {raw_github_actions!r}"
-            )
-            raise TypeError(error_message)
-
         extra_installs = _DEFAULT_EXTRA_INSTALLS.copy()
         raw_extra_installs = _validate_entry(data, "extra_installs", dict, default=None) or {}
         for key in raw_extra_installs:
@@ -289,7 +210,6 @@ class Config:
             default_sessions=default_sessions,
             dep_sources=dep_sources,
             extra_installs=extra_installs,
-            github_actions=github_actions,
             hide=hide,
             mypy_allowed_to_fail=mypy_allowed_to_fail,
             mypy_targets=mypy_targets,

@@ -2,9 +2,17 @@ name: Publish documentation
 
 on:
   workflow_call:
-  workflow_dispatch:{% if BRANCH_PUSHES  %}
-  push:
-    branches: [{{ BRANCH_PUSHES | join(", ") }}]{% endif %}
+    inputs:
+      committer-email:
+        description: "The email address to use for doc branch commits"
+        default: 120557446+always-on-duty[bot]@users.noreply.github.com
+        required: false
+        type: string
+      committer-username:
+        description: "The username address to use for doc branch commits"
+        default: always-on-duty[bot]
+        required: false
+        type: string
 
 jobs:
   publish-docs:
@@ -25,8 +33,8 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@6c2d9db40f9296374acc17b90404b6e8864128c8
         with:
           branch: docs
-          {% raw %}commit-message: "${{ env.GITHUB_SHA }} docs (${{ github.event.release.tag_name || github.event.ref }})"{% endraw %}
+          commit-message: "${{ env.GITHUB_SHA }} docs (${{ github.event.release.tag_name || github.event.ref }})"
           clean-exclude: pr-preview
           folder: ./artifacts/site
-          git-config-email: "{{ ACTION_COMMITTER_EMAIL }}"
-          git-config-name: "{{ ACTION_COMMITTER_USERNAME }}"
+          git-config-email: "${{ inputs.committer-email }}"
+          git-config-name: "${{ inputs.committer-username }}"
