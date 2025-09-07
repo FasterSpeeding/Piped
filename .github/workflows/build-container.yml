@@ -21,7 +21,6 @@ on:
         type: boolean
 
 env:
-  ARCHITECTURES: ${{ inputs.architectures || '[{"os": "ubuntu-24.04", "architecture": "amd64"}, {"os": "ubuntu-24.04-arm", "architecture": "arm64"}]' }}
   IMAGE_NAME: ${{ github.repository }}
   MAXIMISE_SPACE: ${{ inputs.maximise-space || false }}
   OCI_STORAGE_DIR: ./oci-images
@@ -36,15 +35,20 @@ jobs:
     steps:
       - id: set-matrix
         shell: bash
+        env:
+          ARCHITECTURES: ${{ inputs.architectures }}
         run: |
           set +o pipefail
 
-          echo "matrix=${{ env.ARCHITECTURES }}" >> $GITHUB_OUTPUT
+          default_config='[{"os": "ubuntu-24.04", "architecture": "amd64"}, {"os": "ubuntu-24.04-arm", "architecture": "arm64"}]'
+          config=$("$ARCHITECTURES" || "$default_config")
+          echo "matrix=$config" >> "$GITHUB_OUTPUT"
+
 
   build:
     strategy:
       matrix: 
-        build-config: ${{ needs.set-matrix.outputs.matrix }}
+        build-config: ${{ fromJSON(needs.set-matrix.outputs.matrix) }}
 
     needs: [set-matrix]
     runs-on: ${{ matrix.build-config.os }}
@@ -105,7 +109,7 @@ jobs:
           podman manifest create "$manifest_tag"
           echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
 
-          while read -d $'\0' image_path; do
+          while read -r -d $'\0' image_path; do
             echo "Adding $image_path to manifest"
             podman manifest add "$manifest_tag" "oci-archive:$image_path"
           done < <(find ${{ env.OCI_STORAGE_DIR }}/ -type f -maxdepth 1 -name "*.oci" -print0)
@@ -133,4 +137,4 @@ jobs:
         run: |
           set +o pipefail
 
-          echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+          echo "${TAGS}" | xargs -I {} cosign sign --yes "{}@${DIGEST}"
