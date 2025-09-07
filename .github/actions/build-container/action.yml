@@ -110,7 +110,7 @@ runs:
         OUTPUT_DIR="./oci-images"
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config.outputs.artifact-name }}.oci"
 
-        mkdir -p "$OUTPUT_DIR"
+        mkdir -p "$OUTPUT_PATH"
         podman save --uncompressed --format oci-archive -o "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
 
         echo "image-dir=$OUTPUT_DIR" >> "$GITHUB_OUTPUT"
