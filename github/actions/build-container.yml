@@ -79,7 +79,7 @@ runs:
 
         build_id=$(uuidgen)
         echo "architecture=$architecture" >> GITHUB_OUTPUT
-        ecgo "artifact-name=$architecture-$build_id" >> GITHUB_OUTPUT
+        echo "artifact-name=$architecture-$build_id" >> GITHUB_OUTPUT
         echo "platform=$platform" >> GITHUB_OUTPUT
         echo "tag=${build_uuid}:latest"{% endraw %}
 
