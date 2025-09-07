@@ -31,13 +31,18 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Run Nox linting tasks
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          submodules: "true"
+
+      - name: Run generate-docs
         if: github.event.action != 'closed'
         uses: ./.github/nox-sessions.yml
         with:
           nox-sessions: generate-docs -- -o ./artifacts/site
-          ref: ${{ github.event.pull_request.head.sha }}
-          epository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Deploy preview
         uses: FasterSpeeding/pr-preview-action@task/override-committer
@@ -46,12 +51,6 @@ jobs:
           git-config-name: "${{ inputs.committer-username }}"
           preview-branch: docs
           source-dir: ./artifacts/site/
-
-      # TODO: ...
-      - name: Run Nox linting tasks
-        uses: ./.github/nox-sessions.yml
-        with:
-          nox-sessions: ${{ inputs.nox-sessions }}
 
       - name: Check diff file
         uses: ./.github/handle-diff-file.yml
