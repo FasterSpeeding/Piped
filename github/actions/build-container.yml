@@ -113,8 +113,8 @@ runs:
         OUTPUT_DIR="./oci-images"
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config-outputs.artifact-name }}.oci"
 
-        mkdir -p "$OUTPUT_DIR"
-        crane pull "${{ steps.gen-config.outputs.tag }}" "$OUTPUT_PATH" --annotate-ref --format oci
+        mkdir -p "$OUTPUT_PATH"
+        crane push "${{ steps.gen-config.outputs.tag }}" "$OUTPUT_PATH"
 
         echo "image-dir=$OUTPUT_DIR" >> "$GITHUB_OUTPUT"
         echo "image-path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"{% endraw %}
