@@ -87,7 +87,7 @@ jobs:
       - name: Create manifest
         id: load-images
         run: |{% raw %}
-          manifest_tag="$(exgo '${{ env.IMAGE_NAME }}' | | tr '[:upper:]' '[:lower:]'):$(uuidgen)"
+          manifest_tag="$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):$(uuidgen)"
           podman manifest create "$manifest_tag"
           podman tag "$manifest_tag" ${{ steps.metadata.outputs.tags }}
 
