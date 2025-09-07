@@ -111,7 +111,7 @@ runs:
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config-outputs.artifact-name }}/"
 
         mkdir -p "$OUTPUT_PATH"
-        podman save --uncompress --format oci-dir -o "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
+        podman save --uncompressed --format oci-dir -o "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
 
         echo "image-dir=$OUTPUT_DIR" >> "$GITHUB_OUTPUT"
         echo "image-path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
