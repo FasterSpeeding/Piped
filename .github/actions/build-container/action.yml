@@ -53,7 +53,7 @@ runs:
 
   steps:
     - name: Maximize build space
-      if: keep-image == 'true'
+      if: inputs.keep-image == 'true'
       uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
     - name: Install Crane
