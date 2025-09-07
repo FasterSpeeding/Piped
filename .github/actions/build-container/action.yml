@@ -81,7 +81,7 @@ runs:
         echo "architecture=$architecture" >> GITHUB_OUTPUT
         echo "artifact-name=$architecture-$build_id" >> GITHUB_OUTPUT
         echo "platform=$platform" >> GITHUB_OUTPUT
-        echo "tag=${build_uuid}:latest"
+        echo "tag=localhost/${build_uuid}:latest"
 
     - name: Generate container metadata
       id: metadata
