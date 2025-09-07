@@ -27,7 +27,7 @@ jobs:
 
           cargo +nightly fmt
 
-      - name: Run reformat session
+      - name: Check repository diff
         uses: ./.github/actions/nox-sessions
         with:
           nox-sessions: bot-package-diff
