@@ -40,7 +40,11 @@ jobs:
         run: |
           set +o pipefail
 
-          default_config='[{\"os\": \"ubuntu-24.04\", \"architecture\": \"amd64\"}, {\"os\": \"ubuntu-24.04-arm\", \"architecture\": \"arm64\"}]'
+          if [[ -z $ARCHITECTURES ]]
+          then
+            ARCHITECTURES='[{"os": "ubuntu-24.04", "architecture": "amd64"}, {"os": "ubuntu-24.04-arm", "architecture": "arm64"}]'
+          fi
+
           echo "matrix=$("$ARCHITECTURES" || "$default_config")" >> "$GITHUB_OUTPUT"
 
   build:
