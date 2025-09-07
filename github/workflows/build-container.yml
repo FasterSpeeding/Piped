@@ -92,7 +92,7 @@ jobs:
           echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
 
           #for image_path in ${{ env.OCI_STORAGE_DIR }}/*; do
-          find ${{ env.OCI_STORAGE_DIR }}/ -maxdepth 1 -type f -name "*.oci" -print0 | while read -d $'\0' image_path
+          find ${{ env.OCI_STORAGE_DIR }}/ -type f -name "*.oci" -print0 | while read -d $'\0' image_path
           do
             podman manifest add "$manifest_tag" "oci-archive:$image_path"
             rm -r "$file"
