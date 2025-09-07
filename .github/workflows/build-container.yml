@@ -41,8 +41,7 @@ jobs:
           set +o pipefail
 
           default_config='[{"os": "ubuntu-24.04", "architecture": "amd64"}, {"os": "ubuntu-24.04-arm", "architecture": "arm64"}]'
-          config="$("$ARCHITECTURES" || "$default_config")"
-          echo "matrix=$config" >> "$GITHUB_OUTPUT"
+          echo "matrix=$("$ARCHITECTURES" || "$default_config")" >> "$GITHUB_OUTPUT"
 
 
   build:
