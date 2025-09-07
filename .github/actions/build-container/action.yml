@@ -114,7 +114,7 @@ runs:
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config-outputs.artifact-name }}.oci"
 
         mkdir -p "$OUTPUT_PATH"
-        crane push "${{ steps.gen-config.outputs.tag }}" "$OUTPUT_PATH"
+        crane push "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
 
         echo "image-dir=$OUTPUT_DIR" >> "$GITHUB_OUTPUT"
         echo "image-path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
