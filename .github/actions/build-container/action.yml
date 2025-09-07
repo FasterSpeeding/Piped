@@ -99,10 +99,10 @@ runs:
       id: build
       uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
       with:
-        oci: true
         tags: ${{ steps.gen-config.outputs.tag }}
-        labels: ${{ steps.metadata.outputs.labels }}
         platforms: ${{ steps.gen-config.outputs.platform }}
+        oci: true
+        labels: ${{ steps.metadata.outputs.labels }}
         containerfiles: ${{ inputs.containerfiles }}
         context: ${{ inputs.container_build_context }}
 
