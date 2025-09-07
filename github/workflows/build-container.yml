@@ -69,7 +69,7 @@ jobs:
         with:{% raw %}
           pattern: container-build-*
           merge-multiple: true
-          path: {% raw %}${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/{% endraw %}
+          path: ${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/
           recurse_submodules: true{% endraw %}
 
       - name: Load images into podman
