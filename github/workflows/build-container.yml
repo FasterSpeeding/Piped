@@ -26,7 +26,7 @@ jobs:
           submodules: "true"
 
       - name: Build image
-        uses: ./.github/actions/build-container
+        uses: ./.github/actions/build-container.yml
         with:
           architecture: {% raw %}${{ matrix.architecture }}{% endraw %}
 
@@ -43,7 +43,7 @@ jobs:
           submodules: "true"
 
       - name: Build image
-        uses: ./.github/actions/build-container
+        uses: ./.github/actions/build-container.yml
         with:
           architecture: {% raw %}${{ matrix.architecture }}{% endraw %}
 

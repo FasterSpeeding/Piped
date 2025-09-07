@@ -14,11 +14,11 @@ inputs:
   container_build_context:
     description: "The directory to pass through as the working directory during container builds"
     required: false
-    default: {{ CONTAINER_BUILD_CONTEXT }}
+    default: .
   image-name:
     description: "The built image's name"
     required: false
-    default: {% raw %}${{ github.repository }}{% endraw %}
+    default: ${{ github.repository }}
   keep-image:
     description: "Whether to keep a local copy of the image"
     required: false
@@ -28,7 +28,7 @@ inputs:
     required: false
     default: ghcr.io
 
-outputs:{% raw %}
+outputs:
   image:
     description: "Name of the image built"
     value: ${{ steps.build.outputs.image }}
@@ -46,29 +46,28 @@ outputs:{% raw %}
     value: ${{ steps.build.outputs.tags }}
   image-with-tag:
     description: "Name of the image tagged with the first tag present"
-    value: ${{ steps.build.outputs.image-with-tag }}{% endraw %}
+    value: ${{ steps.build.outputs.image-with-tag }}
 
 runs:
   using: composite
 
   steps:
     - name: Maximize build space
-      if: keep-image == 'true'
       uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
     - name: Install Crane
       uses: iarekylew00t/crane-installer@af22986e01a08365e8b29e45e5a336c7995c111b # v4.0.0
 
     - name: Install QEMU
-      if: inputs.architecture != ''
+      if: inputs.architecture != ""
       uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
       with:
-        platforms: {% raw %}${{ inputs.architecture }}{% endraw %}
+        platforms: ${{ inputs.architecture }}
 
     - name: Generate build configuration
       id: gen-config
       shell: bash
-      run: |{% raw %}
+      run: |
         if [[ -n ${{ inputs.architecture }} ]]; then
           architecture="${{ inputs.architecture }}"
           platform="linux/${{ inputs.architecture }}"
@@ -79,36 +78,35 @@ runs:
 
         echo "architecture=$architecture" >> GITHUB_OUTPUT
         echo "platform=$platform" >> GITHUB_OUTPUT
-        echo "tag=${{ inputs.image-name }}-${{ inputs.architecture }}-$(uuid-gen)" >> GITHUB_OUTPUT{% endraw %}
+        echo "tag=${{ inputs.image-name }}-${{ inputs.architecture }}-$(uuid-gen)" >> GITHUB_OUTPUT
 
     - name: Generate container metadata
       id: metadata
       uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
       with:
-        images: {% raw %}${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}{% endraw %}
+        images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern=
+          type=semver,pattern=.
           type=sha
 
     - name: Build image
       id: build
       uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
-      with:{% raw %}
+      with:
         oci: true
-        image: ${{ inputs.image-name }}
         tags: ${{ steps.gen-config.outputs.tag }}
         labels: ${{ steps.metadata.outputs.labels }}
         platforms: ${{ steps.gen-config.outputs.platform }}
         containerfiles: ${{ inputs.containerfiles }}
-        context: ${{ inputs.container_build_context }}{% endraw %}
+        context: ${{ inputs.container_build_context }}
 
     - name: Save image
       id: save
       shell: bash
-      run: |{% raw %}
+      run: |
         OUTPUT_DIR="${{ env.RUNNER_TEMP }}/oci-images/"
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config.outputs.tag }}.oci"
 
@@ -116,22 +114,22 @@ runs:
         crane pull "$IMAGE" "$OUTPUT_PATH" --annotate-ref --format oci
 
         echo "image_dir=$OUTPUT_DIR" >> "$GITHUB_OUTPUT"
-        echo "image_path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"{% endraw %}
+        echo "image_path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
 
     - name: Create coverage artifacts
       id: upload-coverage
       uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
-      with:{% raw %}
+      with:
         name: container-build-${{ inputs.image-name }}-${{ inputs.architecture }}
         path: ${{ steps.save.outputs.image_dir }}/*.oci
         if-no-files-found: error
-        retention-days: 1{% endraw %}
+        retention-days: 1
 
     - name: Clear local store
       shell: bash
-      run: |{% raw %}
+      run: |
         rm ${{ steps.save.outputs.image_path }}
 
         if [[ keep-image == "false" ]]; then
           podman image rm ${{ steps.build.outputs.image-with-tag }}
-        fi{% endraw %}
+        fi
