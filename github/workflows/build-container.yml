@@ -87,7 +87,7 @@ jobs:
       - name: Create manifest
         id: load-images
         run: |{% raw %}
-          manifest_tag="$(printf '${{ steps.metadata.outputs.tags }}' | head -n 1)"
+          manifest_tag="${{ env.IMAGE_NAME }}:$(uuidgen)"
           podman manifest create "$manifest_tag"
           podman tag "$manifest_tag" ${{ steps.metadata.outputs.tags }}
 
@@ -95,9 +95,9 @@ jobs:
             image_tag="$(basename --suffix='.oci' '$file'):latest"
 
             # crane copy "file://$file" $image_tag
-            podman manifest add "$manifest_tag" "$file"
+            podman manifest add "$manifest_tag" "oci-archive:$file"
 
-            podman image rm "$image_tag"
+            #podman image rm "$image_tag"
             rm -r "$file"
           done{% endraw %}
 
