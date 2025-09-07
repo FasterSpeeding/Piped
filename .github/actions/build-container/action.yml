@@ -56,9 +56,6 @@ runs:
       if: inputs.keep-image == 'true'
       uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
-    - name: Install Crane
-      uses: iarekylew00t/crane-installer@af22986e01a08365e8b29e45e5a336c7995c111b # v4.0.0
-
     - name: Install QEMU
       if: inputs.architecture != ''
       uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
@@ -114,7 +111,7 @@ runs:
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config-outputs.artifact-name }}/"
 
         mkdir -p "$OUTPUT_PATH"
-        crane push "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
+        podman save --uncompress --format oci-dir -o "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
 
         echo "image-dir=$OUTPUT_DIR" >> "$GITHUB_OUTPUT"
         echo "image-path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"
