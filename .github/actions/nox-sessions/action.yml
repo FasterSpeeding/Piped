@@ -20,4 +20,7 @@ runs:
 
     - name: Run nox
       shell: bash
-      run: nox -s ${{ inputs.nox-sessions }}
+      run: |
+        set +o pipefail
+
+        nox -s ${{ inputs.nox-sessions }}
