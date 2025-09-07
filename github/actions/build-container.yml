@@ -78,8 +78,9 @@ runs:
         fi
 
         echo "architecture=$architecture" >> GITHUB_OUTPUT
+        ecgo "build_uuid=$(uuid-gen)" >> GITHUB_OUTPUT
         echo "platform=$platform" >> GITHUB_OUTPUT
-        echo "tag=${{ inputs.image-name }}-${{ inputs.architecture }}-$(uuid-gen)" >> GITHUB_OUTPUT{% endraw %}
+        echo "tag=${build_uuid}:latest"{% endraw %}
 
     - name: Generate container metadata
       id: metadata
@@ -98,7 +99,6 @@ runs:
       uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
       with:{% raw %}
         oci: true
-        image: ${{ inputs.image-name }}
         tags: ${{ steps.gen-config.outputs.tag }}
         labels: ${{ steps.metadata.outputs.labels }}
         platforms: ${{ steps.gen-config.outputs.platform }}
@@ -110,10 +110,10 @@ runs:
       shell: bash
       run: |{% raw %}
         OUTPUT_DIR="${{ env.RUNNER_TEMP }}/oci-images/"
-        OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config.outputs.tag }}.oci"
+        OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config-outputs.build_uuid }}.oci"
 
         mkdir -p "$OUTPUT_DIR"
-        crane pull "$IMAGE" "$OUTPUT_PATH" --annotate-ref --format oci
+        crane pull "${{ steps.gen-config.outputs.tag }}" "$OUTPUT_PATH" --annotate-ref --format oci
 
         echo "image_dir=$OUTPUT_DIR" >> "$GITHUB_OUTPUT"
         echo "image_path=$OUTPUT_PATH" >> "$GITHUB_OUTPUT"{% endraw %}
@@ -122,7 +122,7 @@ runs:
       id: upload-coverage
       uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
       with:{% raw %}
-        name: container-build-${{ inputs.image-name }}-${{ inputs.architecture }}
+        name: container-build-${{ steps.gen-config-outputs.build_uuid }}
         path: ${{ steps.save.outputs.image_dir }}/*.oci
         if-no-files-found: error
         retention-days: 1{% endraw %}

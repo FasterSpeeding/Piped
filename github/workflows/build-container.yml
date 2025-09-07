@@ -72,20 +72,7 @@ jobs:
           path: ${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/
           recurse_submodules: true{% endraw %}
 
-      - name: Load images into podman
-        id: load-images
-        run: |{% raw %}
-          tags=""
-          for file in ${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/*.oci; do
-            tag="$(basename --suffix='.oci' '$file')"
-            crane copy "file://$file" "$tag"
-            rm "$file"
-            loaded_tags+="$tag"
-          done
-
-          echo "tags=$tags" >> $GITHUB_OUTPUT{% endraw %}
-
-      - name: Generate container metadata
+      - name: Generate container metadatatag
         id: metadata
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
@@ -96,6 +83,23 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
+
+      - name: Create manifest
+        id: load-images
+        run: |{% raw %}
+          manifest_tag="$(printf '${{ steps.metadata.outputs.tags }}' | head -n 1)"
+          podman manifest create "$manifest_tag"
+          podman tag "$manifest_tag" ${{ steps.metadata.outputs.tags }}
+
+          for file in ${{ env.RUNNER_TEMP }}/${{ env.OCI_STORAGE_DIR }}/*.oci; do
+            image_tag="$(basename --suffix='.oci' '$file'):latest"
+
+            crane copy "file://$file" $image_tag
+            podman manifest add "$manifest_tag" "$image_tag"
+
+            podman image rm "$image_tag"
+            rm -r "$file"
+          done
 
       - name: Push image
         id: push-image
