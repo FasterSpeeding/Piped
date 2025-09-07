@@ -81,7 +81,7 @@ runs:
         echo "architecture=$architecture" >> GITHUB_OUTPUT
         echo "artifact-name=$architecture-$build_uuid" >> GITHUB_OUTPUT
         echo "platform=$platform" >> GITHUB_OUTPUT
-        echo "tag=${{ inputs.REGISTRY }}/${{ inputs.IMAGE-NAME }}:$build_uuid"
+        echo "tag=localhost:5000/${{ inputs.IMAGE-NAME }}-$architecture:$build_uuid" >> GITHUB_OUTPUT
 
     - name: Generate container metadata
       id: metadata
