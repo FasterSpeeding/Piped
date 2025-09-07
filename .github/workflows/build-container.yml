@@ -42,7 +42,7 @@ jobs:
 
           if [[ -u $ARCHITECTURES ]]
           then
-            echo "matrix=$("$ARCHITECTURES" || "$default_config")"
+            echo "matrix=$ARCHITECTURES" >> "$GITHUB_OUTPUT"
           else
             echo '[{"os": "ubuntu-24.04", "architecture": "amd64"}, {"os": "ubuntu-24.04-arm", "architecture": "arm64"}]' >> "$GITHUB_OUTPUT"
           fi
