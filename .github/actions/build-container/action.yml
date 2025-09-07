@@ -62,6 +62,8 @@ runs:
       id: gen-config
       shell: bash
       run: |
+        set +o pipefail
+
         if [[ -n ${{ inputs.architecture }} ]]; then
           architecture="${{ inputs.architecture }}"
           platform="linux/${{ inputs.architecture }}"
@@ -103,6 +105,8 @@ runs:
       id: save
       shell: bash
       run: |
+        set +o pipefail
+
         OUTPUT_DIR="./oci-images"
         OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config.outputs.artifact-name }}.oci"
 
@@ -124,6 +128,8 @@ runs:
     - name: Clear local store
       shell: bash
       run: |
+        set +o pipefail
+
         rm -r ${{ steps.save.outputs.image-path }}
 
         if [[ keep-image == "false" ]]; then

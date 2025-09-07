@@ -13,4 +13,7 @@ runs:
 
     - name: Check diff file
       shell: bash
-      run: nox -s is-diff-file-empty
+      run: |
+        set +o pipefail
+
+        nox -s is-diff-file-empty
