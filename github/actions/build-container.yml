@@ -59,7 +59,7 @@ runs:
       uses: iarekylew00t/crane-installer@af22986e01a08365e8b29e45e5a336c7995c111b # v4.0.0
 
     - name: Install QEMU
-      if: inputs.architecture != ""
+      if: inputs.architecture != ''
       uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
       with:
         platforms: {% raw %}${{ inputs.architecture }}{% endraw %}
