@@ -77,7 +77,7 @@ runs:
           architecture="$(echo '${{ inputs.architecture }}' | cut -d '/' -f2)"
         fi
 
-        build_id=$(uuid-gen)
+        build_id=$(uuidgen)
         echo "architecture=$architecture" >> GITHUB_OUTPUT
         ecgo "artifact-name=$architecture-$build_id" >> GITHUB_OUTPUT
         echo "platform=$platform" >> GITHUB_OUTPUT
