@@ -51,7 +51,7 @@ jobs:
 
   push:
     runs-on: ubuntu-24.04
-    if: github.event_name != 'pull_request'
+    # if: github.event_name != 'pull_request'
     needs: [build-x86, build-arm]
 
     permissions:
@@ -94,8 +94,8 @@ jobs:
           for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
             image_tag="$(basename --suffix='.oci' '$file'):latest"
 
-            crane copy "file://$file" $image_tag
-            podman manifest add "$manifest_tag" "$image_tag"
+            # crane copy "file://$file" $image_tag
+            podman manifest add "$manifest_tag" "$file"
 
             podman image rm "$image_tag"
             rm -r "$file"
