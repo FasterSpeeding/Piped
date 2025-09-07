@@ -96,7 +96,7 @@ jobs:
           do
             echo "Adding $image_path to manifest"
             podman manifest add "$manifest_tag" "oci-archive:$image_path"
-            rm -r "$file"
+            rm -r "$image_path"
           done{% endraw %}
 
       - name: Push image
