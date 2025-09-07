@@ -77,9 +77,9 @@ runs:
           architecture="$(echo '${{ inputs.architecture }}' | cut -d '/' -f2)"
         fi
 
-        build_id=$(uuidgen)
+        build_uuid=$(uuidgen)
         echo "architecture=$architecture" >> GITHUB_OUTPUT
-        echo "artifact-name=$architecture-$build_id" >> GITHUB_OUTPUT
+        echo "artifact-name=$architecture-$build_uuid" >> GITHUB_OUTPUT
         echo "platform=$platform" >> GITHUB_OUTPUT
         echo "tag=localhost/${build_uuid}:latest"{% endraw %}
 
