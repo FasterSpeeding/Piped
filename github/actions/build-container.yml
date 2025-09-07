@@ -108,7 +108,7 @@ runs:
       shell: bash
       run: |{% raw %}
         OUTPUT_DIR="./oci-images"
-        OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config-outputs.artifact-name }}/"
+        OUTPUT_PATH="$OUTPUT_DIR/${{ steps.gen-config.outputs.artifact-name }}/"
 
         mkdir -p "$OUTPUT_PATH"
         podman save --uncompressed --format oci-dir -o "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
@@ -120,7 +120,7 @@ runs:
       id: upload-coverage
       uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
       with:{% raw %}
-        name: container-build-${{ steps.gen-config-outputs.artifact-name }}
+        name: container-build-${{ steps.gen-config.outputs.artifact-name }}
         path: ${{ steps.save.outputs.image-dir }}/*/
         if-no-files-found: error
         retention-days: 1{% endraw %}
@@ -128,7 +128,7 @@ runs:
     - name: Clear local store
       shell: bash
       run: |{% raw %}
-        rm ${{ steps.save.outputs.image-path }}
+        rm -r ${{ steps.save.outputs.image-path }}
 
         if [[ keep-image == "false" ]]; then
           podman image rm ${{ steps.build.outputs.image-with-tag }}
