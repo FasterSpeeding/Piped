@@ -4,6 +4,19 @@ on:
   schedule:
     - cron: "0 7 1 1 *"
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      committer-email:
+        description: "The email address to use for doc branch commits"
+        required: false
+        type: string
+      committer-username:
+        description: "The username address to use for doc branch commits"
+        required: false
+        type: string
+
+env:
+  GIT_COMITTER: "${{ inputs.committer-username || 'always-on-duty[bot]' }} <${{ inputs.committer-email || '120557446+always-on-duty[bot]@users.noreply.github.com' }}>"
 
 jobs:
   update-licence:
@@ -23,9 +36,9 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@18e469570b1cf0dfc11d60ec121099f8ff3e617a
         with:
-          author: "always-on-duty[bot] <120557446+always-on-duty[bot]@users.noreply.github.com>"
+          author: "${{ env.GIT_COMITTER }}"
           branch: task/update-licence
           commit-message: Update licence
-          committer: "always-on-duty[bot] <120557446+always-on-duty[bot]@users.noreply.github.com>"
+          committer: "${{ env.GIT_COMITTER }}"
           title: Update licence
           token: ${{ secrets.ACTIONS_TOKEN || secrets.GITHUB_TOKEN }}

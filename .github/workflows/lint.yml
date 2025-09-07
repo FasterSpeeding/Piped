@@ -11,7 +11,15 @@ on:
   pull_request:
     branches:
       - master
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      sessions:
+        description: "Space separated array of the linting Nox sessions to run"
+        required: true
+        type: string
+
+env:
+  SESSIONS: ${{ inputs.sessions || 'verify-markup spell-check lint' }}
 
 jobs:
   lint:
@@ -26,4 +34,4 @@ jobs:
       - name: Run Nox linting sessions
         uses: ./.github/actions/nox-sessions
         with:
-          nox-sessions: verify-markup spell-check lint
+          nox-sessions: ${{ env.SESSIONS }}

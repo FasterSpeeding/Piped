@@ -8,6 +8,13 @@ on:
   pull_request:
     branches:
       - master
+  workflow_call:
+    inputs:
+      install-rust:
+        description: "Whether to install Rust to enable checks"
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   reformat:

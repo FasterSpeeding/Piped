@@ -1,0 +1,57 @@
+name: Deploy PR preview docs
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_call:
+    inputs:
+      nox-sessions:
+        description: "Space separated array of the linting Nox sessions to run"
+        required: true
+        type: string
+      committer-email:
+        description: "The email address to use for doc branch commits"
+        default: 120557446+always-on-duty[bot]@users.noreply.github.com
+        required: false
+        type: string
+      committer-username:
+        description: "The username address to use for doc branch commits"
+        default: always-on-duty[bot]
+        required: false
+        type: string
+
+jobs:
+  deploy-docs-preview:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Run Nox linting tasks
+        if: github.event.action != 'closed'
+        uses: ./.github/nox-sessions.yml
+        with:
+          nox-sessions: generate-docs -- -o ./artifacts/site
+          ref: ${{ github.event.pull_request.head.sha }}
+          epository: ${{ github.event.pull_request.head.repo.full_name }}
+
+      - name: Deploy preview
+        uses: FasterSpeeding/pr-preview-action@task/override-committer
+        with:
+          git-config-email: "${{ inputs.committer-email }}"
+          git-config-name: "${{ inputs.committer-username }}"
+          preview-branch: docs
+          source-dir: ./artifacts/site/
+
+      # TODO: ...
+      - name: Run Nox linting tasks
+        uses: ./.github/nox-sessions.yml
+        with:
+          nox-sessions: ${{ inputs.nox-sessions }}
+
+      - name: Check diff file
+        uses: ./.github/handle-diff-file.yml

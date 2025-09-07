@@ -34,7 +34,6 @@ from __future__ import annotations
 __all__: list[str] = [
     "build",
     "cleanup",
-    "copy_actions",
     "freeze_locks",
     "generate_docs",
     "lint",
@@ -223,13 +222,6 @@ def cleanup(session: nox.Session) -> None:
 
         else:
             session.log(f"[  OK  ] Removed '{raw_path}'")
-
-
-@nox.session(name="copy-actions")
-def copy_actions(session: nox.Session) -> None:
-    """Copy over the github actions from Piped without updating the git reference."""
-    _install_piped_deps(session, "templating")
-    session.run("python", str(pathlib.Path(__file__).parent / "copy_actions.py"))
 
 
 @nox.session(name="freeze-locks", reuse_venv=True)
@@ -472,12 +464,6 @@ def verify_types(session: nox.Session) -> None:
     # https://github.com/pypa/pip/issues/10362
     _install_deps(session, "type-checking", name="verify_types", install_project=True, only_groups=False)
     _run_pyright(session, "--verifytypes", project_name, "--ignoreexternal")
-
-
-@nox.session(name="copy-piped", reuse_venv=True)
-def sync_piped(session: nox.Session) -> None:
-    """Copy over Piped's configuration without fetching."""
-    copy_actions(session)
 
 
 @_filtered_session(name="fetch-piped", reuse_venv=True)

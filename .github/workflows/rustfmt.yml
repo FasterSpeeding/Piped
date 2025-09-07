@@ -1,10 +1,11 @@
 name: Run Rustfmt
 
 concurrency:
-  {% raw %}group: ${{ github.workflow }}-${{ github.ref }}{% endraw %}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-on: pull_request
+on:
+  workflow_call:
 
 jobs:
   rustfmt:
@@ -24,10 +25,16 @@ jobs:
             override: true
 
       - name: Reformat
-        run: cargo +nightly fmt
+        run: |
+          set +o pipefail
+
+          cargo +nightly fmt
 
       - name: Package
-        run: nox -s bot-package-diff
+        run: |
+          set +o pipefail
+
+          nox -s bot-package-diff
 
       - name: Check diff file
         uses: ./.github/actions/handle-diff-file

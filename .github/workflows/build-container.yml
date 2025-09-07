@@ -8,18 +8,46 @@ on:
     tags: [ "v*.*.*" ]
   pull_request:
     branches: [ "master" ]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      architectures:
+        description: "JSON array of objects with the fields 'runner-' and 'architecture' set."
+        required: false
+        type: string
+      maximise-space:
+        description: "Whether to run steps which increase straoge in the job's runtime"
+        required: false
+        type: boolean
 
 env:
+  ARCHITECTURES: ${{ inputs.architectures || '[{"os": "ubuntu-24.04", "architecture": "amd64"}, {"os": "ubuntu-24.04-arm", "architecture": "arm64"}]' }}
   IMAGE_NAME: ${{ github.repository }}
+  MAXIMISE_SPACE: ${{ inputs.maximise-space || false }}
   OCI_STORAGE_DIR: ./oci-images
   REGISTRY: "ghcr.io"
 
 jobs:
-  build-x86:
-    runs-on: ubuntu-24.04
+  set-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.arm-matrix }}
+
+    steps:
+      - id: set-matrix
+        shell: bash
+        run: |
+          set +o pipefail
+
+          echo "matrix=${{ env.ARCHITECTURES }}" >> $GITHUB_OUTPUT
+
+  build:
     strategy:
-      matrix:
-        architecture: ["amd64"]
+      matrix: 
+        build-config: ${{ needs.set-matrix.outputs.matrix }}
+
+    needs: [set-matrix]
+    runs-on: ${{ matrix.build-config.os }}
 
     steps:
       - name: Checkout repository
@@ -30,29 +58,12 @@ jobs:
       - name: Build image
         uses: ./.github/actions/build-container
         with:
-          architecture: ${{ matrix.architecture }}
-
-  build-arm:
-    runs-on: ubuntu-24.04-arm
-    strategy:
-      matrix:
-        architecture: ["arm64"]
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-        with:
-          submodules: "true"
-
-      - name: Build image
-        uses: ./.github/actions/build-container
-        with:
-          architecture: ${{ matrix.architecture }}
+          architecture: ${{ matrix.build-config.architecture }}
 
   push:
     runs-on: ubuntu-24.04
     if: github.event_name != 'pull_request'
-    needs: [build-x86, build-arm]
+    needs: [build]
 
     permissions:
       contents: read
@@ -61,6 +72,7 @@ jobs:
 
     steps:
       - name: Maximize build space
+        if: env.MAXIMISE_SPACE == true
         uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
       - name: Install cosign
@@ -80,13 +92,15 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern=
-            type=semver,pattern=.
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
             type=sha
 
       - name: Create manifest
         id: load-images
         run: |
+          set +o pipefail
+
           manifest_tag="$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):$(uuidgen)"
           podman manifest create "$manifest_tag"
           echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
@@ -116,4 +130,7 @@ jobs:
         env:
           TAGS: ${{ steps.metadata.outputs.tags }}
           DIGEST: ${{ steps.push-image.outputs.digest }}
-        run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+        run: |
+          set +o pipefail
+
+          echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}

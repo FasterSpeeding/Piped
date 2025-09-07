@@ -1,15 +1,11 @@
 name: Run clippy
 
 concurrency:
-  {% raw %}group: ${{ github.workflow }}-${{ github.ref }}{% endraw %}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
-  workflow_dispatch:
+  workflow_call:
 
 jobs:
   clippy:
@@ -25,5 +21,5 @@ jobs:
 
       - uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d
         with:
-          {% raw %}token: ${{ secrets.GITHUB_TOKEN }}{% endraw %}
+          token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features

@@ -9,6 +9,7 @@ on:
     branches:
       - master
     paths: ["piped", "pyproject.toml"]
+  workflow_call:
 
 jobs:
   freeze-pr-dep-changes:
