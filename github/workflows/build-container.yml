@@ -10,14 +10,16 @@ on:
     branches: [ "master" ]
 
 env:
+  IMAGE_NAME: {% raw %}${{ github.repository }}{% endraw %}
   OCI_STORAGE_DIR: ./oci-images
+  REGISTRY: "ghcr.io"
 
 jobs:
   build-x86:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        architecture: [{{ ARM_ARCHITECTURES |  map("format_string", '"{}"') | join(", ") }}]
+        architecture: [{{ X86_ARCHITECTURES |  map("format_string", '"{}"') | join(", ") }}]
 
     steps:
       - name: Checkout repository
@@ -74,7 +76,7 @@ jobs:
         id: metadata
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
-          images: {% raw %}${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}{% endraw %}
+          images: {% raw %}${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}{% endraw %}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
