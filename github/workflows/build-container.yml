@@ -68,9 +68,7 @@ jobs:
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:{% raw %}
           pattern: container-build-*
-          merge-multiple: true
-          path: ${{ env.OCI_STORAGE_DIR }}/
-          recurse_submodules: true{% endraw %}
+          path: ${{ env.OCI_STORAGE_DIR }}/{% endraw %}
 
       - name: Generate container metadatatag
         id: metadata
