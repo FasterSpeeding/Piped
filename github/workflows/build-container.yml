@@ -51,7 +51,7 @@ jobs:
 
   push:
     runs-on: ubuntu-24.04
-    if: github.event_name != 'pull_request'
+    #if: github.event_name != 'pull_request'
     needs: [build-x86, build-arm]
 
     permissions:
