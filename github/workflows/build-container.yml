@@ -60,8 +60,8 @@ jobs:
       id-token: write
 
     steps:
-      #- name: Maximize build space
-      #  uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
       - name: Install cosign
         uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 #v3.9.2
@@ -91,11 +91,10 @@ jobs:
           podman manifest create "$manifest_tag"
           echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
 
-          find ${{ env.OCI_STORAGE_DIR }}/ -type f -name "*.oci" -print0 | while read -d $'\0' image_path
-          do
+          while read -d $'\0' image_path; do
             echo "Adding $image_path to manifest"
             podman manifest add "$manifest_tag" "oci-archive:$image_path"
-          done{% endraw %}
+          done < <(find ${{ env.OCI_STORAGE_DIR }}/ -type f -maxdepth 1 -name "*.oci" -print0){% endraw %}
 
       - name: Push image
         id: push-image
