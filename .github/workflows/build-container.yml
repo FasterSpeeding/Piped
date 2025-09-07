@@ -91,13 +91,8 @@ jobs:
           podman manifest create "$manifest_tag"
           echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
 
-          for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
-            image_tag="$(basename --suffix='.oci' '$file'):latest"
-
-            # crane copy "file://$file" $image_tag
-            podman manifest add "$manifest_tag" "oci-archive:$file"
-
-            #podman image rm "$image_tag"
+          for image_path in ${{ env.OCI_STORAGE_DIR }}/*/; do
+            podman manifest add "$manifest_tag" "oci-archive:$image_path"
             rm -r "$file"
           done
 
