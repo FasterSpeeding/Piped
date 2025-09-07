@@ -99,7 +99,7 @@ jobs:
 
             podman image rm "$image_tag"
             rm -r "$file"
-          done
+          done{% endraw %}
 
       - name: Push image
         id: push-image
