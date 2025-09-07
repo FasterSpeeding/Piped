@@ -72,7 +72,7 @@ jobs:
           pattern: container-build-*
           path: ${{ env.OCI_STORAGE_DIR }}/{% endraw %}
 
-      - name: Generate container metadatatag
+      - name: Generate container metadatata
         id: metadata
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
@@ -87,19 +87,14 @@ jobs:
       - name: Create manifest
         id: load-images
         run: |{% raw %}
-          manifest_tag="$(printf '${{ steps.metadata.outputs.tags }}' | head -n 1)"
+          manifest_tag="$(echo '${{ env.IMAGE_NAME }}' | tr '[:upper:]' '[:lower:]'):$(uuidgen)"
           podman manifest create "$manifest_tag"
-          podman tag "$manifest_tag" ${{ steps.metadata.outputs.tags }}
+          echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
 
-          for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
-            image_tag="$(basename --suffix='.oci' '$file'):latest"
-
-            crane copy "file://$file" $image_tag
-            podman manifest add "$manifest_tag" "$image_tag"
-
-            podman image rm "$image_tag"
-            rm -r "$file"
-          done{% endraw %}
+          while read -d $'\0' image_path; do
+            echo "Adding $image_path to manifest"
+            podman manifest add "$manifest_tag" "oci-archive:$image_path"
+          done < <(find ${{ env.OCI_STORAGE_DIR }}/ -type f -maxdepth 1 -name "*.oci" -print0){% endraw %}
 
       - name: Push image
         id: push-image
