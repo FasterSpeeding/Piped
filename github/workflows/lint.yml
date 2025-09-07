@@ -18,21 +18,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
           submodules: "true"
 
-      - name: Install Python
-        uses: ./.github/actions/setup-py{% if "verify-markup" not in config.hide %}
-
-      - name: Lint markup
-        run: nox -s verify-markup{% endif %}{% if "spell-check" not in config.hide %}
-
-      - name: Check spelling
-        run: nox -s spell-check{% endif %}{% if "lint" not in config.hide %}
-
-      - name: Lint with Ruff
-        run: nox -s lint{% endif %}{% if "slot-check" not in config.hide %}
-
-      - name: Check slotting
-        run: nox -s slot-check{% endif %}
+      - name: Run Nox linting sessions
+        uses: ./.github/actions/nox-sessions
+        with:
+          nox-sessions: {{ SESSIONS | join(" ") }}

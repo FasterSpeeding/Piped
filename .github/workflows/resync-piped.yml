@@ -15,20 +15,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
           submodules: "true"
 
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
-      - name: Resync Piped
-        run: nox -s copy-piped bot-package-diff
-
-      - uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+      - name: Run copy-piped session
+        uses: ./.github/actions/nox-sessions
         with:
-          name: gogo.patch
-          path: artifacts/gogo.patch
+          nox-sessions: copy-piped bot-package-diff
 
       - name: Check diff file
-        run: nox -s is-diff-file-empty
+        uses: ./.github/actions/handle-diff-file

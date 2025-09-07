@@ -48,28 +48,25 @@ _DEFAULT_COMMITER_USERNAME = "always-on-duty[bot]"
 _ACTION_DEFAULTS = {
     "ACTION_COMMITTER_EMAIL": f"120557446+{_DEFAULT_COMMITER_USERNAME}@users.noreply.github.com",
     "ACTION_COMMITTER_USERNAME": _DEFAULT_COMMITER_USERNAME,
+    "CONTAINER_BUILD_CONTEXT": ".",
     "DEFAULT_PY_VER": "3.11",
     "PIPED_PATH": "./piped",
 }
+_REUSABLE_ACTIONS = ["setup-py", "build-container", "nox-sessions", "handle-diff-file"]
 
 
 _CONFIG = piped_shared.Config.read(pathlib.Path("./"))
 
 
 class _Action:
-    __slots__ = ("defaults", "required_names", "requires")
+    __slots__ = ("defaults", "required_names")
 
     def __init__(
-        self,
-        *,
-        required: collections.Sequence[str] = (),
-        defaults: piped_shared.ConfigT | None = None,
-        requires: collections.Sequence[str] = (),
+        self, *, required: collections.Sequence[str] = (), defaults: piped_shared.ConfigT | None = None
     ) -> None:
         self.defaults: piped_shared.ConfigT = dict(_ACTION_DEFAULTS)
         self.defaults.update(defaults or ())
         self.required_names = frozenset(required or ())
-        self.requires = frozenset(requires)
 
     def process_config(self, config: piped_shared.ConfigT, /) -> piped_shared.ConfigT:
         output: piped_shared.ConfigT = dict(self.defaults)
@@ -80,35 +77,44 @@ class _Action:
 _RESYNC_FILTER = ["piped"]
 _RESYNC_FILTER.extend(str(path.absolute().relative_to(pathlib.Path.cwd())) for path in _CONFIG.dep_sources)
 
-_SETUP_PY = "setup-py"
+
 _ACTIONS: dict[str, _Action] = {
     "build-container": _Action(
         defaults={
+            # Architectures to build on an ARM runner
+            "ARM_ARCHITECTURES": ["arm64"],
             "CRON": "25 14 1 * *",
-            "CONTAINER_BUILD_CONTEXT": ".",
             # TODO:  enable "linux/i386" and "linux/ppc64le" by default?
-            "CONTAINER_ARCHITECTURES": ["amd64", "arm64"],
+            # Architectures to build on an x86 runner
+            "X86_ARCHITECTURES": ["amd64"],
         }
     ),
     "clippy": _Action(),
     "docker-publish": _Action(defaults={"CRON": "25 14 1 * *", "DOCKER_DEPLOY_CONTEXT": ".", "SIGN_IMAGES": "true"}),
-    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}, requires=[_SETUP_PY]),
-    "lint": _Action(requires=[_SETUP_PY]),
-    "pr-docs": _Action(requires=[_SETUP_PY]),
-    "publish": _Action(requires=[_SETUP_PY]),
+    "freeze-for-pr": _Action(defaults={"EXTEND_FILTERS": [], "FILTERS": _RESYNC_FILTER}),
+    "lint": _Action(
+        defaults={
+            "SESSIONS": [
+                session
+                for session in ("verify-markup", "spell-check", "lint", "slot-check")
+                if session not in _CONFIG.hide
+            ]
+        }
+    ),
+    "pr-docs": _Action(),
+    "publish": _Action(),
     "py-test": _Action(
         required=["PYTHON_VERSIONS"],
-        defaults={"OSES": "[ubuntu-latest, macos-latest, windows-latest]", "REQUIRES_RUST": ""},
-        requires=[_SETUP_PY],
+        defaults={"OSES": ["ubuntu-latest", "macos-latest", "windows-latest"], "REQUIRES_RUST": ""},
     ),
-    "reformat": _Action(requires=[_SETUP_PY]),
-    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}, requires=[_SETUP_PY]),
-    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}, requires=[_SETUP_PY]),
-    "rustfmt": _Action(requires=[_SETUP_PY]),
-    "type-check": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
-    "update-licence": _Action(defaults={"CRON": "0 7 1 1 *"}, requires=[_SETUP_PY]),
-    "upgrade-locks": _Action(defaults={"CRON": "0 12 1 * *"}, requires=[_SETUP_PY]),
-    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}, requires=[_SETUP_PY]),
+    "reformat": _Action(),
+    "release-docs": _Action(defaults={"BRANCH_PUSHES": None}),
+    "resync-piped": _Action(defaults={"FILTERS": ["piped", "piped.toml", "pyproject.toml"]}),
+    "rustfmt": _Action(),
+    "type-check": _Action(defaults={"REQUIRES_RUST": ""}),
+    "update-licence": _Action(defaults={"CRON": "0 7 1 1 *"}),
+    "upgrade-locks": _Action(defaults={"CRON": "0 12 1 * *"}),
+    "verify-types": _Action(defaults={"REQUIRES_RUST": ""}),
 }
 
 
@@ -124,14 +130,14 @@ def _jinja_format(value: str, format_string: str, *args: typing.Any, **kwargs: t
 def _copy_composable_action(name: str, config: piped_shared.ConfigT) -> None:
     env = jinja2.Environment(  # noqa: S701
         keep_trailing_newline=True,
-        loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions" / name),
+        loader=jinja2.FileSystemLoader(pathlib.Path(__file__).parent.parent / "github" / "actions"),
     )
 
-    template = env.get_template("action.yml")
+    template = env.get_template(f"{name}.yml")
     env.filters["format_string"] = _jinja_format
 
-    dest = pathlib.Path(".github/actions/") / name
-    dest.mkdir(exist_ok=True, parents=True)
+    dest = pathlib.Path(".github/actions") / name
+    dest.mkdir(exist_ok=True)
     (dest / "action.yml").write_text(template.render(**config, config=_CONFIG))
 
 
@@ -143,7 +149,6 @@ def main() -> None:
 
     env.filters["format_string"] = _jinja_format
 
-    dependencies: set[str] = set()
     to_write: dict[pathlib.Path, str] = {}
     wild_card = _CONFIG.github_actions.get("*") or {}
 
@@ -162,15 +167,14 @@ def main() -> None:
 
         config = action.process_config(config)
         to_write[pathlib.Path("./.github/workflows") / file_path] = template.render(**config, config=_CONFIG)
-        dependencies.update(action.requires)
 
     pathlib.Path("./.github/workflows").mkdir(exist_ok=True, parents=True)
 
     for path, value in to_write.items():
         path.write_text(value)
 
-    if _SETUP_PY in dependencies:
-        _copy_composable_action(_SETUP_PY, {**_ACTION_DEFAULTS, **wild_card})
+    for action in _REUSABLE_ACTIONS:
+        _copy_composable_action(action, {**_ACTION_DEFAULTS, **wild_card})
 
 
 if __name__ == "__main__":

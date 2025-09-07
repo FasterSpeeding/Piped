@@ -19,15 +19,15 @@ jobs:{% if "release_docs" in config.github_actions %}
       id-token: write
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
           submodules: "true"
 
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
-      - name: Build project
-        run: nox -s build
+      - name: Run build session
+        uses: ./.github/actions/nox-sessions
+        with:
+          nox-sessions: build
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e

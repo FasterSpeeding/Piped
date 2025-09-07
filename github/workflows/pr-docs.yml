@@ -21,21 +21,18 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Fetch merge branch
+      - name: Checkout repository
         uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
+          submodules: "true"
           {% raw %}ref: ${{ github.event.pull_request.head.sha }}{% endraw %}
           {% raw %}repository: ${{ github.event.pull_request.head.repo.full_name }}{% endraw %}
-          submodules: "true"
 
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
-      - name: Build docs
+      - name: Run generate-docs session
         if: github.event.action != 'closed'
-        run: |
-          mkdir site
-          nox -s generate-docs -- -o ./artifacts/site
+        uses: ./.github/actions/nox-sessions
+        with:
+          nox-sessions: generate-docs -- -o ./artifacts/site
 
       - name: Deploy preview
         uses: FasterSpeeding/pr-preview-action@task/override-committer

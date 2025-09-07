@@ -17,18 +17,18 @@ jobs:
   type-check:
     runs-on: ubuntu-latest
 
-    steps:{% if REQUIRES_RUST %}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+{% if REQUIRES_RUST %}
       - uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af
         with:
             toolchain: nightly
             override: true
 {% endif %}
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Run type-check session
+        uses: ./.github/actions/nox-sessions
         with:
-          submodules: "true"
-
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
-      - name: Run type checker
-        run: nox -s type-check
+          nox-sessions: type-check

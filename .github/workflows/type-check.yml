@@ -18,12 +18,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
         with:
           submodules: "true"
 
-      - name: Install Python
-        uses: ./.github/actions/setup-py
-
-      - name: Run type checker
-        run: nox -s type-check
+      - name: Run type-check session
+        uses: ./.github/actions/nox-sessions
+        with:
+          nox-sessions: type-check

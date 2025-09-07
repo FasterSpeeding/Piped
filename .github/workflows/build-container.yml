@@ -10,16 +10,14 @@ on:
     branches: [ "master" ]
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  OCI_STORAGE_DIR: ./oci-images
 
 jobs:
-  build:
+  build-x86:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
+    strategy:
+      matrix:
+        architecture: ["arm64"]
 
     steps:
       - name: Checkout repository
@@ -27,30 +25,56 @@ jobs:
         with:
           submodules: "true"
 
+      - name: Build image
+        uses: ./.github/actions/build-container
+        with:
+          architecture: ${{ matrix.architecture }}
+
+  build-arm:
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      matrix:
+        architecture: ["arm64"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+
+      - name: Build image
+        uses: ./.github/actions/build-container
+        with:
+          architecture: ${{ matrix.architecture }}
+
+  push:
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
+    needs: [build-x86, build-arm]
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
       - name: Maximize build space
         uses: ublue-os/remove-unwanted-software@cc0becac701cf642c8f0a6613bbdaf5dc36b259e # v9
 
       - name: Install cosign
-        if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@d58896d6a1865668819e1d91763c7751a165e159 #v3.9.2
 
-      - name: Install QEMU
-        if: github.event_name != 'pull_request'
-        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
+      - name: Download images
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
-          platforms: amd64,arm64
+          pattern: container-build-*
+          path: ${{ env.OCI_STORAGE_DIR }}/
 
-      - name: Set platforms
-        if: github.event_name != 'pull_request'
-        env:
-          CONTAINER_PLATFORMS: linux/amd64,linux/arm64
-        run: echo "CONTAINER_PLATFORMS=$CONTAINER_PLATFORMS" >> $GITHUB_ENV
-
-      - name: Generate container metadata
+      - name: Generate container metadatatag
         id: metadata
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ inputs.REGISTRY }}/${{ inputs.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -58,28 +82,33 @@ jobs:
             type=semver,pattern=.
             type=sha
 
-      - name: Build image
-        uses: redhat-actions/buildah-build@7a95fa7ee0f02d552a32753e7414641a04307056 # v2.13
-        with:
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          platforms: ${{ env.CONTAINER_PLATFORMS }}
-          containerfiles: |
-            ./Containerfile
-          context: .
+      - name: Create manifest
+        id: load-images
+        run: |
+          manifest_tag="$(printf '${{ steps.metadata.outputs.tags }}' | head -n 1)"
+          podman manifest create "$manifest_tag"
+          podman tag "$manifest_tag" ${{ steps.metadata.outputs.tags }}
+
+          for file in ${{ env.OCI_STORAGE_DIR }}/*.oci; do
+            image_tag="$(basename --suffix='.oci' '$file'):latest"
+
+            crane copy "file://$file" $image_tag
+            podman manifest add "$manifest_tag" "$image_tag"
+
+            podman image rm "$image_tag"
+            rm -r "$file"
+          done
 
       - name: Push image
         id: push-image
-        if: ${{ github.event_name != 'pull_request' }}
         uses: redhat-actions/push-to-registry@5ed88d269cf581ea9ef6dd6806d01562096bee9c # v2.8
         with:
           tags: ${{ steps.metadata.outputs.tags }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # This log in step is only required to allow signing the container iamge
+      # This log in step is only required to allow signing the container image
       - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
         with:
           registry: ${{ env.REGISTRY }}
@@ -87,7 +116,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sign the published container image
-        if: ${{ github.event_name != 'pull_request' }}
         env:
           TAGS: ${{ steps.metadata.outputs.tags }}
           DIGEST: ${{ steps.push-image.outputs.digest }}
