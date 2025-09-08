@@ -88,15 +88,17 @@ jobs:
             architecture="${{ matrix.build-config.architecture }}"
             platform="linux/${{ matrix.build-config.architecture }}"
           else
-            platform="$(podman info -f {{.Version.OsArch}})"
-            architecture="$(echo '${{ matrix.build-config.architecture }}' | cut -d '/' -f2)"
+            platform="$(podman info -f '{{.Version.OsArch}}')"
+            architecture="$(echo "${{ matrix.build-config.architecture }}" | cut -d '/' -f2)"
           fi
 
           build_uuid=$(uuidgen)
-          echo "architecture=$architecture" >> "$GITHUB_OUTPUT"
-          echo "artifact-name=$architecture-$build_uuid" >> "$GITHUB_OUTPUT"
-          echo "platform=$platform" >> "$GITHUB_OUTPUT"
-          echo "tag=localhost/$architecture/$build_uuid:latest" >> "$GITHUB_OUTPUT"
+          {
+            echo "architecture=$architecture";
+            echo "artifact-name=$architecture-$build_uuid";
+            echo "platform=$platform";
+            echo "tag=localhost/$architecture/$build_uuid:latest";
+          } >> "$GITHUB_OUTPUT"
 
       - name: Generate container metadata
         id: metadata
