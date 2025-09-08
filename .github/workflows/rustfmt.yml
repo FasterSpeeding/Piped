@@ -27,10 +27,14 @@ jobs:
 
           cargo +nightly fmt
 
+      - uses: wei18/local-composite-action@afcf73f041fc6462ead587efe22cb79cbe9bc0ea # v1
+        with:
+          action_repository: ${{ github.action_repository }}
+
       - name: Check repository diff
-        uses: ./.github/actions/nox-sessions
+        uses: ./../fasterspeeding/piped/.github/actions/nox-sessions
         with:
           nox-sessions: bot-package-diff
 
       - name: Check diff file
-        uses: ./.github/actions/handle-diff-file
+        uses: ./../fasterspeeding/piped/.github/actions/handle-diff-file

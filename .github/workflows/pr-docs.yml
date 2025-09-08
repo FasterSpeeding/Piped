@@ -38,9 +38,13 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           submodules: "true"
 
+      - uses: wei18/local-composite-action@afcf73f041fc6462ead587efe22cb79cbe9bc0ea # v1
+        with:
+          action_repository: ${{ github.action_repository }}
+
       - name: Run generate-docs
         if: github.event.action != 'closed'
-        uses: ./.github/nox-sessions.yml
+        uses: ./../fasterspeeding/piped/.github/nox-sessions.yml
         with:
           nox-sessions: generate-docs -- -o ./artifacts/site
 
@@ -53,4 +57,4 @@ jobs:
           source-dir: ./artifacts/site/
 
       - name: Check diff file
-        uses: ./.github/handle-diff-file.yml
+        uses: ./../fasterspeeding/piped/.github/handle-diff-file.yml

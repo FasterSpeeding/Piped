@@ -21,10 +21,14 @@ jobs:
         with:
           submodules: "true"
 
+      - uses: wei18/local-composite-action@afcf73f041fc6462ead587efe22cb79cbe9bc0ea # v1
+        with:
+          action_repository: ${{ github.action_repository }}
+
       - name: Upgrade dependency locks
-        uses: ./.github/actions/nox-sessions
+        uses: ./../fasterspeeding/piped/.github/actions/nox-sessions
         with:
           nox-sessions: freeze-locks bot-package-diff
 
       - name: Check diff file
-        uses: ./.github/actions/handle-diff-file
+        uses: ./../fasterspeeding/piped/.github/actions/handle-diff-file

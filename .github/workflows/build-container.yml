@@ -59,8 +59,12 @@ jobs:
         with:
           submodules: "true"
 
+      - uses: wei18/local-composite-action@afcf73f041fc6462ead587efe22cb79cbe9bc0ea # v1
+        with:
+          action_repository: ${{ github.action_repository }}
+
       - name: Build image
-        uses: ./.github/actions/build-container
+        uses: ./../fasterspeeding/piped/.github/actions/build-container
         with:
           architecture: ${{ matrix.build-config.architecture }}
 
