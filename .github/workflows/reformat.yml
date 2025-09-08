@@ -27,9 +27,9 @@ jobs:
           submodules: "true"
 
       - name: Run reformat session
-        uses: FasterSpeeding/Piped/actions/nox-sessions@master
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: reformat bot-package-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/actions/handle-diff-file@master
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master

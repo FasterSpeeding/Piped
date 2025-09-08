@@ -25,7 +25,7 @@ jobs:
           submodules: "true"
 
       - name: Run generate-docs session
-        uses: FasterSpeeding/Piped/actions/nox-sessions@master
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: generate-docs -- -o ./artifacts/site -j
 

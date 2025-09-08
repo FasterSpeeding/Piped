@@ -60,7 +60,7 @@ jobs:
           submodules: "true"
 
       - name: Build image
-        uses: FasterSpeeding/Piped/actions/build-container@master
+        uses: FasterSpeeding/Piped/.github/actions/build-container@master
         with:
           architecture: ${{ matrix.build-config.architecture }}
 

@@ -30,7 +30,7 @@ jobs:
             override: true
 
       - name: Run verify-types session
-        uses: FasterSpeeding/Piped/actions/nox-sessions@master
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: verify-types
 

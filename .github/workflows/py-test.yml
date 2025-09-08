@@ -46,7 +46,7 @@ jobs:
             override: true
 
       - name: Run test session
-        uses: FasterSpeeding/Piped/actions/nox-sessions@master
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: test-coverage
           python-version: ${{ matrix.python-version }}
@@ -76,7 +76,7 @@ jobs:
           path: ./artifacts/coverage/
 
       - name: Run combine-coverage session
-        uses: FasterSpeeding/Piped/actions/nox-sessions@master
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: combine-coverage
 
