@@ -36,7 +36,7 @@ jobs:
 
       - name: Run generate-docs
         if: github.event.action != 'closed'
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions.yml@master
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: generate-docs -- -o ./artifacts/site
 
@@ -49,4 +49,4 @@ jobs:
           source-dir: ./artifacts/site/
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file.yml@master
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master
