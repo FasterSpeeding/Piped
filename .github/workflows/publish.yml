@@ -12,7 +12,7 @@ on:
 jobs:
   publish-docs:
     if: inputs.release-docs == true
-    uses: ./.github/workflows/release-docs.yml
+    uses: FasterSpeeding/Piped/workflows/release-docs.yml@master
 
   publish:
     name: upload release to PyPI
@@ -29,7 +29,7 @@ jobs:
           submodules: "true"
 
       - name: Run build session
-        uses: ./.github/actions/nox-sessions
+        uses: FasterSpeeding/Piped/actions/nox-sessions@master
         with:
           nox-sessions: build
 

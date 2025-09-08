@@ -36,6 +36,6 @@ jobs:
             override: true
 
       - name: Run type-check session
-        uses: ./.github/actions/nox-sessions
+        uses: FasterSpeeding/Piped/actions/nox-sessions@master
         with:
           nox-sessions: type-check
