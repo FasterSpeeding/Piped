@@ -27,7 +27,7 @@ jobs:
             components: clippy
             toolchain: ${{ inputs.rust-toolchain }}
 
-      - uses: auguwu/clippy-action@c4b36eee5bd60de82a48e650da5afaf92ea489d4 # 1.4.0
+      - uses: auguwu/clippy-action@c4b36eee5bd60de82a48e650da5afaf92ea489d4 # v1.4.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
