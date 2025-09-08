@@ -7,11 +7,6 @@ concurrency:
 on:
   workflow_call:
     inputs:
-      install-rust:
-        description: "Whether to install Rust to enable testing"
-        default: false
-        required: false
-        type: boolean
       os-versions:
         description: "Json array of the runner OSes to test against"
         default: '["ubuntu-latest", "macos-latest", "windows-latest"]'
@@ -22,7 +17,11 @@ on:
         default: '["3.11", "3.12", "3.13"]'
         required: false
         type: string
-
+      rust-toolchain:
+        description: "If past, installed the specified rust toolchain for use during checks"
+        default: ""
+        required: false
+        type: string
 jobs:
   py-test:
     strategy:
@@ -35,15 +34,15 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           submodules: "true"
 
-      - uses: actions-rs/toolchain@88dc2356392166efad76775c878094f4e83ff746
-        if: inputs.install-rust == true
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@ac90e63697ac2784f4ecfe2964e1a285c304003a # v1.14.1
+        if: inputs.rust-toolchain != ''
         with:
-            toolchain: nightly
-            override: true
+            toolchain: ${{ inputs.rust-toolchain }}
 
       - name: Run test session
         uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
@@ -52,7 +51,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Create coverage artifacts
-        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: .coverage.${{ matrix.runner-os }}.${{ matrix.python-version }}
           path: artifacts/.coverage
@@ -69,7 +68,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           submodules: "true"
 
@@ -92,7 +91,7 @@ jobs:
           use_oidc: true
 
       - name: Create coverage artifacts
-        uses: actions/upload-artifact@de65e23aa2b7e23d713bb51fbfcb6d502f8667d8
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: .coverage.combined
           path: |

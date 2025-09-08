@@ -6,21 +6,28 @@ concurrency:
 
 on:
   workflow_call:
+    inputs:
+      rust-toolchain:
+        description: "The rust toolchain to install"
+        default: "stable"
+        required: false
+        type: string
 
 jobs:
   clippy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
-      - uses: actions-rs/toolchain@88dc2356392166efad76775c878094f4e83ff746
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@ac90e63697ac2784f4ecfe2964e1a285c304003a # v1.14.1
+        if: inputs.rust-toolchain != ''
         with:
-            toolchain: nightly
             components: clippy
-            override: true
+            toolchain: ${{ inputs.rust-toolchain }}
 
-      - uses: actions-rs/clippy-check@b5b5f21f4797c02da247df37026fcd0a5024aa4d
+      - uses: auguwu/clippy-action@c4b36eee5bd60de82a48e650da5afaf92ea489d4 # 1.4.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --all-features
