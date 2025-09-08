@@ -32,6 +32,6 @@ jobs:
           submodules: "true"
 
       - name: Run Nox linting sessions
-        uses: ./.github/actions/nox-sessions
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: ${{ env.SESSIONS }}

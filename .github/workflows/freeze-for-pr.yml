@@ -22,9 +22,9 @@ jobs:
           submodules: "true"
 
       - name: Upgrade dependency locks
-        uses: ./.github/actions/nox-sessions
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: freeze-locks bot-package-diff
 
       - name: Check diff file
-        uses: ./.github/actions/handle-diff-file
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master

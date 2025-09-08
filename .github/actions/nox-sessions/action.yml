@@ -14,7 +14,7 @@ runs:
   using: composite
   steps:
     - name: Install Python
-      uses: ./.github/actions/setup-py
+      uses: FasterSpeeding/Piped/.github/actions/setup-py@master
       with:
         python-version: "${{ inputs.python-version }}"
 

@@ -29,7 +29,7 @@ jobs:
           submodules: "true"
 
       - name: Run update-licence session
-        uses: ./.github/actions/nox-sessions
+        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
           nox-sessions: update-licence
 
