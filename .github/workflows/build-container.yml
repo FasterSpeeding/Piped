@@ -52,7 +52,7 @@ jobs:
         run: |
           set +o pipefail
 
-          if [[ -u "${{ inputs.architectures }}" ]]
+          if [[ -n "${{ inputs.architectures }}" ]]
           then
             echo "matrix=${{ inputs.architectures }}" >> "$GITHUB_OUTPUT"
           else
