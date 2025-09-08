@@ -2,18 +2,8 @@ name: Publish a new release
 
 on:
   workflow_call:
-    inputs:
-      release-docs:
-        description: "Whether to release a new docs build"
-        default: true
-        required: false
-        type: boolean
 
 jobs:
-  publish-docs:
-    if: inputs.release-docs == true
-    uses: ./.github/workflows/release-docs.yml
-
   publish:
     name: upload release to PyPI
     runs-on: ubuntu-latest
@@ -28,8 +18,12 @@ jobs:
         with:
           submodules: "true"
 
+      - uses: wei18/local-composite-action@afcf73f041fc6462ead587efe22cb79cbe9bc0ea # v1
+        with:
+          action_repository: ${{ github.action_repository }}
+
       - name: Run build session
-        uses: ./.github/actions/nox-sessions
+        uses: ./../fasterspeeding/piped/.github/actions/nox-sessions
         with:
           nox-sessions: build
 

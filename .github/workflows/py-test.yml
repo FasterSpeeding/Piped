@@ -45,8 +45,12 @@ jobs:
             toolchain: nightly
             override: true
 
+      - uses: wei18/local-composite-action@afcf73f041fc6462ead587efe22cb79cbe9bc0ea # v1
+        with:
+          action_repository: ${{ github.action_repository }}
+
       - name: Run test session
-        uses: ./.github/actions/nox-sessions
+        uses: ./../fasterspeeding/piped/.github/actions/nox-sessions
         with:
           nox-sessions: test-coverage
           python-version: ${{ matrix.python-version }}
@@ -76,7 +80,7 @@ jobs:
           path: ./artifacts/coverage/
 
       - name: Run combine-coverage session
-        uses: ./.github/actions/nox-sessions
+        uses: ./../fasterspeeding/piped/.github/actions/nox-sessions
         with:
           nox-sessions: combine-coverage
 
