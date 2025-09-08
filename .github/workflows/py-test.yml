@@ -75,6 +75,11 @@ jobs:
           merge-multiple: false
           path: ./artifacts/coverage/
 
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+
       - name: Run combine-coverage session
         uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
         with:
