@@ -208,7 +208,7 @@ jobs:
           while read -r -d $'\0' image_path; do
             echo "Adding $image_path to manifest"
             podman manifest add "$manifest_tag" "oci-archive:$image_path"
-          done < <(find ${{ env.OCI_STORAGE_DIR }}/ -type f -maxdepth 1 -name "*.oci" -print0)
+          done < <(find ${{ env.OCI_STORAGE_DIR }}/ -type f -name "*.oci" -print0)
 
       - name: Push image
         id: push-image
