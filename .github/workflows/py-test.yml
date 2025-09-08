@@ -68,18 +68,17 @@ jobs:
       id-token: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
+        with:
+          submodules: "true"
+
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
         with:
           pattern: .coverage.*
           merge-multiple: false
           path: ./artifacts/coverage/
-          recurse_submodules: true
-
-      - name: Checkout repository
-        uses: actions/checkout@ff7abcd0c3c05ccf6adc123a8cd1fd4fb30fb493
-        with:
-          submodules: "true"
 
       - name: Run combine-coverage session
         uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
