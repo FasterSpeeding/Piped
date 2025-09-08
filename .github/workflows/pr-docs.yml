@@ -7,10 +7,6 @@ concurrency:
 on:
   workflow_call:
     inputs:
-      nox-sessions:
-        description: "Space separated array of the linting Nox sessions to run"
-        required: true
-        type: string
       committer-email:
         description: "The email address to use for doc branch commits"
         default: 120557446+always-on-duty[bot]@users.noreply.github.com
