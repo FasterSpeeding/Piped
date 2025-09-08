@@ -23,6 +23,10 @@ on:
         description: "Links to the containerfiles to build"
         required: false
         type: string
+      install-qemu:
+        description: "Whether to install qemu to enable cross-architecture builds"
+        required: false
+        type: boolean
       maximise-space:
         description: "Whether to run steps which increase straoge in the job's runtime"
         required: false
@@ -36,6 +40,7 @@ env:
   BUILD_CONTEXT: ${{ inputs.build_context || '.' }}
   CONTAINERFILES: ${{ inputs.containerfiles || './Containerfile' }}
   IMAGE_NAME: ${{ github.repository }}
+  INSTALL_QEMU: ${{ inputs.install-qemu || false }}
   MAXIMISE_SPACE: ${{ inputs.maximise-space || false }}
   OCI_STORAGE_DIR: ./oci-images
   REGISTRY: ${{ inputs.registry || 'ghcr.io' }}
@@ -78,6 +83,7 @@ jobs:
           submodules: "true"
 
       - name: Install QEMU
+        if: env.INSTALL_QEMU == 'true'
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
         with:
           platforms: ${{ matrix.build-config.architecture }}
