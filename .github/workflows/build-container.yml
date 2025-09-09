@@ -23,8 +23,8 @@ on:
         description: "The directory to pass through as the working directory during container builds"
         required: false
         type: string
-      compress-artifacts:
-        description: "Whether to xz compress the created image artifacts"
+      compression-level:
+        description: "Enable xz compressing the created image artifacts with the passed compression level"
         required: false
         type: boolean
       containerfiles:
@@ -46,7 +46,7 @@ on:
 
 env:
   BUILD_CONTEXT: ${{ inputs.build-context || '.' }}
-  COMPRESS_ARTIFACTS: ${{ inputs.compress-artifacts || false }} 
+  COMPRESSION_LEVEL: ${{ inputs.compression-level || '' }} 
   CONTAINERFILES: ${{ inputs.containerfiles || './Containerfile' }}
   IMAGE_NAME: ${{ github.repository }}
   INSTALL_QEMU: ${{ inputs.install-qemu || false }}
@@ -154,10 +154,10 @@ jobs:
           mkdir -p "$OUTPUT_DIR"
           podman save --format oci-archive -o "$OUTPUT_PATH" "${{ steps.gen-config.outputs.tag }}"
 
-          if [[ "${{ env.COMPRESS_ARTIFACTS }}" == "true" ]]
+          if [[ "${{ env.COMPRESSION_LEVEL }}" != "" ]]
           then
             echo "Compressing OCI-archive to $OUTPUT_PATH.xz"
-            xz -z "$OUTPUT_PATH"
+            xz -z${{ env.COMPRESSION_LEVEL }} "$OUTPUT_PATH"
             OUTPUT_PATH="${OUTPUT_PATH}.xz"
           fi
 
@@ -169,7 +169,7 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: container-build-${{ steps.gen-config.outputs.artifact-name }}
-          path: ${{ steps.save.outputs.image-dir }}/*.oci
+          path: ${{ steps.save.outputs.image-dir }}/*.oci(.xz)? 
           if-no-files-found: error
           retention-days: 1
 
