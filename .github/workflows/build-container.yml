@@ -26,7 +26,7 @@ on:
       compression-level:
         description: "Enable xz compressing the created image artifacts with the passed compression level"
         required: false
-        type: boolean
+        type: string
       containerfiles:
         description: "Links to the containerfiles to build"
         required: false
@@ -46,7 +46,7 @@ on:
 
 env:
   BUILD_CONTEXT: ${{ inputs.build-context || '.' }}
-  COMPRESSION_LEVEL: ${{ inputs.compression-level || '' }} 
+  COMPRESSION_LEVEL: ${{ inputs.compression-level || '' }}
   CONTAINERFILES: ${{ inputs.containerfiles || './Containerfile' }}
   IMAGE_NAME: ${{ github.repository }}
   INSTALL_QEMU: ${{ inputs.install-qemu || false }}
