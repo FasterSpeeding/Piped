@@ -1,5 +1,9 @@
 name: Build Container
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   schedule:
     - cron: "25 14 1 * *"
