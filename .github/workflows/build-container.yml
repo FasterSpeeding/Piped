@@ -225,7 +225,7 @@ jobs:
           while read -r -d $'\0' image_path; do
             echo "Decompressing OCI archive $image_path"
             xz -d "$image_path"
-          done  <(find "${{ env.OCI_STORAGE_DIR }}/" -type f -name "*.oci.xz" -print0)
+          done < <(find "${{ env.OCI_STORAGE_DIR }}/" -type f -name "*.oci.xz" -print0)
 
           while read -r -d $'\0' image_path; do
             echo "Adding $image_path to manifest"
