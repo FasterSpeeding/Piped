@@ -42,7 +42,7 @@ on:
 
 env:
   BUILD_CONTEXT: ${{ inputs.build-context || '.' }}
-  COMPRESS_ARTIFACTS: ${{ inputs.compress-artifacts | false }} 
+  COMPRESS_ARTIFACTS: ${{ inputs.compress-artifacts || false }} 
   CONTAINERFILES: ${{ inputs.containerfiles || './Containerfile' }}
   IMAGE_NAME: ${{ github.repository }}
   INSTALL_QEMU: ${{ inputs.install-qemu || false }}
