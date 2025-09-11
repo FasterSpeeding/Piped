@@ -31,6 +31,10 @@ on:
         description: "Links to the containerfiles to build"
         required: false
         type: string
+      image-name:
+        description: "The image name to publish to (defaults to '{repository}/{repo.name}')"
+        required: false
+        type: string
       install-qemu:
         description: "Whether to install qemu to enable cross-architecture builds"
         required: false
@@ -48,7 +52,7 @@ env:
   BUILD_CONTEXT: ${{ inputs.build-context || '.' }}
   COMPRESSION_LEVEL: ${{ inputs.compression-level || '' }}
   CONTAINERFILES: ${{ inputs.containerfiles || './Containerfile' }}
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ inputs.image-name || github.repository }}
   INSTALL_QEMU: ${{ inputs.install-qemu || false }}
   MAXIMISE_SPACE: ${{ inputs.maximise-space || false }}
   OCI_STORAGE_DIR: ./oci-images
