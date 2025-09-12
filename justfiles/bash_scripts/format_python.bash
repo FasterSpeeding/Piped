@@ -1,3 +1,5 @@
+#!/usr/bin/env bash set -eu
+
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2025, Faster Speeding
@@ -27,12 +29,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Utility library used by Piped."""
-
-from __future__ import annotations
-
-__all__ = ["Config", "ConfigEntryT", "ConfigT"]
-
-from .config import Config
-from .config import ConfigEntryT
-from .config import ConfigT
+uv run --only-group=reformat black .
+uv run --only-group=reformat isort .
+uv run --only-group=reformat pycln --config pyproject.toml .
+uv run --only-group=reformat sort-all || echo "Sorted `all`s"

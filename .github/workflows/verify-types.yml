@@ -6,12 +6,6 @@ concurrency:
 
 on:
   workflow_call:
-    inputs:
-      rust-toolchain:
-        description: "If past, installed the specified rust toolchain for use during checks"
-        default: ""
-        required: false
-        type: string
 
 jobs:
   verify-types:
@@ -23,14 +17,8 @@ jobs:
         with:
           submodules: "true"
 
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@2fcdc490d667999e01ddbbf0f2823181beef6b39 # v1.15.0
-        if: inputs.rust-toolchain != ''
+      - name: Run verify-types job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
-            toolchain: ${{ inputs.rust-toolchain }}
-
-      - name: Run verify-types session
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: verify-types
-
+          install-args: ""
+          task-names: verify-types

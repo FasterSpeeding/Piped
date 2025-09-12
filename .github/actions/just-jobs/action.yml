@@ -1,0 +1,34 @@
+name: "Just jobs"
+description: "Run a Just job"
+
+inputs:
+  task-names:
+    description: "Names of the tasks to run"
+    required: true
+  install-args:
+    description: "List of tools to install"
+    default: "just python uv"
+    required: false
+  repository:
+    description: "The repository's name"
+    default: ${{ github.repository }}
+  ref:
+    description: >
+      The branch, tag or SHA to checkout.
+
+runs:
+  using: composite
+  steps:
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/mise-init@master
+        with:
+          install-args: ${{ inputs.install-args }}
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+
+      - name: Run Just jobs
+        shell: bash
+        run: |
+          set +o pipefail
+
+          just ${{ inputs.task-names }}

@@ -7,7 +7,7 @@ COPY ./uv.lock ./
 COPY ./python ./shared
 
 RUN pip install uv && \
-    uv sync --no-install-project --frozen --only-group bot && \
+    uv sync --no-install-project --frozen && \
     uv pip install ./shared
 
 FROM registry.access.redhat.com/ubi9/python-312@sha256:a3af61fdae215cd8d8f67f8f737064b353dc0592567099de48b3c2563314810d

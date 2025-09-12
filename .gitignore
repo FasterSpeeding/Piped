@@ -126,3 +126,6 @@ dmypy.json
 # Build and CICD artifacts
 artifacts/**/*/
 !artifacts/README.md
+
+.devcontainer.json
+mise.local.toml

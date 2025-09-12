@@ -13,25 +13,21 @@ on:
       - master
   workflow_call:
     inputs:
-      sessions:
-        description: "Space separated array of the linting Nox sessions to run"
+      task-names:
+        description: "Space separated array of the linting Just tasks to run"
         required: true
         type: string
 
 env:
-  SESSIONS: ${{ inputs.sessions || 'verify-markup spell-check lint' }}
+  TASK_NAMES: ${{ inputs.task-names || 'verify-markup spell-check lint' }}
 
 jobs:
   lint:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run build-python job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
-          submodules: "true"
-
-      - name: Run Nox linting sessions
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: ${{ env.SESSIONS }}
+          install-args: ""
+          task-names: ${{ env.TASK_NAMES }}

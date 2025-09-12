@@ -1,3 +1,5 @@
+#!/usr/bin/env bash set -eu
+
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2025, Faster Speeding
@@ -27,11 +29,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Development tasks implemented by Piped."""
-
-import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "python"))
-
-from noxfile import *
+target_dir="$ARTIFACTS_DIR/site"
+rm -fr "$target_dir"
+mkdir -p "$target_dir"
+uv run --only-group=docs mkdocs build --strict -d "$target_dir"

@@ -2,9 +2,7 @@
 name = "piped"
 requires-python = ">=3.11"
 version = "0.1.0"
-
-[dependency-groups]
-bot = [
+dependencies = [
     "asgiref",
     "fastapi",
     "httpx[http2]",
@@ -14,6 +12,8 @@ bot = [
     "uvicorn",
     "uvloop; platform_system != 'Windows'",
 ]
+
+[dependency-groups]
 coverage = ["coverage[toml]"]
 freeze-locks = ["uv"]
 lint = [
@@ -30,13 +30,9 @@ reformat = [
     "pycln>=2.1.2",
     "sort-all>=1.2",
 ]
-templating = ["Jinja2>=3.1.2"]
 type-checking = [
     "mypy>=0.991",
-    "nox",
-    "pyright>=1.1.285",
-    {include-group = "bot"},
-    {include-group = "templating"},
+    "nox"
 ]
 
 [tool.black]
@@ -83,13 +79,6 @@ ignore = [
 "noxfile.py" = [
     "F403",    # `from noxfile import *` used; unable to detect undefined name
 ]
-"python/*.py" = [
-    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
-]
-"python/noxfile.template.py" = [
-    "F403",    # `from noxfile import *` used; unable to detect undefined name
-    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
-]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 20
@@ -132,14 +121,11 @@ codespell_ignore = "PullRequest"
 default_sessions = ["reformat", "verify-markup", "lint", "spell-check", "type-check"]
 hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
 path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup
-top_level_targets = ["./bot", "./noxfile.py", "./python"]
+top_level_targets = ["./bot", "./noxfile.py"]
 version_constraint = "3.11"
 
-[tool.piped.extra_installs]
-type_check = ["./python"]
-
 [tool.pyright]
-include = ["bot/main.py", "noxfile.py", "python"]
+include = ["bot/main.py", "noxfile.py", "justfiles/py_scripts/*.py"]
 
 pythonVersion = "3.11"
 typeCheckingMode = "strict"

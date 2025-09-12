@@ -11,9 +11,8 @@ runs:
           artifacts/gogo.patch
           gogo.patch
 
-    - name: Check diff file
-      shell: bash
-      run: |
-        set +o pipefail
-
-        nox -s is-diff-file-empty
+    - name: Run type-check job
+      uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+      with:
+        install-args: ""
+        task-names: ceheck-diff-file

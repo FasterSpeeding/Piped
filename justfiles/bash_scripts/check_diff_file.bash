@@ -1,3 +1,5 @@
+#!/usr/bin/env bash set -eu
+
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2025, Faster Speeding
@@ -27,11 +29,12 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Development tasks implemented by Piped."""
-
-import pathlib
-import sys
-
-sys.path.insert(0, str(pathlib.Path("./piped/python").absolute()))
-
-from noxfile import *
+for path in $(echo "$DIFF_FILE_PATHS" | tr "," "\n")
+do
+    if [[ -s "$path" ]]
+    then
+        echo "Saved diff found at $path!"
+        exit 1
+    fi
+    echo "No diff found at $path"
+done

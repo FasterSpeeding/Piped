@@ -24,18 +24,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run type-check job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
-          submodules: "true"
-
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@2fcdc490d667999e01ddbbf0f2823181beef6b39 # v1.15.0
-        if: inputs.rust-toolchain != ''
-        with:
-            toolchain: ${{ inputs.rust-toolchain }}
-
-      - name: Run type-check session
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: type-check
+          install-args: ""
+          task-names: type-check

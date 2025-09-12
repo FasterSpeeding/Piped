@@ -17,11 +17,7 @@ on:
         default: '["3.11", "3.12", "3.13"]'
         required: false
         type: string
-      rust-toolchain:
-        description: "If past, installed the specified rust toolchain for use during checks"
-        default: ""
-        required: false
-        type: string
+
 jobs:
   py-test:
     strategy:
@@ -33,22 +29,21 @@ jobs:
     runs-on: ${{ matrix.runner-os }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/mise-init@master
         with:
-          submodules: "true"
+          install-args: ""
 
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@2fcdc490d667999e01ddbbf0f2823181beef6b39 # v1.15.0
-        if: inputs.rust-toolchain != ''
-        with:
-            toolchain: ${{ inputs.rust-toolchain }}
+      - name: Override default Mise Python version
+        shell: bash
+        run: mise use --env local python@${{matrix.python-version }}
 
-      - name: Run test session
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: test-coverage
-          python-version: ${{ matrix.python-version }}
+      - name: Run test job
+        shell: bash
+        run: |
+          set +o pipefail
+
+          just test-python-cov
 
       - name: Create coverage artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -69,8 +64,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          submodules: "true"
 
       - name: Download artifacts
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
@@ -79,10 +72,10 @@ jobs:
           merge-multiple: false
           path: ./artifacts/coverage/
 
-      - name: Run combine-coverage session
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
+      - name: Run combine-coverage job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
-          nox-sessions: combine-coverage
+          task-names: combine-coverage
 
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
