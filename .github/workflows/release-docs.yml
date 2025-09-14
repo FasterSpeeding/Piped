@@ -16,7 +16,7 @@ on:
 
 jobs:
   publish-docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Run generate-docs job
