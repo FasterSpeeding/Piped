@@ -29,12 +29,32 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-for path in $(echo "$DIFF_FILE_PATHS")
+set +o errexit
+
+function fmt_justfile() {
+    just --fmt --unstable -f "$1"
+}
+
+EXIT_CODES=()
+
+echo "Running format-markup"
+
+while read -rd $'\0' file_path
 do
-    if [[ -s "$path" ]]
+    if [[ ! -f "$file_path" ]]
     then
-        echo "Saved diff found at $path!"
-        exit 1
+        continue
     fi
-    echo "No diff found at $path"
+
+    case "$file_path" in
+        *".just"|"justfile") fmt_justfile "$file_path" || EXIT_CODES+=($?)
+    esac
+done < <(git grep --cached -Ilze '')
+
+for exit_code in ${EXIT_CODES[@]}
+do
+    if [[ "$exit_code" != "0" ]]
+    then
+        exit $exit_code
+    fi
 done

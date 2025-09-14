@@ -1,13 +1,19 @@
-set unstable
-
+set unstable := true
 set shell := ["mise", "exec", "--", "bash", "-eu", "-c"]
 set script-interpreter := ["mise", "exec", "--", "bash", "-eu"]
 
 # The directory transient CICD artifacts are saved to
+
 export ARTIFACTS_DIR := "./artifacts"
 
 # "./gogo.patch" is deprecated
-export DIFF_FILE_PATHS := ARTIFACTS_DIR + "/gogo.patch,./gogo.patch"
+# Space separated list of files used to store diffs in CICD artifacts for the bot
+
+export DIFF_FILE_PATHS := ARTIFACTS_DIR + "/gogo.patch ./gogo.patch"
+
+# Check for a saved diff and error if one found
+check-diff-file:
+    just execute-bash-script check_diff_file
 
 # Internal function used for executing bash script tasks
 [private]
@@ -34,15 +40,28 @@ execute-python-script script-name:
 cleanup:
     just execute-python-script cleanup
 
-# Reformat this project's miscellaneous files to fit the standard style
+# Lint the project's markup files
+[group("lint")]
+[group("misc")]
+lint-markup:
+    just execute-bash-script lint_markup
+
+# Run general (not file type specific) formatters over all the project's files
 [group("format")]
 [group("misc")]
-format-misc:
-    just execute-bash-script format_general
+format-general:
+    just execute-bash-script format_misc
+
+# Format the project's markup files
+[group("format")]
+[group("misc")]
+format-markup:
+    just execute-bash-script format_markup
 
 # Check this project's text-like files for common spelling mistakes
 [group("lint")]
 [group("misc")]
+[script]
 spell-check:
     codespell
 
@@ -51,16 +70,16 @@ spell-check:
 update-licence:
     just execute-python-script update_license
 
-# Save the current package's diff to 
+# Save the current package's diff to
 save-diff: ensure-artifacts-dir
     just execute-bash-script save_diff
 
-# Check for a saved diff and error if one found
-check-diff-file:
-    just execute-bash-script check_diff_file
-
+# Format this project's miscellaneous files
+[group("format")]
+[group("misc")]
+format-misc: format-general format-markup
 
 # Lint this project's miscellaneous files
 [group("lint")]
 [group("misc")]
-lint-misc: spell-check
+lint-misc: lint-markup spell-check

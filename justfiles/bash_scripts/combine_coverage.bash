@@ -29,14 +29,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-function coverage() {
-    uv run --group=coverage coverage $@
-}
-
 report_file="$ARTIFACTS_DIR/.coverage"
 rm -f "$report_file"
 
-while read -r -d $'\0' path; do
+while read -rd $'\0' path
+do
     echo "Adding $path to coverage report"
     coverage combine "--data-file" "$report_file" "$path"
 done < <(find "$ARTIFACTS_DIR/coverage/" -type f -wholename "**/*.coverage*" -print0)

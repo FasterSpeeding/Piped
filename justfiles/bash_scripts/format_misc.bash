@@ -29,12 +29,30 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-for path in $(echo "$DIFF_FILE_PATHS")
+set +o errexit
+
+EXIT_CODES=()
+
+files=()
+while read -rd $'\0' path
 do
-    if [[ -s "$path" ]]
+    if [[ -f  "$path" ]]
     then
-        echo "Saved diff found at $path!"
-        exit 1
+        files+=("$path")
     fi
-    echo "No diff found at $path"
+done < <(git grep --cached -Ilze '')
+
+echo "Running trailing-whitespace-fixer against ${#files[@]} files"
+trailing-whitespace-fixer "${files[@]}" || EXIT_CODES+=($?)
+
+echo "Running end-of-file-fixer against ${#files[@]} files"
+end-of-file-fixer "${files[@]}" || EXIT_CODES+=($?)
+
+for exit_code in ${EXIT_CODES[@]}
+do
+    # The pre-commit hooks will return 1 if they changed any files
+    if [[ "$exit_code" != "0" && "$exit_code" != "1" ]]
+    then
+        exit $exit_code
+    fi
 done

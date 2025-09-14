@@ -6,7 +6,7 @@ default:
 
 # Run reformatting jobs over the project's files
 [group("format")]
-format: format-python
+format: format-misc format-python
 
 # Run linting checks over the project's files
 [group("lint")]

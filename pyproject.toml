@@ -13,28 +13,6 @@ dependencies = [
     "uvloop; platform_system != 'Windows'",
 ]
 
-[dependency-groups]
-coverage = ["coverage[toml]"]
-freeze-locks = ["uv"]
-lint = [
-    "codespell>=2.2.2",
-    "pre-commit-hooks>=4.4",
-    "slotscheck>=0.16.1",
-    "ruff",
-]
-publish = ["flit>=3.8.0"]
-reformat = [
-    "black>=22.10.0",
-    "isort>=5.11.3",
-    "pre-commit-hooks>=4.4",
-    "pycln>=2.1.2",
-    "sort-all>=1.2",
-]
-type-checking = [
-    "mypy>=0.991",
-    "nox"
-]
-
 [tool.black]
 include = ".*pyi?$"
 line-length = 120

@@ -31,13 +31,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 if [[ -z "${PUBLISH_TARGET:-}" ]]
 then
-    export FLIT_INDEX_URL="$PUBLISH_TARGET" 
+    export FLIT_INDEX_URL="$PUBLISH_TARGET"
 fi
 
 if [[ -z "${PUBLISH_TOKEN:-}" ]]
 then
-    export FLIT_PASSWORD="$PUBLISH_TOKEN" 
+    export FLIT_PASSWORD="$PUBLISH_TOKEN"
 fi
 
 export FLIT_USERNAME="${FLIT_USERNAME:-__token__}"
-uv run --only-group=publish flit publish
+flit publish

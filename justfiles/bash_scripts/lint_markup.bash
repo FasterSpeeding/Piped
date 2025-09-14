@@ -29,11 +29,36 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-files=()
-read -d '\r' -ra files < <(git --no-pager grep --cached -I -l -e '')
+set +o errexit
 
-# TODO: these are brken
-echo "Running trailing-whitespace-fixer"
-echo "${files[@]}" | xargs -I {} end-of-file-fixer {}
-echo "Running end-of-file-fixer}"
-trailing-whitespace-fixer ${files[@]}
+function check_justfile() {
+    just --fmt --check --unstable -f "$1"
+}
+
+EXIT_CODES=()
+
+echo "Running check-json, check-toml, check-xml, and check-yaml"
+
+while read -rd $'\0' file_path
+do
+    if [[ ! -f "$file_path" ]]
+    then
+        continue
+    fi
+
+    case "$(basename file_path)" in
+        *.json) check-json "$file_path" || EXIT_CODES+=($?) ;;
+        *.toml) check-toml "$file_path" || EXIT_CODES+=($?) ;;
+        *.xml) check-xml "$file_path" || EXIT_CODES+=($?) ;;
+        *.yaml|*.yml) check-yaml "$file_path" || EXIT_CODES+=($?) ;;
+        *.just|justfile) check_justfile "$file_path" || EXIT_CODES+=($?) ;;
+    esac
+done < <(git grep --cached -Ilze '')
+
+for exit_code in ${EXIT_CODES[@]}
+do
+    if [[ "$exit_code" != "0" ]]
+    then
+        exit $exit_code
+    fi
+done

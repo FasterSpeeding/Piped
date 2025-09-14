@@ -3,9 +3,17 @@
 node = "24"
 python = "3"
 # CLI tools
+black = "25.1.0"
 "pipx:codespell" = "2.4.1"
+"pipx:coverage" = "7.10.6"
+"pipx:flit" = "3.12.0"
+"pipx:isort" = "6.0.1"
+"pipx:mypy" = "1.18.1"
 "pipx:pre-commit-hooks" = "6.0.0"
+"pipx:pycln" = "2.5.0"
 "npm:pyright" = "1.1.405"
+ruff = "0.13.0"
+"pipx:sort-all" = "1.3.0"
 uv = "0.8"
 just = "1.42"
 

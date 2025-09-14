@@ -32,7 +32,7 @@
 diff=$(git diff HEAD)
 
 
-for path in $(echo "$DIFF_FILE_PATHS" | tr "," "\n")
+for path in $(echo "$DIFF_FILE_PATHS")
 do
     if [[ -n "$diff" ]]
     then

@@ -1,6 +1,7 @@
 import './global.just'
 
 # The project name (e.g. top-level code file name for a Python project) used by some CICD tasks.
+
 export PYTHON_PROJECT_NAME := env('PYTHON_PROJECT_NAME', '')
 
 # Reformat this project's modules to fit the standard style

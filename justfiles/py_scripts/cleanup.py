@@ -47,7 +47,7 @@ CLEANUP_PATHS = [
 """Array of the paths to cleanup if found."""
 
 if DIFF_FILE_PATHS := os.environ.get("DIFF_FILE_PATHS"):
-    CLEANUP_PATHS.extend(map(pathlib.Path, DIFF_FILE_PATHS.split(",")))
+    CLEANUP_PATHS.extend(map(pathlib.Path, DIFF_FILE_PATHS.split(" ")))
 
 
 def try_remove(path: pathlib.Path) -> None:

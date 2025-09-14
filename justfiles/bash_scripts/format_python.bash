@@ -29,7 +29,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-uv run --only-group=reformat black .
-uv run --only-group=reformat isort .
-uv run --only-group=reformat pycln --config pyproject.toml .
-uv run --only-group=reformat sort-all || echo "Sorted `all`s"
+black .
+isort .
+pycln --config pyproject.toml .
+sort-all || echo "Sorted `all`s"

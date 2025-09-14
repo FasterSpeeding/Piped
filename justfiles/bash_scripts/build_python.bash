@@ -30,6 +30,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 target_dir="$ARTIFACTS_DIR/dist"
-uv run --only-group=publish flit build
+flit build
 rm -fr "$target_dir"
 mv -r "./dist" "$target_dir"
