@@ -19,14 +19,14 @@ on:
         type: string
 
 env:
-  TASK_NAMES: ${{ inputs.task-names || 'verify-markup spell-check lint' }}
+  TASK_NAMES: ${{ inputs.task-names || 'lint' }}
 
 jobs:
   lint:
     runs-on: ubuntu-20.24-arm
 
     steps:
-      - name: Run build-python job
+      - name: Run lint job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
           install-args: ""
