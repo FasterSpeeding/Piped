@@ -18,7 +18,7 @@ on:
 
 jobs:
   reformat:
-    runs-on: ubuntu-20.24-arm
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Run format job

@@ -21,7 +21,7 @@ on:
 
 jobs:
   type-check:
-    runs-on: ubuntu-20.24-arm
+    runs-on: ubuntu-24.04-arm
 
     steps:
       - name: Run type-check-python job

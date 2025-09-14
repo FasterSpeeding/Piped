@@ -60,7 +60,7 @@ env:
 
 jobs:
   set-matrix:
-    runs-on: ubuntu-20.24-arm
+    runs-on: ubuntu-24.04-arm
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
