@@ -21,6 +21,5 @@ jobs:
         with:
           task-names: freeze-python-locks save-diff
 
-
       - name: Check diff file
         uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@task/justfile
