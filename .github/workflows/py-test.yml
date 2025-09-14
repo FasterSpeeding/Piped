@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Initialise environment with Mise
-        uses: FasterSpeeding/Piped/.github/actions/mise-init@master
+        uses: FasterSpeeding/Piped/.github/actions/mise-init@task/justfile
         with:
           install-args: ""
 
@@ -73,7 +73,7 @@ jobs:
           path: ./artifacts/coverage/
 
       - name: Run combine-coverage job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
           task-names: combine-coverage
 

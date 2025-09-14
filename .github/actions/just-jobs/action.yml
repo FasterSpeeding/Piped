@@ -20,7 +20,7 @@ runs:
   using: composite
   steps:
       - name: Initialise environment with Mise
-        uses: FasterSpeeding/Piped/.github/actions/mise-init@master
+        uses: FasterSpeeding/Piped/.github/actions/mise-init@task/justfile
         with:
           install-args: ${{ inputs.install-args }}
           repository: ${{ inputs.repository }}

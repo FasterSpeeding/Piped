@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Run type-check job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
           install-args: ""
           task-names: type-check

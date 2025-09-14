@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Run build-python job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
           install-args: ""
           task-names: ${{ env.TASK_NAMES }}

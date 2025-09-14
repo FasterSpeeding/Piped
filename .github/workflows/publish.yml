@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Run build-python job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
           task-names: build-python
 
