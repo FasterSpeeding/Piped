@@ -9,7 +9,7 @@ on:
     inputs:
       os-versions:
         description: "Json array of the runner OSes to test against"
-        default: '["ubuntu-latest", "macos-latest", "windows-latest"]'
+        default: '["ubuntu-20.24-arm", "macos-latest", "windows-latest"]'
         required: false
         type: string
       python-versions:
@@ -56,7 +56,7 @@ jobs:
 
   upload-coverage:
     needs: [py-test]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.24-arm
 
     permissions:
       id-token: write

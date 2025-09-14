@@ -20,7 +20,7 @@ on:
 
 jobs:
   deploy-docs-preview:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.24-arm
 
     permissions:
       contents: write

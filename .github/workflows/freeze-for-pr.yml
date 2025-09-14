@@ -13,7 +13,7 @@ on:
 
 jobs:
   freeze-pr-dep-changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.24-arm
 
     steps:
       - name: Run combine-coverage job
