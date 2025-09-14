@@ -26,4 +26,4 @@ runs:
         with:
           install_args: "${{ inputs.install-args }}"
           mise_toml: |
-            jobs: 2
+            jobs = 2
