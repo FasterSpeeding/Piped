@@ -3,7 +3,8 @@
 node = "24"
 python = "3"
 # CLI tools
-black = "25.1.0"
+# Black has to be installed from PyPi to support their ARM fallback to pure-python.
+"pipx:black" = "25.1.0"
 "pipx:codespell" = "2.4.1"
 "pipx:coverage" = "7.10.6"
 "pipx:flit" = "3.12.0"
