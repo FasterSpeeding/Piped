@@ -6,7 +6,7 @@ on:
 jobs:
   publish:
     name: upload release to PyPI
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     environment: release
 
     permissions:

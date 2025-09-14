@@ -9,7 +9,7 @@ on:
 
 jobs:
   rustfmt:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     steps:
       - name: Run rustfmt
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
