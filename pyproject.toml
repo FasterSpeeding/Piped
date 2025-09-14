@@ -76,9 +76,6 @@ ignore = [
     "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
     "PT017",   # Found assertion on exception `exc` in `except` block, use `pytest.raises()` instead
 ]
-"noxfile.py" = [
-    "F403",    # `from noxfile import *` used; unable to detect undefined name
-]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 20
@@ -116,16 +113,8 @@ warn_redundant_casts = false
 allow_redefinition = true
 disable_error_code = ["type-abstract"]
 
-[tool.piped]
-codespell_ignore = "PullRequest"
-default_sessions = ["reformat", "verify-markup", "lint", "spell-check", "type-check"]
-hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
-path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup
-top_level_targets = ["./bot", "./noxfile.py"]
-version_constraint = "3.11"
-
 [tool.pyright]
-include = ["bot/main.py", "noxfile.py", "justfiles/py_scripts/*.py"]
+include = ["bot/main.py", "justfiles/py_scripts/*.py"]
 
 pythonVersion = "3.11"
 typeCheckingMode = "strict"

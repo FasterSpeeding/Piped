@@ -36,7 +36,6 @@ __all__ = []
 import dataclasses
 import enum
 import pathlib
-import re
 import tomllib
 import typing
 from typing import Self
@@ -142,23 +141,8 @@ class Config:
     """Configuration class for the project config."""
 
     bot_actions: set[str]
-    default_sessions: list[str]
-    dep_sources: list[pathlib.Path]
-    extra_installs: dict[str, list[str]]
-    hide: list[str]
     mypy_allowed_to_fail: bool
     mypy_targets: list[str]
-    path_ignore: re.Pattern[str] | None
-    project_name: str | None = None
-    top_level_targets: list[str]
-    version_constraint: str | None
-
-    def assert_project_name(self) -> str:
-        if not self.project_name:
-            error_message = "This CI cannot run without project_name"
-            raise RuntimeError(error_message)
-
-        return self.project_name
 
     @classmethod
     def read(cls, base_path: pathlib.Path, /) -> Self:
@@ -176,67 +160,17 @@ class Config:
             raise RuntimeError(error_message)
 
         bot_actions = set(_validate_list_entry(data, "bot_actions", str, default_factory=_DEFAULT_ACTIONS.copy))
-        default_sessions = _validate_list_entry(data, "default_sessions", str)
 
-        if "dep_sources" in data:
-            dep_sources = [pathlib.Path(path) for path in _validate_list_entry(data, "dep_sources", str)]
-
-        else:
-            dep_sources = _DEFAULT_DEP_SOURCES
-
-        extra_installs = _DEFAULT_EXTRA_INSTALLS.copy()
-        raw_extra_installs = _validate_entry(data, "extra_installs", dict, default=None) or {}
-        for key in raw_extra_installs:
-            path_to = "['extra_installs']"
-            if not isinstance(key, str):
-                error_message = f"Unexpected key found in {path_to}. Expected a string but found {key!r}"
-                raise TypeError(error_message)
-
-            extra_installs[key] = _validate_list_entry(raw_extra_installs, key, str, path_to=f"{path_to}[{key!r}]")
-
-        hide = _validate_list_entry(data, "hide", str, default_factory=list)
         mypy_allowed_to_fail = _validate_entry(data, "mypy_allowed_to_fail", bool, default=False)
         mypy_targets = _validate_list_entry(data, "mypy_targets", str, default_factory=list)
-        path_ignore = _validate_entry(data, "path_ignore", str, default=None)
 
-        if path_ignore is not None:
-            path_ignore = re.compile(path_ignore)
-
-        project_name = _validate_entry(data, "project_name", str, default=None)
-        top_level_targets = _validate_list_entry(data, "top_level_targets", str)
-        version_constraint = _validate_entry(data, "version_constraint", str, default=None)
-        return cls(
-            bot_actions=bot_actions,
-            default_sessions=default_sessions,
-            dep_sources=dep_sources,
-            extra_installs=extra_installs,
-            hide=hide,
-            mypy_allowed_to_fail=mypy_allowed_to_fail,
-            mypy_targets=mypy_targets,
-            path_ignore=path_ignore,
-            project_name=project_name,
-            top_level_targets=top_level_targets,
-            version_constraint=version_constraint,
-        )
+        return cls(bot_actions=bot_actions, mypy_allowed_to_fail=mypy_allowed_to_fail, mypy_targets=mypy_targets)
 
     @classmethod
     async def read_async(cls, base_path: pathlib.Path, /) -> Self:
         import anyio.to_thread  # noqa: PLC0415  # `import` should be at the top-level of a file
 
         return await anyio.to_thread.run_sync(cls.read, base_path)
-
-    def version(self, pyproject_toml: dict[str, typing.Any] | None, /) -> str:
-        if self.version_constraint:
-            return self.version_constraint
-
-        try:
-            if pyproject_toml:
-                return pyproject_toml["project"]["requires-python"].lstrip(">=")
-
-        except KeyError:
-            pass
-
-        return "3.11,<3.15"
 
 
 _TOML_PARSER: dict[str, collections.Callable[[dict[str, typing.Any]], dict[str, typing.Any]]] = {

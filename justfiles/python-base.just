@@ -32,7 +32,9 @@ set allow-duplicate-recipes := true
 [private]
 base-lint-python: run-ruff type-check-python
 
-# Run Python linting checks against this project's code
+# Run all of this project's Python-specific linting checks
+[group("lint")]
+[group("python")]
 lint-python: base-lint-python
 
 unexport allow-duplicate-recipes

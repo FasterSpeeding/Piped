@@ -25,7 +25,8 @@ execute-python-script script-name:
     echo "Executing Pythons script at $path"
     python "$path"
 
-# Enternal function used to ensure the artifacts directory exists
+# Internal function used to ensure the artifacts directory exists
+[private]
 @ensure-artifacts-dir:
     just execute-bash-script ensure_artifacts_dir
 
@@ -33,18 +34,20 @@ execute-python-script script-name:
 cleanup:
     just execute-python-script cleanup
 
-# Reformat this project's files to fit the standard style
+# Reformat this project's miscellaneous files to fit the standard style
 [group("format")]
-format-general:
+[group("misc")]
+format-misc:
     just execute-bash-script format_general
 
 # Check this project's text-like files for common spelling mistakes
 [group("lint")]
+[group("misc")]
 spell-check:
     codespell
 
 # Bump the end year of the project's licence to the current year
-[group("format")]
+[group("misc")]
 update-licence:
     just execute-python-script update_license
 
@@ -55,3 +58,9 @@ save-diff: ensure-artifacts-dir
 # Check for a saved diff and error if one found
 check-diff-file:
     just execute-bash-script check_diff_file
+
+
+# Lint this project's miscellaneous files
+[group("lint")]
+[group("misc")]
+lint-misc: spell-check
