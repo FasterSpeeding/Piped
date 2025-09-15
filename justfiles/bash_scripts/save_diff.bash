@@ -31,18 +31,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 diff=$(git diff HEAD)
 
+if [[ -n "$diff" ]]
+then
+    echo "Diff detected"
+fi
 
 for path in $(echo "$DIFF_FILE_PATHS")
 do
     if [[ -n "$diff" ]]
     then
-        echo "Saving package diff to $path"
+        debug_echo "Saving package diff to $path"
         echo "$diff">| "$path"
     elif [[ -e "$path" ]]
     then
-        echo "Removing saved package diff at $path"
+        debug_echo "Removing saved package diff at $path"
         unlink "$path"
     else
-        echo "No diff to save to $path"
+        debug_echo "No diff to save to $path"
     fi
 done

@@ -5,9 +5,9 @@ inputs:
   task-names:
     description: "Names of the tasks to run"
     required: true
-  install-args:
-    description: "List of tools to install"
-    default: "just python uv"
+  extra-installs:
+    description: "List of extra tools to install alongside Just using mise"
+    default: "just"
     required: false
   repository:
     description: "The repository's name"
@@ -19,16 +19,18 @@ inputs:
 runs:
   using: composite
   steps:
-      - name: Initialise environment with Mise
-        uses: FasterSpeeding/Piped/.github/actions/mise-init@task/justfile
-        with:
-          install-args: ${{ inputs.install-args }}
-          repository: ${{ inputs.repository }}
-          ref: ${{ inputs.ref }}
+    - name: Initialise environment with Mise
+      uses: FasterSpeeding/Piped/.github/actions/mise-init@task/justfile
+      with:
+        install-args: "${{ inputs.extra-installs }}"
+        repository: ${{ inputs.repository }}
+        ref: ${{ inputs.ref }}
 
-      - name: Run Just jobs
-        shell: bash
-        run: |
-          set +o pipefail
+    - name: Run Just jobs
+      shell: bash
+      env:
+        INSTALL_DEV_DEPS: true
+      run: |
+        set +o pipefail
 
-          mise exec -- just ${{ inputs.task-names }}
+        mise exec -- just ${{ inputs.task-names }}

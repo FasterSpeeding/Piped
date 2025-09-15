@@ -32,4 +32,6 @@
 target_dir="$ARTIFACTS_DIR/site"
 rm -fr "$target_dir"
 mkdir -p "$target_dir"
+
+echo "Running mkdocs build"
 uv run --only-group=docs mkdocs build --strict -d "$target_dir"

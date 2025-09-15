@@ -6,19 +6,20 @@ concurrency:
 
 on:
   workflow_call:
+    inputs:
+      extra-installs:
+        description: "List of extra tools to install using Mise (i.e. Rust for builds)"
+        default: ""
+        required: false
+        type: string
 
 jobs:
   verify-types:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          submodules: "true"
-
       - name: Run verify-types job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
-          install-args: ""
+          extra-installs: "${{ inputs.extra-installs }}"
           task-names: verify-types

@@ -7,6 +7,11 @@ concurrency:
 on:
   workflow_call:
     inputs:
+      extra-installs:
+        description: "List of extra tools to install using Mise (i.e. Rust for builds)"
+        default: ""
+        required: false
+        type: string
       os-versions:
         description: "Json array of the runner OSes to test against"
         default: '["ubuntu-24.04-arm", "macos-latest", "windows-latest"]'
@@ -29,21 +34,13 @@ jobs:
     runs-on: ${{ matrix.runner-os }}
 
     steps:
-      - name: Initialise environment with Mise
-        uses: FasterSpeeding/Piped/.github/actions/mise-init@task/justfile
-        with:
-          install-args: ""
-
-      - name: Override default Mise Python version
-        shell: bash
-        run: mise use --env local python@${{matrix.python-version }}
-
       - name: Run test job
-        shell: bash
-        run: |
-          set +o pipefail
-
-          just test-python-cov
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
+        env:
+          TEST_PYTHON_VERSION: "${{ matrix.python-version }}"
+        with:
+          extra-installs: "${{ inputs.extra-installs }}"
+          task-names: test-python-cov
 
       - name: Create coverage artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

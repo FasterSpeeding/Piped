@@ -1,10 +1,12 @@
 set unstable := true
 set shell := ["mise", "exec", "--", "bash", "-eu", "-c"]
 set script-interpreter := ["mise", "exec", "--", "bash", "-eu"]
+set allow-duplicate-variables := true
 
 # The directory transient CICD artifacts are saved to
 
 export ARTIFACTS_DIR := "./artifacts"
+export JUST_TASKS_VERBOSE := env('JUST_TASKS_VERBOSE', '')
 
 # "./gogo.patch" is deprecated
 # Space separated list of files used to store diffs in CICD artifacts for the bot
@@ -18,27 +20,34 @@ check-diff-file:
 # Internal function used for executing bash script tasks
 [private]
 [script]
-execute-bash-script script-name:
+execute-bash-script script-name *FLAGS:
     path="{{ source_directory() }}/bash_scripts/{{ script-name }}.bash"
-    echo "Execution bash script at $path"
-    bash -eu "$path"
+
+    if [[ -n "$JUST_TASKS_VERBOSE" ]]
+    then
+        echo "Execution bash script at $path"
+    fi
+
+    bash -eu "$path" {{ FLAGS }}
 
 # Internal function used for executing Python script tasks
 [private]
 [script]
-execute-python-script script-name:
+execute-python-script script-name *FLAGS:
     path="{{ source_directory() }}/py_scripts/{{ script-name }}.py"
-    echo "Executing Pythons script at $path"
-    python "$path"
+
+
+    if [[ -n "$JUST_TASKS_VERBOSE" ]]
+    then
+        echo "Executing Pythons script at $path"
+    fi
+
+    python "$path" {{ FLAGS }}
 
 # Internal function used to ensure the artifacts directory exists
 [private]
 @ensure-artifacts-dir:
     just execute-bash-script ensure_artifacts_dir
-
-# Cleanup any temporary files made in this project by its nox tasks
-cleanup:
-    just execute-python-script cleanup
 
 # Lint the project's markup files
 [group("lint")]
@@ -74,12 +83,23 @@ update-licence:
 save-diff: ensure-artifacts-dir
     just execute-bash-script save_diff
 
-# Format this project's miscellaneous files
-[group("format")]
-[group("misc")]
-format-misc: format-general format-markup
+# Cleanup any temporary files made in this project by its nox tasks
+[group("cleanup")]
+cleanup:
+    just execute-python-script cleanup
+    just execute-python-script just_call_by_groups cleanup --ignore-recipes="cleanup"
 
-# Lint this project's miscellaneous files
+# Run reformatting jobs over the project's files
+[group("format")]
+format:
+    just execute-python-script just_call_by_groups format --ignore-recipes="format,format-python"
+
+# Freeze this project's dependency locks
+[group("freeze locks")]
+freeze-locks:
+    just execute-python-script just_call_by_groups '"freeze locks"' --ignore-recipes="freeze-locks"
+
+# Run linting checks over the project's files
 [group("lint")]
-[group("misc")]
-lint-misc: lint-markup spell-check
+lint:
+    just execute-python-script just_call_by_groups lint --ignore-recipes="lint,lint-python"

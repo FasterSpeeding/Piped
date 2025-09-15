@@ -36,5 +36,5 @@ do
         echo "Saved diff found at $path!"
         exit 1
     fi
-    echo "No diff found at $path"
+    debug_echo "No diff found at $path"
 done

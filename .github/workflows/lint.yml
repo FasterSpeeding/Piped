@@ -12,22 +12,15 @@ on:
     branches:
       - master
   workflow_call:
-    inputs:
-      task-names:
-        description: "Space separated array of the linting Just tasks to run"
-        required: true
-        type: string
-
-env:
-  TASK_NAMES: ${{ inputs.task-names || 'lint' }}
 
 jobs:
   lint:
     runs-on: ubuntu-24.04-arm
-
     steps:
       - name: Run lint job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
+        env:
+          EXCLUDE_GROUPS: rust
+          IGNORE_RECIPES: type-check-python
         with:
-          install-args: ""
-          task-names: ${{ env.TASK_NAMES }}
+          task-names: lint

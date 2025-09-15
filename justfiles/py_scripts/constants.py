@@ -29,7 +29,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """Shared constants used by CICD python scripts."""
 
+import logging
+import os
 import pathlib
 
 ARTIFACTS_DIR = pathlib.Path("./artifacts")
 """Directory used to store build and CI artifacts."""
+
+LOG_LEVEL = logging.DEBUG if os.environ.get("JUST_TASKS_VERBOSE") else logging.INFO
+"""The configured logging level to use."""

@@ -29,7 +29,9 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-set +o errexit
+source $(dirname "$0")/shared.bash
+
+mise_install python uv pipx:pre-commit-hooks
 
 function check_justfile() {
     just --fmt --check --unstable -f "$1"
@@ -37,7 +39,12 @@ function check_justfile() {
 
 EXIT_CODES=()
 
-echo "Running check-json, check-toml, check-xml, and check-yaml"
+echo "Running the following tools:"
+echo " * just --fmt --check --unsafe"
+echo " * pre-commit-hooks.check-json"
+echo " * pre-commit-hooks.check-toml"
+echo " * pre-commit-hooks.check-xml"
+echo " * pre-commit-hooks.and check-yaml"
 
 while read -rd $'\0' file_path
 do
@@ -46,7 +53,7 @@ do
         continue
     fi
 
-    case "$(basename file_path)" in
+    case "$(basename $file_path)" in
         *.json) check-json "$file_path" || EXIT_CODES+=($?) ;;
         *.toml) check-toml "$file_path" || EXIT_CODES+=($?) ;;
         *.xml) check-xml "$file_path" || EXIT_CODES+=($?) ;;
@@ -55,10 +62,4 @@ do
     esac
 done < <(git grep --cached -Ilze '')
 
-for exit_code in ${EXIT_CODES[@]}
-do
-    if [[ "$exit_code" != "0" ]]
-    then
-        exit $exit_code
-    fi
-done
+decide_exit ${EXIT_CODES[@]}

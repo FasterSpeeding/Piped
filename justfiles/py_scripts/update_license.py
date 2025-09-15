@@ -36,9 +36,11 @@ import shutil
 import subprocess
 from collections import abc as collections
 
-logging.basicConfig(level=logging.INFO)
+import constants
 
-_LOGGER = logging.getLogger("update license")
+logging.basicConfig(level=constants.LOG_LEVEL)
+
+_LOGGER = logging.getLogger("Piped.update_license")
 _LICENCE_PATTERN = re.compile(r"(Copyright \(c\) (\d+-?\d*))")
 
 
@@ -88,7 +90,7 @@ def update_licence() -> None:
             path.write_text(new_data)
 
         else:
-            _LOGGER.info("Skipping %s (already up-to-date)", path)
+            _LOGGER.debug("Skipping %s (already up-to-date)", path)
 
 
 if __name__ == "__main__":

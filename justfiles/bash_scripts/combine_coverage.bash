@@ -29,14 +29,27 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-report_file="$ARTIFACTS_DIR/.coverage"
-rm -f "$report_file"
+source $(dirname "$0")/shared.bash
 
-while read -rd $'\0' path
-do
-    echo "Adding $path to coverage report"
-    coverage combine "--data-file" "$report_file" "$path"
-done < <(find "$ARTIFACTS_DIR/coverage/" -type f -wholename "**/*.coverage*" -print0)
+mise_install python uv
 
-coverage xml -o "$ARTIFACTS_DIR/coverage.xml" --data-file "$report_file"
-coverage report --data-file "$report_file"
+function combine_coverage() {
+    report_file="$ARTIFACTS_DIR/.coverage"
+    xml_report="$ARTIFACTS_DIR/coverage.xml"
+
+    rm -f "$report_file"
+
+    while read -rd $'\0' path
+    do
+        echo "Adding $path to coverage report"
+        coverage combine "--data-file" "$report_file" "$path"
+    done < <(find "$ARTIFACTS_DIR/coverage/" -type f -wholename "**/*.coverage*" -print0)
+
+    coverage xml -o "$xml_report" --data-file "$report_file"
+    coverage report --data-file "$report_file"
+
+    debug_echo "XML coverage report saved to $xml_report"
+    debug_echo ".coverage file saved to $report_file"
+}
+
+uv run --group=test combine_coverage

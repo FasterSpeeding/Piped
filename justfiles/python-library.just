@@ -28,8 +28,3 @@ slot-check:
 [group("python")]
 verify-types:
     just execute-bash-script verify_types
-
-# Run Python linting checks against this project's code
-[group("lint")]
-[group("python")]
-lint-python: base-lint-python slot-check verify-types

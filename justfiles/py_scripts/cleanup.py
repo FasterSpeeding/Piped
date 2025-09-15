@@ -33,12 +33,14 @@ import os
 import pathlib
 import shutil
 
-logging.basicConfig(level=logging.INFO)
+import constants
+
+logging.basicConfig(level=constants.LOG_LEVEL)
 _LOGGER = logging.getLogger("Piped.cleanup")
 
 
 CLEANUP_PATHS = [
-    pathlib.Path(os.environ["ARTIFACTS_DIR"]),
+    constants.ARTIFACTS_DIR,
     pathlib.Path("./.nox"),
     pathlib.Path("./.pytest_cache"),
     pathlib.Path(".mypy_cache"),

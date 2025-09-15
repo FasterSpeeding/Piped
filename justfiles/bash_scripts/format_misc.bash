@@ -29,7 +29,9 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-set +o errexit
+source $(dirname "$0")/shared.bash
+
+mise_install python uv pipx:pre-commit-hooks
 
 EXIT_CODES=()
 
@@ -42,17 +44,18 @@ do
     fi
 done < <(git grep --cached -Ilze '')
 
-echo "Running trailing-whitespace-fixer against ${#files[@]} files"
+echo "Running pre-commit-hooks.trailing-whitespace-fixer over ${#files[@]} files"
 trailing-whitespace-fixer "${files[@]}" || EXIT_CODES+=($?)
 
-echo "Running end-of-file-fixer against ${#files[@]} files"
+echo "Running pre-commit-hooks.end-of-file-fixer over ${#files[@]} files"
 end-of-file-fixer "${files[@]}" || EXIT_CODES+=($?)
 
-for exit_code in ${EXIT_CODES[@]}
-do
-    # The pre-commit hooks will return 1 if they changed any files
-    if [[ "$exit_code" != "0" && "$exit_code" != "1" ]]
-    then
-        exit $exit_code
-    fi
-done
+decide_exit ${EXIT_CODES[@]} || final_code=$?
+final_code=${final_code:-0}
+# The pre-commit hooks will return 1 if they changed any files
+if [[ $final_code -eq 1 ]]
+then
+    final_code=0
+fi
+
+exit "$final_code"

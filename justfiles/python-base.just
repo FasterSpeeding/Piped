@@ -4,18 +4,19 @@ import './global.just'
 
 export PYTHON_PROJECT_NAME := env('PYTHON_PROJECT_NAME', '')
 
-# Reformat this project's modules to fit the standard style
+# Reformat this project's python files to fit the standard style
 [group("format")]
 [group("python")]
 format-python:
     just execute-bash-script format_python
 
 # Freeze the Python dependency locks
+[group("freeze locks")]
 [group("python")]
-freeze-python-locks:
+freeze-locks-python:
     just execute-bash-script freeze_python_locks
 
-# Run this project's modules against the pre-defined ruff linters
+# Run this project's python files against the pre-defined ruff linters
 [group("lint")]
 [group("python")]
 run-ruff:
@@ -27,15 +28,8 @@ run-ruff:
 type-check-python:
     just execute-bash-script type_check_python
 
-set allow-duplicate-recipes := true
-
-# The lint python jobs implemented for all Python projects
-[private]
-base-lint-python: run-ruff type-check-python
-
 # Run all of this project's Python-specific linting checks
 [group("lint")]
 [group("python")]
-lint-python: base-lint-python
-
-unexport allow-duplicate-recipes
+lint-python:
+    just execute-python-script just_call_by_groups lint python --ignore-recipes=freeze-locks

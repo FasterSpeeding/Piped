@@ -29,7 +29,15 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+source $(dirname "$0")/shared.bash
+
+mise_install python uv pipx:flit
+
 target_dir="$ARTIFACTS_DIR/dist"
+
+debug_echo "Building project using flit"
 flit build
+
 rm -fr "$target_dir"
 mv -r "./dist" "$target_dir"
+echo "Flit build saved at $target_dir"

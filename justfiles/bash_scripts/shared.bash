@@ -29,29 +29,34 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-source $(dirname "$0")/shared.bash
+function debug_echo() {
+    if [[ -n "${JUST_TASKS_VERBOSE:-}" ]]
+    then
+        echo echo $@
+    fi
+}
 
-mise_install python uv pipx:black pipx:isort pipx:pycln pipx:sort-all
+function decide_exit() {
+    array=($@)
+    final_code=0
+    for exit_code in ${array[@]}
+    do
+        if [[ "$exit_code" -gt "$final_code" ]]
+        then
+            final_code="$exit_code"
+        fi
+    done
 
-EXIT_CODES=()
+    return $final_code
+}
 
-echo "Running Black"
-black . || EXIT_CODES+=($?)
-
-echo "Running isort"
-isort . || EXIT_CODES+=($?)
-
-echo "Running Pycln"
-pycln --config pyproject.toml . || EXIT_CODES+=($?)
-
-echo "Running sort-all"
-sort-all || sort_all_exit_code+=($?)
-
-decide_exit ${EXIT_CODES[@]}
-
-# Sort-all will return 1 if it formatted any files
-if [[ "${sort_all_exit_code:-1}" -ne 1 ]]
-then
-    debug_echo "Sort-all failed"
-    exit "${sort_all_exit_code}"
-fi
+function mise_install() {
+    if [[ -n "${INSTALL_DEV_DEPS:-}" ]]
+    then
+        debug_echo "Ensuring dev dependencies"
+        to_install=($@)
+        mise install ${to_install[@]}
+    else
+        debug_echo 'Skipping dev dependency installs as "$INSTALL_DEV_DEPS" not set'
+    fi
+}

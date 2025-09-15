@@ -6,7 +6,6 @@ combine-coverage: ensure-artifacts-dir
 
 # Run this project's tests using pytest
 [group("python")]
-[group("test")]
 test-python:
     just execute-bash-script test_python
 

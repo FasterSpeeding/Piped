@@ -13,8 +13,8 @@ on:
       - master
   workflow_call:
     inputs:
-      rust-toolchain:
-        description: "If past, installed the specified rust toolchain for use during checks"
+      extra-installs:
+        description: "List of extra tools to install using Mise (i.e. Rust for builds)"
         default: ""
         required: false
         type: string
@@ -27,5 +27,5 @@ jobs:
       - name: Run type-check-python job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
-          install-args: ""
+          extra-installs: "${{ inputs.extra-installs }}"
           task-names: type-check-python

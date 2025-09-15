@@ -31,27 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 source $(dirname "$0")/shared.bash
 
-mise_install python uv pipx:black pipx:isort pipx:pycln pipx:sort-all
+mise_install rust
 
-EXIT_CODES=()
-
-echo "Running Black"
-black . || EXIT_CODES+=($?)
-
-echo "Running isort"
-isort . || EXIT_CODES+=($?)
-
-echo "Running Pycln"
-pycln --config pyproject.toml . || EXIT_CODES+=($?)
-
-echo "Running sort-all"
-sort-all || sort_all_exit_code+=($?)
-
-decide_exit ${EXIT_CODES[@]}
-
-# Sort-all will return 1 if it formatted any files
-if [[ "${sort_all_exit_code:-1}" -ne 1 ]]
-then
-    debug_echo "Sort-all failed"
-    exit "${sort_all_exit_code}"
-fi
+array=($@)
+cargo ${array[@]}
