@@ -94,7 +94,6 @@ if __name__ == "__main__":
         help="Recipes to ignore by name (can be a comma separate list)",
         action="extend",
         nargs="+",
-        default=(),
         type=comma_split,
     )
     parser.add_argument(
@@ -102,13 +101,12 @@ if __name__ == "__main__":
         help="Groups to exclude by name (can be a comma separate list)",
         action="extend",
         nargs="+",
-        default=(),
         type=comma_split,
     )
     parser.add_argument("groups", help="The prefix to match just tasks by", nargs="+")
     args = parser.parse_args()
 
-    excluded_groups = set(args.exclude_groups) | EXCLUDE_GROUPS
-    ignored_recipes = set(itertools.chain.from_iterable(args.ignore_recipes)) | IGNORE_RECIPES
+    excluded_groups = set(args.exclude_groups or ()) | EXCLUDE_GROUPS
+    ignored_recipes = set(itertools.chain.from_iterable(args.ignore_recipes or ())) | IGNORE_RECIPES
 
     just_call_by_groups(set(args.groups), excluded_groups=excluded_groups, ignored_recipes=ignored_recipes)
