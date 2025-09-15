@@ -97,7 +97,7 @@ if __name__ == "__main__":
         type=comma_split,
     )
     parser.add_argument(
-        "--exclude-group",
+        "--exclude-groups",
         help="Groups to exclude by name (can be a comma separate list)",
         action="extend",
         nargs="+",
