@@ -94,6 +94,7 @@ if __name__ == "__main__":
         help="Recipes to ignore by name (can be a comma separate list)",
         action="extend",
         nargs="+",
+        default=(),
         type=comma_split,
     )
     parser.add_argument(
@@ -101,6 +102,7 @@ if __name__ == "__main__":
         help="Groups to exclude by name (can be a comma separate list)",
         action="extend",
         nargs="+",
+        default=(),
         type=comma_split,
     )
     parser.add_argument("groups", help="The prefix to match just tasks by", nargs="+")
