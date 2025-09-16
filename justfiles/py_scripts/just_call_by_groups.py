@@ -33,6 +33,7 @@ import itertools
 import json
 import logging
 import os
+import sys
 import shutil
 import subprocess
 
@@ -51,6 +52,7 @@ if _JUST_LOCATION is None:
 
 
 def just_call_by_groups(search_groups: set[str], excluded_groups: set[str], ignored_recipes: set[str]) -> None:
+    failed = False
     _LOGGER.debug("Searching for just recipes tagged with the following groups: %s", search_groups)
 
     if ignored_recipes:
@@ -80,8 +82,17 @@ def just_call_by_groups(search_groups: set[str], excluded_groups: set[str], igno
             continue
 
         _LOGGER.info("Running task %r", recipe_name)
-        subprocess.call([_JUST_LOCATION, recipe_name])  # noqa: S603 - check for execution of untrusted input
+        try:
+            subprocess.run(  # noqa: S603 - check for execution of untrusted input
+                [_JUST_LOCATION, recipe_name], check=True) 
+
+        except subprocess.CalledProcessError:
+            failed = True
+
         print()  # Space out logging sections
+
+    sys.exit(int(failed))
+
 
 def comma_split(value: str) -> list[str]:
     return [v.strip() for v in value.split(",")]
