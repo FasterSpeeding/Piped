@@ -33,18 +33,11 @@ source $(dirname "$0")/shared.bash
 
 mise_install python uv pipx:pre-commit-hooks
 
-function check_justfile() {
-    just --fmt --check --unstable -f "$1"
-}
-
-EXIT_CODES=()
-
-echo "Running the following tools:"
-echo " * just --fmt --check --unsafe"
-echo " * pre-commit-hooks.check-json"
-echo " * pre-commit-hooks.check-toml"
-echo " * pre-commit-hooks.check-xml"
-echo " * pre-commit-hooks.and check-yaml"
+json_paths=()
+toml_paths=()
+xml_paths=()
+yaml_paths=()
+just_paths=()
 
 while read -rd $'\0' file_path
 do
@@ -54,12 +47,31 @@ do
     fi
 
     case "$(basename $file_path)" in
-        *.json) check-json "$file_path" || EXIT_CODES+=($?) ;;
-        *.toml) check-toml "$file_path" || EXIT_CODES+=($?) ;;
-        *.xml) check-xml "$file_path" || EXIT_CODES+=($?) ;;
-        *.yaml|*.yml) check-yaml "$file_path" || EXIT_CODES+=($?) ;;
-        *.just|justfile) check_justfile "$file_path" || EXIT_CODES+=($?) ;;
+        *.json) json_paths+=("$file_path") ;;
+        *.toml) toml_paths+=("$file_path") ;;
+        *.xml) xml_paths+=("$file_path") ;;
+        *.yaml|*.yml) yaml_paths+=("$file_path") ;;
+        *.just|justfile) just_paths+=("$file_path") ;;
     esac
 done < <(git grep --cached -Ilze '')
+
+
+EXIT_CODES=()
+
+echo "Running pre-commit-hooks.check-json over ${#json_paths[@]} files"
+echo "${json_paths[@]}" | xargs -n1 check-json || EXIT_CODES+=($?)
+
+echo "Running pre-commit-hooks.check-toml over ${#toml_paths[@]} files"
+echo "${toml_paths[@]}" | xargs -n1 check-toml || EXIT_CODES+=($?)
+
+echo "Running pre-commit-hooks.check-xml over ${#xml_paths[@]} files"
+echo "${xml_paths[@]}" | xargs -n1 check-xml || EXIT_CODES+=($?)
+
+echo "Running pre-commit-hooks.check-yaml over ${#yaml_paths[@]} files"
+echo "${yaml_paths[@]}" | xargs -n1 check-yaml || EXIT_CODES+=($?)
+
+echo "Running just --fmt --check --unsafe over ${#just_paths[@]} files"
+echo "${just_paths[@]}" | xargs -n1 just --fmt --check --unstable -f || EXIT_CODES+=($?)
+
 
 decide_exit ${EXIT_CODES[@]}

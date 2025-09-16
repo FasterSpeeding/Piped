@@ -81,7 +81,7 @@ def just_call_by_groups(search_groups: set[str], excluded_groups: set[str], igno
 
         _LOGGER.info("Running task %r", recipe_name)
         subprocess.call([_JUST_LOCATION, recipe_name])  # noqa: S603 - check for execution of untrusted input
-
+        print()  # Space out logging sections
 
 def comma_split(value: str) -> list[str]:
     return [v.strip() for v in value.split(",")]

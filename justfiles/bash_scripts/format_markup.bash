@@ -33,13 +33,7 @@ source $(dirname "$0")/shared.bash
 
 mise_install just
 
-function fmt_justfile() {
-    just --fmt --unstable -f "$1"
-}
-
-EXIT_CODES=()
-
-echo "Running just --fmt --unstable"
+just_paths=()
 
 while read -rd $'\0' file_path
 do
@@ -49,9 +43,13 @@ do
     fi
 
     case "$file_path" in
-        *".just"|"justfile") fmt_justfile "$file_path" || EXIT_CODES+=($?)
+        *".just"|"justfile") just_paths+=("$file_path") ;;
     esac
-
 done < <(git grep --cached -Ilze '')
+
+EXIT_CODES=()
+
+echo "Running just --fmt --unstable over ${#just_paths[@]} files"
+echo "${just_paths[@]}" | xargs -n1 just --fmt --unstable -f || EXIT_CODES+=($?)
 
 decide_exit ${EXIT_CODES[@]}

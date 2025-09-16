@@ -1,6 +1,5 @@
 import './global.just'
 
-
 # Reformat this project's rust files to fit the standard style
 [group("format")]
 [group("rust")]
