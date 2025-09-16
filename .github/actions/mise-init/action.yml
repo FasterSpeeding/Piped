@@ -25,5 +25,5 @@ runs:
     - name: Install Mise
       uses: jdx/mise-action@v2
       with:
-        install_args: "{{ inputs.install-args }}"
+        install_args: "${{ inputs.install-args }}"
         reshim: true
