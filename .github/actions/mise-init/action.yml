@@ -27,7 +27,7 @@ runs:
       run: |
         curl https://mise.run | sh
         echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
-        echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+        #echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
 
         mise trust
         mise install ${{ inputs.install-args }}
