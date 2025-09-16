@@ -72,7 +72,7 @@ format-markup:
 [group("misc")]
 [script]
 spell-check:
-    codespell
+    just execute-bash-script spell_check
 
 # Bump the end year of the project's licence to the current year
 [group("misc")]

@@ -89,7 +89,7 @@ def just_call_by_groups(match_groups: set[str], excluded_groups: set[str], ignor
             continue
 
         if excluded_groups := groups & excluded_groups:
-            _LOGGER.debug("Ignroing recipe %r, it has the following excluded groups: %s", recipe_name, excluded_groups)
+            _LOGGER.debug("Ignoring recipe %r, it has the following excluded groups: %s", recipe_name, excluded_groups)
 
         if recipe_name in ignored_recipes:
             _LOGGER.debug("Ignoring recipe %r, it's excluded by name", recipe_name)
@@ -109,7 +109,7 @@ def just_call_by_groups(match_groups: set[str], excluded_groups: set[str], ignor
 
 
 def comma_split(value: str) -> list[str]:
-    """Splits a string by commas and strips the values."""
+    """Split a string by commas and strips the values."""
     return [v.strip() for v in value.split(",")]
 
 
