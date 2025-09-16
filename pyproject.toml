@@ -12,6 +12,8 @@ dependencies = [
     "uvicorn",
     "uvloop; platform_system != 'Windows'",
 ]
+[dependency-groups]
+type-checking = []
 
 [tool.black]
 include = ".*pyi?$"
