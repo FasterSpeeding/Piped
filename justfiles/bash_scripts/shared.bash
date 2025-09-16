@@ -29,6 +29,8 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+set -eu
+
 function debug_echo() {
     if [[ -n "${JUST_TASKS_VERBOSE:-}" ]]
     then
@@ -56,7 +58,7 @@ function mise_install() {
         debug_echo "Ensuring dev dependencies"
         to_install=($@)
         mise install ${to_install[@]}
-        eval "$(mise activate zsh)"
+        eval "$(mise activate bash)"
     else
         debug_echo 'Skipping dev dependency installs as "$INSTALL_DEV_DEPS" not set'
     fi
