@@ -23,7 +23,9 @@ runs:
         ref: ${{ inputs.ref }}
 
     - name: Install Mise
-      uses: jdx/mise-action@v2
-      with:
-        install_args: "${{ inputs.install-args }}"
-        reshim: true
+      shell: bash
+      run: |
+        curl https://mise.run | sh
+        echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
+        mise trust
+        mise install ${{ inputs.install-args }}
