@@ -56,6 +56,7 @@ function mise_install() {
         debug_echo "Ensuring dev dependencies"
         to_install=($@)
         mise install ${to_install[@]}
+        eval "$(mise activate zsh)"
     else
         debug_echo 'Skipping dev dependency installs as "$INSTALL_DEV_DEPS" not set'
     fi
