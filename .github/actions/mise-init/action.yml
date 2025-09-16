@@ -27,3 +27,5 @@ runs:
         cache_save: false
         env: false
         install_args: "${{ inputs.install-args }}"
+        version: 2025.8.18
+
