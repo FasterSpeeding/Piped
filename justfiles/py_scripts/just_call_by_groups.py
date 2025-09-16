@@ -27,7 +27,7 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Execute detected Just jobs which have the specified grups."""
+"""Execute detected Just jobs which have the specified groups."""
 import argparse
 import itertools
 import json
@@ -51,9 +51,20 @@ if _JUST_LOCATION is None:
     raise RuntimeError(error_message)
 
 
-def just_call_by_groups(search_groups: set[str], excluded_groups: set[str], ignored_recipes: set[str]) -> None:
+def just_call_by_groups(match_groups: set[str], excluded_groups: set[str], ignored_recipes: set[str]) -> None:
+    """Execute Just recipes which have the specified match groups.
+
+    Parameters
+    ----------
+    match_groups
+        Execute recipes which have all of the match groups attached.
+    excluded_groups
+        Ignore recipes with any of these excluded groups attached.
+    ignored_recipes
+        Set of names of specific recipes to ignore.
+    """
     failed = False
-    _LOGGER.debug("Searching for just recipes tagged with the following groups: %s", search_groups)
+    _LOGGER.debug("Searching for just recipes tagged with the following groups: %s", match_groups)
 
     if ignored_recipes:
         _LOGGER.debug("With the following recipes being excluded: %s", ignored_recipes)
@@ -73,9 +84,12 @@ def just_call_by_groups(search_groups: set[str], excluded_groups: set[str], igno
     for recipe_name, recipe in json.loads(output.stdout)["recipes"].items():
         groups = {attr["group"] for attr in recipe["attributes"] if "group" in attr}
 
-        if missing_groups := search_groups - groups:
+        if missing_groups := match_groups - groups:
             _LOGGER.debug("Ignoring recipe %r, missing the following groups: %s", recipe_name, missing_groups)
             continue
+
+        if excluded_groups := groups & excluded_groups:
+            _LOGGER.debug("Ignroing recipe %r, it has the following excluded groups: %s", recipe_name, excluded_groups)
 
         if recipe_name in ignored_recipes:
             _LOGGER.debug("Ignoring recipe %r, it's excluded by name", recipe_name)
@@ -84,17 +98,18 @@ def just_call_by_groups(search_groups: set[str], excluded_groups: set[str], igno
         _LOGGER.info("Running task %r", recipe_name)
         try:
             subprocess.run(  # noqa: S603 - check for execution of untrusted input
-                [_JUST_LOCATION, recipe_name], check=True) 
+                [_JUST_LOCATION, recipe_name], check=True)
 
         except subprocess.CalledProcessError:
             failed = True
 
-        print()  # Space out logging sections
+        print()  # Space out logging sections  # noqa: T201 print found
 
     sys.exit(int(failed))
 
 
 def comma_split(value: str) -> list[str]:
+    """Splits a string by commas and strips the values."""
     return [v.strip() for v in value.split(",")]
 
 
