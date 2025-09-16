@@ -22,10 +22,9 @@ runs:
         repository: ${{ inputs.repository }}
         ref: ${{ inputs.ref }}
 
-    - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # 3.2.0
-      with:
-        cache_save: false
-        env: false
-        install_args: "${{ inputs.install-args }}"
-        version: 2025.8.18
-
+    - name: Install Mise
+      shell: bash
+      run: |
+        curl https://mise.run | sh
+        echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
+        echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
