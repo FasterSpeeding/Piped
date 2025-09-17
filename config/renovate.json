@@ -4,9 +4,10 @@
     {
       "customType": "jsonata",
       "datasourceTemplate": "git-refs",
+      "extractVersionTemplate": "^([^#])#",
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[registry.($ref := $split(reference, '#', 2); { 'currentDigest': ($ref)[1], 'currentValue': ($ref)[0], 'depName': repository })]"]
+      "matchStrings": ["[registry.($ref := $split(reference, '#', 2); { 'currentDigest': ($ref)[1], 'currentValue': reference, 'depName': repository })]"]
     }
   ],
   "extends": [
