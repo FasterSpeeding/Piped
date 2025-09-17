@@ -1,5 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "fileFormat": "toml",
+      "managerFilePatterns": ["/tracked_modules.toml/"],
+      "matchStrings": ["[registries.{ 'currentValueTemplate': commit_digest, 'depName': repository }]"],
+      "datasourceTemplate": "git-refs"
+    }
+  ],
   "extends": [
     "config:best-practices",
     ":maintainLockFilesWeekly"
@@ -7,19 +16,13 @@
   "git-submodules": {
     "enabled": true
   },
+  "mise": {
+    "pinDigests": false
+  },
+  "osvVulnerabilityAlerts": true,
   "pinDigests": true,
   "timezone": "Europe/Dublin",
-  "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true
-  },
-  "customManagers": [
-    {
-      "customType": "jsonata",
-      "fileFormat": "toml",
-      "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[registries.{ 'currentValueTemplate': branch ? branch : 'master', 'depName': repository, 'extractVersion': commit_digest }]"],
-      "datasourceTemplate": "git-refs"
-    }
-  ]
+  }
 }
