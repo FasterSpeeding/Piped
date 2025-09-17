@@ -4,10 +4,17 @@
     {
       "customType": "jsonata",
       "datasourceTemplate": "git-refs",
-      "extractVersionTemplate": "^([^#])#",
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[registry.($ref := $split(reference, '#', 2); { 'currentDigest': ($ref)[1], 'currentValue': reference, 'depName': repository })]"]
+      "matchStrings": ["[{ 'currentDigest': digest, 'currentValue': branch, 'packageName': repository }]"]
+    },
+    {
+      "currentValueTemplate": "master",
+      "customType": "regex",
+      "datasourceTemplate": "git-refs",
+      "managerFilePatterns": ["/^tracked_modules.ini$/"],
+      "matchStrings": ["PIPED_VERSION=(?<currentDigest>.*?)\\n"],
+      "packageNameTemplate": "https://github.com/FasterSpeeding/Piped"
     }
   ],
   "extends": [
