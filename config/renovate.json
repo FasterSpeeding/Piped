@@ -11,10 +11,10 @@
     {
       "currentValueTemplate": "master",
       "customType": "regex",
-      "datasourceTemplate": "git-refs"
+      "datasourceTemplate": "git-refs",
       "managerFilePatterns": ["/^tracked_modules.ini$/"],
       "matchStrings": ["PIPED_VERSION=(?<currentDigest>.*?)\\n"],
-      "packageNameTemplate": "https://github.com/FasterSpeeding/Piped",
+      "packageNameTemplate": "https://github.com/FasterSpeeding/Piped"
     }
   ],
   "extends": [
