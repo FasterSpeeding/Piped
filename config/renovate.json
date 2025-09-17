@@ -12,5 +12,14 @@
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
     "enabled": true
-  }
+  },
+  "customManagers": [
+    {
+      "customType": "jsonata",
+      "fileFormat": "toml",
+      "managerFilePatterns": ["/tracked_modules.toml/"],
+      "matchStrings": ["[registries.{ 'currentValue': branch ? branch : 'master', 'depName': repository, 'currentDigest': commit_digest }]"],
+      "datasourceTemplate": "git-refs"
+    }
+  ]
 }
