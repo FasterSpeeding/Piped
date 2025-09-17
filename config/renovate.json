@@ -6,7 +6,7 @@
       "datasourceTemplate": "git-refs",
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[{ 'currentDigest': digest, 'currentValue': branch, 'depName': repository }]"]
+      "matchStrings": ["[{ 'currentDigest': digest, 'currentValue': branch, 'packageName': repository }]"]
     },
     {
       "currentValueTemplate": "master",
