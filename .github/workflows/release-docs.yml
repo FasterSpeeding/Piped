@@ -16,18 +16,13 @@ on:
 
 jobs:
   publish-docs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run generate-docs job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
-          submodules: "true"
-
-      - name: Run generate-docs session
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: generate-docs -- -o ./artifacts/site -j
+          task-names: generate-docs
 
       - name: Push
         uses: JamesIves/github-pages-deploy-action@6c2d9db40f9296374acc17b90404b6e8864128c8 # v4.7.3

@@ -1,7 +1,7 @@
 name: Build Container
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-v2
   cancel-in-progress: true
 
 on:
@@ -60,7 +60,7 @@ env:
 
 jobs:
   set-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
 
@@ -79,7 +79,7 @@ jobs:
 
   build:
     strategy:
-      matrix: 
+      matrix:
         build-config: ${{ fromJSON(needs.set-matrix.outputs.matrix) }}
 
     needs: [set-matrix]
@@ -230,12 +230,14 @@ jobs:
           podman manifest create "$manifest_tag"
           echo "${{ steps.metadata.outputs.tags }}" | xargs -I {} podman tag "$manifest_tag" {}
 
-          while read -r -d $'\0' image_path; do
+          while read -rd $'\0' image_path
+          do
             echo "Decompressing OCI archive $image_path"
             xz -d "$image_path"
           done < <(find "${{ env.OCI_STORAGE_DIR }}/" -type f -name "*.oci.xz" -print0)
 
-          while read -r -d $'\0' image_path; do
+          while read -rd $'\0' image_path
+          do
             echo "Adding $image_path to manifest"
             podman manifest add "$manifest_tag" "oci-archive:$image_path"
           done < <(find "${{ env.OCI_STORAGE_DIR }}/" -type f -name "*.oci" -print0)

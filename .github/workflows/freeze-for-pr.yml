@@ -1,7 +1,7 @@
 name: Freeze PR dependency changes
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-v2
   cancel-in-progress: true
 
 on:
@@ -13,18 +13,13 @@ on:
 
 jobs:
   freeze-pr-dep-changes:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run combine-coverage job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
-          submodules: "true"
-
-      - name: Upgrade dependency locks
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: freeze-locks bot-package-diff
+          task-names: freeze-locks save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@task/justfile

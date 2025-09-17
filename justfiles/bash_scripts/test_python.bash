@@ -1,3 +1,5 @@
+#!/usr/bin/env bash set -eu
+
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2025, Faster Speeding
@@ -27,11 +29,39 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Development tasks implemented by Piped."""
+source $(dirname "$0")/shared.bash
 
-import pathlib
-import sys
+target_xml="$ARTIFACTS_DIR/coverage.xml"
+target_html="$ARTIFACTS_DIR/coverage_html"
+target_report="$ARTIFACTS_DIR/.coverage"
 
-sys.path.insert(0, str(pathlib.Path("./piped/python").absolute()))
+if [[ -n "${TEST_PYTHON_VERSION:-}" ]]
+then
+    debug_echo "Installing Python $TEST_PYTHON_VERSION"
+    mise_install "python@$TEST_PYTHON_VERSION" uv
+else
+    debug_echo "Installing project default Python version"
+    mise_install python uv
+fi
 
-from noxfile import *
+if [[ -n "${TRACK_COVERAGE:-}" ]]
+then
+    echo "Running pyright with coverage"
+
+    uv run --group=test pytest \
+        -n auto \
+        --cov "$PYTHON_PROJECT_NAME" \
+        --cov-report term \
+        --cov-report "xml:$target_xml" \
+        --cov-report "html:$target_html"
+
+    rm -f "$target_report"
+    mv "./.coverage" "$target_report"
+
+    debug_echo "XML coverage report saved to $target_xml"
+    debug_echo "HTML coverage report saved to $target_html"
+    debug_echo ".coverage file saved to $target_report"
+else
+    echo "Running pyright"
+    uv run --group=test pytest -n auto --import-mode importlib
+fi

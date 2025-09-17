@@ -1,3 +1,5 @@
+#!/usr/bin/env bash set -eu
+
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2025, Faster Speeding
@@ -27,12 +29,29 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Utility library used by Piped."""
+source $(dirname "$0")/shared.bash
 
-from __future__ import annotations
+mise_install python uv pipx:black pipx:isort pipx:pycln pipx:sort-all
 
-__all__ = ["Config", "ConfigEntryT", "ConfigT"]
+EXIT_CODES=()
 
-from .config import Config
-from .config import ConfigEntryT
-from .config import ConfigT
+echo "Running Black"
+black . || EXIT_CODES+=($?)
+
+echo "Running isort"
+isort . || EXIT_CODES+=($?)
+
+echo "Running Pycln"
+pycln --config pyproject.toml . || EXIT_CODES+=($?)
+
+echo "Running sort-all"
+sort-all || sort_all_exit_code+=($?)
+
+decide_exit ${EXIT_CODES[@]}
+
+# Sort-all will return 1 if it formatted any files
+if [[ "${sort_all_exit_code:-1}" -ne 1 ]]
+then
+    debug_echo "Sort-all failed"
+    exit "${sort_all_exit_code}"
+fi

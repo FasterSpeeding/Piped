@@ -2,9 +2,7 @@
 name = "piped"
 requires-python = ">=3.11"
 version = "0.1.0"
-
-[dependency-groups]
-bot = [
+dependencies = [
     "asgiref",
     "fastapi",
     "httpx[http2]",
@@ -14,30 +12,8 @@ bot = [
     "uvicorn",
     "uvloop; platform_system != 'Windows'",
 ]
-coverage = ["coverage[toml]"]
-freeze-locks = ["uv"]
-lint = [
-    "codespell>=2.2.2",
-    "pre-commit-hooks>=4.4",
-    "slotscheck>=0.16.1",
-    "ruff",
-]
-publish = ["flit>=3.8.0"]
-reformat = [
-    "black>=22.10.0",
-    "isort>=5.11.3",
-    "pre-commit-hooks>=4.4",
-    "pycln>=2.1.2",
-    "sort-all>=1.2",
-]
-templating = ["Jinja2>=3.1.2"]
-type-checking = [
-    "mypy>=0.991",
-    "nox",
-    "pyright>=1.1.285",
-    {include-group = "bot"},
-    {include-group = "templating"},
-]
+[dependency-groups]
+type-checking = []
 
 [tool.black]
 include = ".*pyi?$"
@@ -80,16 +56,6 @@ ignore = [
     "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
     "PT017",   # Found assertion on exception `exc` in `except` block, use `pytest.raises()` instead
 ]
-"noxfile.py" = [
-    "F403",    # `from noxfile import *` used; unable to detect undefined name
-]
-"python/*.py" = [
-    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
-]
-"python/noxfile.template.py" = [
-    "F403",    # `from noxfile import *` used; unable to detect undefined name
-    "INP001",  # File `` is part of an implicit namespace package. Add an `__init__.py`.
-]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 20
@@ -127,19 +93,8 @@ warn_redundant_casts = false
 allow_redefinition = true
 disable_error_code = ["type-abstract"]
 
-[tool.piped]
-codespell_ignore = "PullRequest"
-default_sessions = ["reformat", "verify-markup", "lint", "spell-check", "type-check"]
-hide = ["build", "fetch-piped", "publish", "slot-check", "test", "test-publish", "test-coverage"]
-path_ignore = "github\\/actions\\/.+.yml|github\\/workflows\\/.+.yml"  # TODO: only ignore for verify-markup
-top_level_targets = ["./bot", "./noxfile.py", "./python"]
-version_constraint = "3.11"
-
-[tool.piped.extra_installs]
-type_check = ["./python"]
-
 [tool.pyright]
-include = ["bot/main.py", "noxfile.py", "python"]
+include = ["bot/main.py", "justfiles/py_scripts/*.py"]
 
 pythonVersion = "3.11"
 typeCheckingMode = "strict"

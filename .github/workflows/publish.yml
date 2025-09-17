@@ -6,22 +6,17 @@ on:
 jobs:
   publish:
     name: upload release to PyPI
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: release
 
     permissions:
       id-token: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run build-python job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
-          submodules: "true"
-
-      - name: Run build session
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: build
+          task-names: build-python
 
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0

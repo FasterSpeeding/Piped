@@ -1,42 +1,21 @@
 name: Run Rustfmt
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-v2
   cancel-in-progress: true
 
 on:
   workflow_call:
-    inputs:
-      rust-toolchain:
-        description: "The rust toolchain to install"
-        default: "stable"
-        required: false
-        type: string
 
 jobs:
   rustfmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run rustfmt
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
-          submodules: "true"
-
-      - name: Install Rustfmt
-        uses: actions-rust-lang/setup-rust-toolchain@2fcdc490d667999e01ddbbf0f2823181beef6b39 # v1.15.0
-        with:
-            components: rustfmt
-            toolchain: ${{ inputs.rust-toolchain }}
-
-      - name: Reformat
-        run: |
-          set +o pipefail
-
-          cargo +nightly fmt
-
-      - name: Check repository diff
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: bot-package-diff
+          install-args: "cargo just python"
+          task-names: type-check save-diff
 
       - name: Check diff file
         uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master

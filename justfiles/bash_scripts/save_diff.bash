@@ -1,3 +1,5 @@
+#!/usr/bin/env bash set -eu
+
 # BSD 3-Clause License
 #
 # Copyright (c) 2020-2025, Faster Speeding
@@ -27,11 +29,26 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""Development tasks implemented by Piped."""
+source $(dirname "$0")/shared.bash
 
-import pathlib
-import sys
+diff=$(git diff HEAD)
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent / "python"))
+if [[ -n "$diff" ]]
+then
+    echo "Diff detected"
+fi
 
-from noxfile import *
+for path in $(echo "$DIFF_FILE_PATHS")
+do
+    if [[ -n "$diff" ]]
+    then
+        debug_echo "Saving package diff to $path"
+        echo "$diff">| "$path"
+    elif [[ -e "$path" ]]
+    then
+        debug_echo "Removing saved package diff at $path"
+        unlink "$path"
+    else
+        debug_echo "No diff to save to $path"
+    fi
+done

@@ -1,7 +1,7 @@
 name: Lint
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-v2
   cancel-in-progress: true
 
 on:
@@ -12,26 +12,15 @@ on:
     branches:
       - master
   workflow_call:
-    inputs:
-      sessions:
-        description: "Space separated array of the linting Nox sessions to run"
-        required: true
-        type: string
-
-env:
-  SESSIONS: ${{ inputs.sessions || 'verify-markup spell-check lint' }}
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run lint job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
+        env:
+          EXCLUDE_GROUPS: rust
+          IGNORE_RECIPES: type-check-python
         with:
-          submodules: "true"
-
-      - name: Run Nox linting sessions
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: ${{ env.SESSIONS }}
+          task-names: lint

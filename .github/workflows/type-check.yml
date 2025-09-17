@@ -1,7 +1,7 @@
 name: Type check
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-v2
   cancel-in-progress: true
 
 on:
@@ -13,29 +13,19 @@ on:
       - master
   workflow_call:
     inputs:
-      rust-toolchain:
-        description: "If past, installed the specified rust toolchain for use during checks"
+      extra-installs:
+        description: "List of extra tools to install using Mise (i.e. Rust for builds)"
         default: ""
         required: false
         type: string
 
 jobs:
   type-check:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Run type-check-python job
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
         with:
-          submodules: "true"
-
-      - name: Install Rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@2fcdc490d667999e01ddbbf0f2823181beef6b39 # v1.15.0
-        if: inputs.rust-toolchain != ''
-        with:
-            toolchain: ${{ inputs.rust-toolchain }}
-
-      - name: Run type-check session
-        uses: FasterSpeeding/Piped/.github/actions/nox-sessions@master
-        with:
-          nox-sessions: type-check
+          extra-installs: "${{ inputs.extra-installs }}"
+          task-names: type-check-python
