@@ -3,12 +3,10 @@
   "customManagers": [
     {
       "customType": "jsonata",
-      "currentValue": "",
       "datasourceTemplate": "git-refs",
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[registries.{ 'currentValue': commit_digest, 'depName': repository }]"],
-      "versioningTemplate": "git"
+      "matchStrings": ["[registry.($ref := $split(reference, '#', 2); { 'currentDigest': ($ref)[1], 'currentValue': ($ref)[0], 'depName': repository })]"]
     }
   ],
   "extends": [
