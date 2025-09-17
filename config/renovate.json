@@ -7,7 +7,7 @@
       "datasourceTemplate": "git-refs",
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[registries.{ 'currentDigest': commit_digest, 'currentValue': branch, 'depName': repository }]"]
+      "matchStrings": ["[registries.{ 'currentValue': commit_digest, 'depName': repository }]"]
     }
   ],
   "extends": [
