@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Run test job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         env:
           TEST_PYTHON_VERSION: "${{ matrix.python-version }}"
         with:
@@ -70,7 +70,7 @@ jobs:
           path: ./artifacts/coverage/
 
       - name: Run combine-coverage job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
           task-names: combine-coverage
 

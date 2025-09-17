@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Run verify-types job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
           extra-installs: "${{ inputs.extra-installs }}"
           task-names: verify-types

@@ -12,6 +12,6 @@ runs:
           gogo.patch
 
     - name: Run type-check job
-      uses: FasterSpeeding/Piped/.github/actions/just-jobs@task/justfile
+      uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
       with:
         task-names: check-diff-file
