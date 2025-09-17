@@ -8,7 +8,7 @@
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
       "matchStrings": ["[registries.{ 'currentValue': commit_digest, 'depName': repository }]"],
-      "versioning": "git"
+      "versioningTemplate": "git"
     }
   ],
   "extends": [
