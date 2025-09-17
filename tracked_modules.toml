@@ -1,4 +1,3 @@
 [[registries]]
-branch = "master"
-commit_digest = "842a3647879e085cdbd6378f36901da152d6de8c"
+commit_digest = "842a3647879e085cdbd6378f36901da152d6de8c"  # @master
 repository = "https://github.com/FasterSpeeding/Piped.git"
