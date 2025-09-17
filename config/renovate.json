@@ -18,7 +18,7 @@
       "customType": "jsonata",
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[registries.{ 'currentValue': branch ? branch : 'master', 'depName': repository, 'currentDigest': commit_digest }]"],
+      "matchStrings": ["[registries.{ 'currentValueTemplate': branch ? branch : 'master', 'depName': repository, 'currentDigest': commit_digest }]"],
       "datasourceTemplate": "git-refs"
     }
   ]
