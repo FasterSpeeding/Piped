@@ -3,10 +3,11 @@
   "customManagers": [
     {
       "customType": "jsonata",
+      "currentValue": "",
+      "datasourceTemplate": "git-refs",
       "fileFormat": "toml",
       "managerFilePatterns": ["/tracked_modules.toml/"],
-      "matchStrings": ["[registries.{ 'currentValueTemplate': commit_digest, 'depName': repository }]"],
-      "datasourceTemplate": "git-refs"
+      "matchStrings": ["[registries.{ 'currentDigest': commit_digest, 'currentValue', branch, 'depName': repository }]"]
     }
   ],
   "extends": [
