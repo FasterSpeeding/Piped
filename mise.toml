@@ -4,7 +4,7 @@ node = "24"
 python = "3"
 # CLI tools
 # Black has to be installed from PyPi to support their ARM fallback to pure-python.
-"pipx:black" = "25.1.0"
+"pipx:black" = "25.9.0"
 "pipx:codespell" = "2.4.1"
 "pipx:flit" = "3.12.0"
 "pipx:isort" = "6.0.1"
