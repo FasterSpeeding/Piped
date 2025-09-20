@@ -34,7 +34,7 @@ jobs:
 
       - name: Run generate-docs job
         if: github.event.action != 'closed'
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ env.GITHUB_ACTION_REF }}
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ steps.write-github-action-ref.github-action-ref }}
         with:
           task-names: generate-docs
           ref: ${{ github.event.pull_request.head.sha }}
@@ -49,4 +49,4 @@ jobs:
           source-dir: ./artifacts/site/
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ env.GITHUB_ACTION_REF }}
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ steps.write-github-action-ref.github-action-ref }}

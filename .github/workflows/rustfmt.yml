@@ -17,10 +17,10 @@ jobs:
           install-args: rust
 
       - name: Run rustfmt
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ env.GITHUB_ACTION_REF }}
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ steps.write-github-action-ref.github-action-ref }}
         with:
           install-args: "cargo just python"
           task-names: type-check save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ env.GITHUB_ACTION_REF }}
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ steps.write-github-action-ref.github-action-ref }}

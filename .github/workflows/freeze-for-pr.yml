@@ -22,9 +22,9 @@ jobs:
           install-args: rust
 
       - name: Run combine-coverage job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ env.GITHUB_ACTION_REF }}
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ steps.write-github-action-ref.github-action-ref }}
         with:
           task-names: freeze-locks save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ env.GITHUB_ACTION_REF }}
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ steps.write-github-action-ref.github-action-ref }}

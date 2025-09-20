@@ -23,7 +23,7 @@ jobs:
           install-args: rust
 
       - name: Run lint job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ env.GITHUB_ACTION_REF }}
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ steps.write-github-action-ref.github-action-ref }}
         env:
           EXCLUDE_GROUPS: rust
           IGNORE_RECIPES: type-check-python
