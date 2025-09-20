@@ -27,9 +27,14 @@ jobs:
       pull-requests: write
 
     steps:
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/get-action-ref@master
+        with:
+          install-args: rust
+
       - name: Run generate-docs job
         if: github.event.action != 'closed'
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ github.action_ref }}
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ env.GITHUB_ACTION_REF }}
         with:
           task-names: generate-docs
           ref: ${{ github.event.pull_request.head.sha }}
@@ -44,4 +49,4 @@ jobs:
           source-dir: ./artifacts/site/
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ github.action_ref }}
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ env.GITHUB_ACTION_REF }}

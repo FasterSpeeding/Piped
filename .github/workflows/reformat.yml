@@ -15,10 +15,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/get-action-ref@master
+        with:
+          install-args: rust
+
       - name: Run format jobs
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ github.action_ref }}
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ env.GITHUB_ACTION_REF }}
         with:
           task-names: format save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ github.action_ref }}
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ env.GITHUB_ACTION_REF }}

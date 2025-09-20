@@ -17,8 +17,13 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/get-action-ref@master
+        with:
+          install-args: rust
+
       - name: Run lint job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ github.action_ref }}
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ env.GITHUB_ACTION_REF }}
         env:
           EXCLUDE_GROUPS: rust
           IGNORE_RECIPES: type-check-python

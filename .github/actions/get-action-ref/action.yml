@@ -1,0 +1,11 @@
+name: "Write GITHUB_ACTION_REF"
+description: "Write GITHUB_ACTION_REF environment var"
+
+runs:
+  using: composite
+  steps:
+    - name: Write GITHUB_ACTION_REF
+      shell: bash
+      run: echo "GITHUB_ACTION_REF=$GITHUB_ACTION_REF" >>> $GITHUB_ENV
+      env:
+        GITHUB_ACTION_REF: ${{ github.action_ref }}
