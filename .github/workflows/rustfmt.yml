@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run rustfmt
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ github.action_ref }}
         with:
           install-args: "cargo just python"
           task-names: type-check save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ github.action_ref }}

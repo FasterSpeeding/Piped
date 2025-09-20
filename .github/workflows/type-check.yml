@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Run type-check-python job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ github.action_ref }}
         with:
           extra-installs: "${{ inputs.extra-installs }}"
           task-names: type-check-python

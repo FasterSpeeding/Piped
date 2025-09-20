@@ -16,9 +16,9 @@ jobs:
 
     steps:
       - name: Run format jobs
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ github.action_ref }}
         with:
           task-names: format save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ github.action_ref }}

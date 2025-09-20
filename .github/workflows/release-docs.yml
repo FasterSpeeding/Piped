@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Run generate-docs job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ github.action_ref }}
         with:
           task-names: generate-docs
 
