@@ -3,6 +3,10 @@ description: "Write GITHUB_ACTION_REF environment var"
 
 runs:
   using: composite
+
+  matrix:
+    github-action-ref:
+
   steps:
     - name: Write GITHUB_ACTION_REF
       shell: bash

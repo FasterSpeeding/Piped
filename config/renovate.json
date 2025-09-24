@@ -13,7 +13,7 @@
       "customType": "regex",
       "datasourceTemplate": "git-refs",
       "managerFilePatterns": ["/^tracked_modules.ini$/"],
-      "matchStrings": ["PIPED_VERSION=(?<currentDigest>.*?)\\n"],
+      "matchStrings": ["/^PIPED_VERSION=(?<currentDigest>.*?)$/m"],
       "packageNameTemplate": "https://github.com/FasterSpeeding/Piped"
     }
   ],
