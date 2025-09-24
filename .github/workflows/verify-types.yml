@@ -18,8 +18,13 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/get-action-ref@master
+        with:
+          install-args: rust
+
       - name: Run verify-types job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ steps.write-github-action-ref.github-action-ref }}
         with:
           extra-installs: "${{ inputs.extra-installs }}"
           task-names: verify-types

@@ -16,10 +16,15 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/get-action-ref@master
+        with:
+          install-args: rust
+
       - name: Run combine-coverage job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped/.github/actions/just-jobs@${{ steps.write-github-action-ref.github-action-ref }}
         with:
           task-names: freeze-locks save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master
+        uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@${{ steps.write-github-action-ref.github-action-ref }}
