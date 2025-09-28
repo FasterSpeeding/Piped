@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Initialise environment with Mise
-        uses: FasterSpeeding/Piped-actions/.github/actions/mise-init@0fe2083f6143f29930887f52650eaffe49d06b9c
+        uses: FasterSpeeding/Piped-actions/.github/actions/mise-init@b0ba6390b6335fb7cf2c1f35a958f98f80195959
         with:
           install-args: rust
 
