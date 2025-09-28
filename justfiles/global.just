@@ -17,6 +17,11 @@ export DIFF_FILE_PATHS := ARTIFACTS_DIR + "/gogo.patch ./gogo.patch"
 check-diff-file:
     just execute-bash-script check_diff_file
 
+# Default command
+[default]
+default:
+    just --list
+
 # Internal function used for executing bash script tasks
 [private]
 [script]
