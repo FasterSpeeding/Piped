@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Run verify-types job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@0fe2083f6143f29930887f52650eaffe49d06b9c
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@b0ba6390b6335fb7cf2c1f35a958f98f80195959
         with:
           extra-installs: "node python npm:pyright ${{ inputs.extra-installs }}"
           task-names: verify-types
