@@ -23,4 +23,5 @@ jobs:
           EXCLUDE_GROUPS: rust
           IGNORE_RECIPES: type-check-python
         with:
+          extra-installs: node python uv
           task-names: lint

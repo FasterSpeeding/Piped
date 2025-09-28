@@ -7,7 +7,7 @@ inputs:
     required: true
   extra-installs:
     description: "List of extra tools to install alongside Just using mise"
-    default: "just"
+    default: ""
     required: false
   repository:
     description: "The repository's name"
@@ -22,7 +22,7 @@ runs:
     - name: Initialise environment with Mise
       uses: FasterSpeeding/Piped/.github/actions/mise-init@master
       with:
-        install-args: "${{ inputs.extra-installs }}"
+        install-args: "just ${{ inputs.extra-installs }}"
         repository: ${{ inputs.repository }}
         ref: ${{ inputs.ref }}
 

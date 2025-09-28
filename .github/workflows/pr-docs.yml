@@ -31,6 +31,7 @@ jobs:
         if: github.event.action != 'closed'
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
+          extra-installs: python uv
           task-names: generate-docs
           ref: ${{ github.event.pull_request.head.sha }}
           repository: ${{ github.event.pull_request.head.repo.full_name }}
