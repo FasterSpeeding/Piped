@@ -11,11 +11,14 @@ jobs:
   rustfmt:
     runs-on: ubuntu-latest
     steps:
-      - name: Run rustfmt
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+      - name: Initialise environment with Mise
+        uses: FasterSpeeding/Piped/.github/actions/mise-init@master
         with:
-          install-args: "cargo just python"
-          task-names: type-check save-diff
+          install-args: rust cargo
+
+      - name: Run rustfmt
+        shell: bash
+        run: cargo fmt
 
       - name: Check diff file
         uses: FasterSpeeding/Piped/.github/actions/handle-diff-file@master

@@ -22,6 +22,7 @@ jobs:
       - name: Run generate-docs job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
+          extra-installs: python uv
           task-names: generate-docs
 
       - name: Push

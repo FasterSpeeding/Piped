@@ -8,7 +8,7 @@ on:
   workflow_call:
     inputs:
       extra-installs:
-        description: "List of extra tools to install using Mise (i.e. Rust for builds)"
+        description: "List of extra tools to install using Mise alongside Python (i.e. Rust for builds)"
         default: ""
         required: false
         type: string
@@ -39,7 +39,7 @@ jobs:
         env:
           TEST_PYTHON_VERSION: "${{ matrix.python-version }}"
         with:
-          extra-installs: "${{ inputs.extra-installs }}"
+          extra-installs: "python@${{ matrix.python-version }} uv ${{ inputs.extra-installs }}"
           task-names: test-python-cov
 
       - name: Create coverage artifacts
@@ -72,6 +72,7 @@ jobs:
       - name: Run combine-coverage job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
+          extra-installs: python uv
           task-names: combine-coverage
 
       - name: Upload coverage to codecov

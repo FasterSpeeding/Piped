@@ -8,7 +8,7 @@ on:
   workflow_call:
     inputs:
       extra-installs:
-        description: "List of extra tools to install using Mise (i.e. Rust for builds)"
+        description: "List of extra tools to install using Mise alongside Python (i.e. Rust for builds)"
         default: ""
         required: false
         type: string
@@ -21,5 +21,5 @@ jobs:
       - name: Run verify-types job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
-          extra-installs: "${{ inputs.extra-installs }}"
+          extra-installs: "node python npm:pyright ${{ inputs.extra-installs }}"
           task-names: verify-types

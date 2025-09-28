@@ -16,6 +16,7 @@ jobs:
       - name: Run build-python job
         uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
         with:
+          extra-installs: python uv pipx:flit
           task-names: build-python
 
       - name: Publish package distributions to PyPI
