@@ -223,6 +223,7 @@ jobs:
 
       - name: Create manifest
         id: load-images
+        shell: bash
         run: |
           set +o pipefail
 
@@ -262,6 +263,7 @@ jobs:
         env:
           TAGS: ${{ steps.metadata.outputs.tags }}
           DIGEST: ${{ steps.push-image.outputs.digest }}
+          shell: bash
         run: |
           set +o pipefail
 

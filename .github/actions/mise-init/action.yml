@@ -29,3 +29,29 @@ runs:
         echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
         mise trust --all -q --silent
         mise install -q --silent ${{ inputs.install-args }}
+
+        echo "Exporting Mise env vars"
+
+        readarray -d $'\0' ignored < <(
+          mise env --redacted --json | jq -c --raw-output0 '. | keys_unsorted | .[]')
+
+        while read -r -d $'\0' key; read -r -d $'\0' value
+        do
+          skip=false
+          for ignored_key in "${ignored[@]}"
+          do
+            if [[ "$key" == "$ignored_key" ]]
+            then
+              skip=true
+              break
+            fi
+          done
+
+          if [[ $skip == false ]]
+          then
+            echo "Exporting env key: \$$key"
+            echo "$key=$value" >> "$GITHUB_ENV"
+          else
+            echo "Ignoring env key: $key"
+          fi
+        done < <(mise env --json | jq -c --raw-output0 '. | to_entries | map([.key, .value]) | flatten | .[]')
