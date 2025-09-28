@@ -55,6 +55,12 @@ execute-python-script script-name *FLAGS:
 lint-markup:
     just execute-bash-script lint_markup
 
+# Lint Renovate's config ("renovate.json5")
+[group("lint")]
+[group("misc")]
+lint-renovate:
+    just execute-bash-script lint_renovate
+
 # Run general (not file type specific) formatters over all the project's files
 [group("format")]
 [group("misc")]
