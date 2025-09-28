@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Run build-python job
-        uses: FasterSpeeding/Piped/.github/actions/just-jobs@master
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@0fe2083f6143f29930887f52650eaffe49d06b9c
         with:
           extra-installs: python uv pipx:flit
           task-names: build-python
