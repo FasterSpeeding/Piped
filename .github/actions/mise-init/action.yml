@@ -4,7 +4,7 @@ description: "Initialise an environment with the repository and Mise"
 inputs:
   install-args:
     description: "List of tools to install. If left blank all tooling is installed"
-    default: "just"
+    default: ""
     required: false
   repository:
     description: "The repository's name"
