@@ -33,4 +33,4 @@ runs:
       run: |
         set +o pipefail
 
-        mise shell bash -- just ${{ inputs.task-names }}
+        mise env -s bash | just ${{ inputs.task-names }}
