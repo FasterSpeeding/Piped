@@ -31,6 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 source $(dirname "$0")/shared.bash
 
-mise_install node, npm:renovate
+mise_install node npm:renovate
 
-renovate-config-validator
+renovate-config-validator --strict
