@@ -30,4 +30,4 @@ runs:
         mise trust --all -q --silent
         mise install -q --silent ${{ inputs.install-args }}
 
-        eval "$(mise activate bash)"
+        mise env -s bash >> GITHUB_ENV
