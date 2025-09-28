@@ -29,3 +29,5 @@ runs:
         echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
         mise trust --all -q --silent
         mise install -q --silent ${{ inputs.install-args }}
+
+        eval "$(mise activate bash)"
