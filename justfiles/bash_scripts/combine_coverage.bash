@@ -52,4 +52,4 @@ function combine_coverage() {
     debug_echo ".coverage file saved to $report_file"
 }
 
-uv run --group=test combine_coverage
+uv run --group=tests combine_coverage
