@@ -63,5 +63,5 @@ then
     debug_echo ".coverage file saved to $target_report"
 else
     echo "Running pyright"
-    uv run --group=test pytest -n auto --import-mode importlib
+    uv run --group=test pytests -n auto --import-mode importlib
 fi
