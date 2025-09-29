@@ -48,7 +48,7 @@ if [[ -n "${TRACK_COVERAGE:-}" ]]
 then
     echo "Running pyright with coverage"
 
-    uv run --group=test pytest \
+    uv run --group=tests pytest \
         -n auto \
         --cov "$PYTHON_PROJECT_NAME" \
         --cov-report term \
