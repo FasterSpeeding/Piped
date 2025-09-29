@@ -1,4 +1,4 @@
-import './global.just'
+import './python-locks.just'
 
 # The project name (e.g. top-level code file name for a Python project) used by some CICD tasks.
 
@@ -9,12 +9,6 @@ export PYTHON_PROJECT_NAME := env('PYTHON_PROJECT_NAME', '')
 [group("python")]
 format-python:
     just execute-bash-script format_python
-
-# Freeze the Python dependency locks
-[group("freeze locks")]
-[group("python")]
-freeze-locks-python:
-    just execute-bash-script freeze_python_locks
 
 # Run this project's python files against the pre-defined ruff linters
 [group("lint")]
