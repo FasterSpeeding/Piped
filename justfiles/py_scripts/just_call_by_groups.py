@@ -103,7 +103,8 @@ def just_call_by_groups(match_groups: set[str], excluded_groups: set[str], ignor
         except subprocess.CalledProcessError:
             failed = True
 
-        print()  # Space out logging sections  # noqa: T201 print found
+        finally:
+            print()  # Space out logging sections  # noqa: T201 print found
 
     sys.exit(int(failed))
 
