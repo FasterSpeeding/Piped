@@ -1,0 +1,30 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":maintainLockFilesWeekly"
+  ],
+  "git-submodules": {
+    "enabled": true
+  },
+  "mise": {
+    "pinDigests": false
+  },
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      // Renoate seemingly releases on basically every commit (including dependencies being bumped)
+      // To avoid unnecessary noise only update it on a monthly basis.
+      "matchPackageNames": ["npm:renovate"],
+      "extends": ["schedule:monthly"]
+    }
+  ],
+  "pinDigests": true,
+  "renovate-config-presets": {
+    "managerFilePatterns": ["/.+renovate.json5?$/"]
+  },
+  "timezone": "Europe/Dublin",
+  "vulnerabilityAlerts": {
+    "enabled": true
+  }
+}
