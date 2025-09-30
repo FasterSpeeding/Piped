@@ -2,10 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    ":maintainLockFilesWeekly"
+    ":maintainLockFilesWeekly",
+    "schedule:weekly"
   ],
   "git-submodules": {
-    "enabled": true
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
+  "github-actions": {
+    "schedule": ["at any time"]
   },
   "mise": {
     "pinDigests": false
