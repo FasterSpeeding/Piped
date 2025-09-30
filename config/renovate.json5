@@ -26,7 +26,10 @@
   ],
   "pinDigests": true,
   "renovate-config-presets": {
-    "managerFilePatterns": ["/renovate.json5?$/"]
+    "managerFilePatterns": [
+      "/renovate\\.json$/",
+      "/renovate\\.json5$/"
+    ]
   },
   "timezone": "Europe/Dublin",
   "vulnerabilityAlerts": {
