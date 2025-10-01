@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Run lint job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@d416335bc681127cce7ef6c4e95e335923d49e3f # 2025.09.29
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@302b7058f8f269825de6716d318281087ba46f18 # 2025.09.30
         env:
           EXCLUDE_GROUPS: rust
           IGNORE_RECIPES: type-check-python
