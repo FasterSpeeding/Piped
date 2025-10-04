@@ -31,5 +31,5 @@ jobs:
           EXCLUDE_GROUPS: rust
           IGNORE_RECIPES: type-check-python
         with:
-          extra-installs: node python uv pipx:codespell pipx:pre-commit-hooks npm:renovate
+          extra-installs: node python uv pipx:codespell pipx:pre-commit-hooks npm:renovate ${{ env.EXTRA_INSTALLS }}
           task-names: lint
