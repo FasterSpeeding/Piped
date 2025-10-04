@@ -31,8 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 source $(dirname "$0")/shared.bash
 
-mise_install python uv pipx:black pipx:isort pipx:pycln pipx:sort-all
-
 EXIT_CODES=()
 
 echo "Running Black"

@@ -29,9 +29,5 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-source $(dirname "$0")/shared.bash
-
-mise_install python uv pipx:pyright
-
 echo "Running pyright --verifytypes"
 uv run --group=type-checking pyright --verifytypes "$PYTHON_PROJECT_NAME" --ignoreexternal

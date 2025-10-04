@@ -31,8 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 source $(dirname "$0")/shared.bash
 
-mise_install python uv pipx:flit
-
 target_dir="$ARTIFACTS_DIR/dist"
 
 debug_echo "Building project using flit"

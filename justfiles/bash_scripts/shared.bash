@@ -51,6 +51,3 @@ function decide_exit() {
 
     return $final_code
 }
-
-function mise_install() {
-}

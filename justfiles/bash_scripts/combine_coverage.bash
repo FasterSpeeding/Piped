@@ -31,8 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 source $(dirname "$0")/shared.bash
 
-mise_install python uv
-
 function combine_coverage() {
     report_file="$ARTIFACTS_DIR/.coverage"
     xml_report="$ARTIFACTS_DIR/coverage.xml"

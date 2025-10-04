@@ -31,8 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 source $(dirname "$0")/shared.bash
 
-mise_install python uv pipx:pre-commit-hooks
-
 json_paths=()
 toml_paths=()
 xml_paths=()
