@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Initialise environment with Mise
-        uses: FasterSpeeding/Piped-actions/.github/actions/mise-init@d4ce2a3148ef6a58e108b8b3f806df97201eadf4 # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/mise-init@9e6c4eb46facc3cc1b4b86c5689d501fd18af2df # 2025.10.04
         with:
           install-args: rust cargo
 
@@ -21,4 +21,4 @@ jobs:
         run: cargo fmt
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@d4ce2a3148ef6a58e108b8b3f806df97201eadf4 # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@9e6c4eb46facc3cc1b4b86c5689d501fd18af2df # 2025.10.04
