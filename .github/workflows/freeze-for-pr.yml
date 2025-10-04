@@ -17,10 +17,10 @@ jobs:
 
     steps:
       - name: Run combine-coverage job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@cd354727662adb2afb8753e3bb8c2e47a08a74af # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@a719e3163df376cc2efb92e926814e234e0a0bbf # 2025.10.04
         with:
           extra-installs: python uv
           task-names: freeze-locks save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@cd354727662adb2afb8753e3bb8c2e47a08a74af # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@a719e3163df376cc2efb92e926814e234e0a0bbf # 2025.10.04
