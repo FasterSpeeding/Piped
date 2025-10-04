@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Run update-licence job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@318d51694193c463acbcd52cd5e48769ef8c7b65 # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@3d97ed97bec4e0204a7db53a5e07289ae555847c # 2025.10.04
         with:
           task-names: update-licence
 
