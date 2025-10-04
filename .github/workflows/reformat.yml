@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Run format jobs
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@3c5d8ed227ed211404e15efad8791666858222b4 # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@0166c8951268748da24b7d86ceb58aff200e0cb8 # 2025.10.04
         with:
           extra-installs: node python uv
           task-names: format save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@3c5d8ed227ed211404e15efad8791666858222b4 # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@0166c8951268748da24b7d86ceb58aff200e0cb8 # 2025.10.04
