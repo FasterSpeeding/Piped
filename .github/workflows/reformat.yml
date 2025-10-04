@@ -20,7 +20,7 @@ on:
         type: boolean
 
 env:
-  EXTRA_INSTALLS: "${{ inputs.is-workflow-call != true && 'pipx:black pipx:isort pipx:pycln' || inputs.extra-installs }}"
+  EXTRA_INSTALLS: "${{ inputs.is-workflow-call != true && 'pipx:black pipx:isort pipx:pycln pipx:sort-all' || inputs.extra-installs }}"
 
 jobs:
   reformat:
