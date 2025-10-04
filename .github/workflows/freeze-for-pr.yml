@@ -10,6 +10,14 @@ on:
       - master
     paths: ["piped", "pyproject.toml"]
   workflow_call:
+    inputs:
+      install-args:
+        description: The dependencies to install via Mise
+        required: false
+        type: string
+
+env:
+  INSTALL_ARGS: "${{ inputs.install-args || 'python uv' }}"
 
 jobs:
   freeze-pr-dep-changes:
@@ -19,7 +27,7 @@ jobs:
       - name: Run combine-coverage job
         uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
         with:
-          extra-installs: python uv
+          extra-installs: ${{ env.INSTALL_ARGS }}
           task-names: freeze-locks save-diff
 
       - name: Check diff file

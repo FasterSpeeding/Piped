@@ -12,6 +12,14 @@ on:
     branches:
       - master
   workflow_call:
+    inputs:
+      extra-installs:
+        description: Extra dependencies to install via Mise
+        required: false
+        type: string
+
+env:
+  EXTRA_INSTALLS: "${{ github.event_name == 'workflow_call' && 'pipx:black pipx:isort ruff pipx:sort-all' || inputs.extra-installs }}"
 
 jobs:
   lint:
@@ -23,5 +31,5 @@ jobs:
           EXCLUDE_GROUPS: rust
           IGNORE_RECIPES: type-check-python
         with:
-          extra-installs: node python uv
+          extra-installs: node python uv pipx:codespell pipx:pre-commit-hooks npm:renovate
           task-names: lint

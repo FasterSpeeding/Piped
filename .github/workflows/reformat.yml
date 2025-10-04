@@ -9,6 +9,14 @@ on:
     branches:
       - master
   workflow_call:
+    inputs:
+      extra-installs:
+        description: Extra dependencies to install via Mise
+        required: false
+        type: string
+
+env:
+  EXTRA_INSTALLS: "${{ github.event_name == 'workflow_call' && 'pipx:black pipx:isort pipx:pycln' || inputs.extra-installs }}"
 
 jobs:
   reformat:
@@ -18,7 +26,7 @@ jobs:
       - name: Run format jobs
         uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
         with:
-          extra-installs: node python uv
+          extra-installs: python uv pipx:pre-commit-hooks ${{ env.EXTRA_INSTALLS }}
           task-names: format save-diff
 
       - name: Check diff file
