@@ -58,7 +58,7 @@ function mise_install() {
         debug_echo "Ensuring dev dependencies"
         to_install=($@)
         mise install -q --silent ${to_install[@]}
-        eval "$(mise activate bash)"
+        eval "$(mise env bash)"
     else
         debug_echo 'Skipping dev dependency installs as "$INSTALL_DEV_DEPS" not set'
     fi
