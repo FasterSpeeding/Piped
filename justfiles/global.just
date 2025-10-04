@@ -104,7 +104,7 @@ cleanup:
 # Run reformatting jobs over the project's files
 [group("format")]
 format:
-    just execute-python-script just_call_by_groups format --ignore-recipes="format,format-python"
+    just execute-python-script just_call_by_groups format --ignore-recipes="format"
 
 # Freeze this project's dependency locks
 [group("freeze locks")]
