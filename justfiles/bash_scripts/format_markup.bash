@@ -31,8 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 source $(dirname "$0")/shared.bash
 
-mise_install just
-
 just_paths=()
 
 while read -rd $'\0' file_path

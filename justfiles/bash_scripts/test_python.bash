@@ -35,15 +35,6 @@ target_xml="$ARTIFACTS_DIR/coverage.xml"
 target_html="$ARTIFACTS_DIR/coverage_html"
 target_report="$ARTIFACTS_DIR/.coverage"
 
-if [[ -n "${TEST_PYTHON_VERSION:-}" ]]
-then
-    debug_echo "Installing Python $TEST_PYTHON_VERSION"
-    mise_install "python@$TEST_PYTHON_VERSION" uv
-else
-    debug_echo "Installing project default Python version"
-    mise_install python uv
-fi
-
 if [[ -n "${TRACK_COVERAGE:-}" ]]
 then
     echo "Running pyright with coverage"

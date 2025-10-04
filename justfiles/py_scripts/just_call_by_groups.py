@@ -33,9 +33,9 @@ import itertools
 import json
 import logging
 import os
-import sys
 import shutil
 import subprocess
+import sys
 
 import constants
 
@@ -98,7 +98,8 @@ def just_call_by_groups(match_groups: set[str], excluded_groups: set[str], ignor
         _LOGGER.info("Running task %r", recipe_name)
         try:
             subprocess.run(  # noqa: S603 - check for execution of untrusted input
-                [_JUST_LOCATION, recipe_name], check=True)
+                [_JUST_LOCATION, recipe_name], check=True
+            )
 
         except subprocess.CalledProcessError:
             failed = True

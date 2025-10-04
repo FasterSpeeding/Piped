@@ -12,6 +12,7 @@ export JUST_TASKS_VERBOSE := env('JUST_TASKS_VERBOSE', '')
 # Space separated list of files used to store diffs in CICD artifacts for the bot
 
 export DIFF_FILE_PATHS := ARTIFACTS_DIR + "/gogo.patch ./gogo.patch"
+export PYTHONUNBUFFERED := "true"
 
 # Check for a saved diff and error if one found
 check-diff-file:
@@ -103,7 +104,7 @@ cleanup:
 # Run reformatting jobs over the project's files
 [group("format")]
 format:
-    just execute-python-script just_call_by_groups format --ignore-recipes="format,format-python"
+    just execute-python-script just_call_by_groups format --ignore-recipes="format"
 
 # Freeze this project's dependency locks
 [group("freeze locks")]

@@ -12,16 +12,28 @@ on:
     branches:
       - master
   workflow_call:
+    inputs:
+      extra-installs:
+        description: Extra dependencies to install via Mise
+        required: false
+        type: string
+      is-workflow-call:
+        default: true
+        required: false
+        type: boolean
+
+env:
+  EXTRA_INSTALLS: "${{ inputs.is-workflow-call != true && 'pipx:black pipx:isort ruff' || inputs.extra-installs }}"
 
 jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
       - name: Run lint job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@8eb05ade958ade63a29f07458377ed61e2317f48 # 2025.10.03
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
         env:
           EXCLUDE_GROUPS: rust
           IGNORE_RECIPES: type-check-python
         with:
-          extra-installs: node python uv
+          extra-installs: node python uv pipx:codespell pipx:pre-commit-hooks npm:renovate ${{ env.EXTRA_INSTALLS }}
           task-names: lint
