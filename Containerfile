@@ -6,7 +6,7 @@ COPY ./pyproject.toml ./
 COPY ./uv.lock ./
 
 RUN pip install uv && \
-    uv sync --no-install-project --frozen
+    uv sync --frozen
 
 FROM registry.access.redhat.com/ubi9/python-312@sha256:558341c02c51ee12820185b203edaa953f18d1c2ac4426947547edd9cea44ff0
 
