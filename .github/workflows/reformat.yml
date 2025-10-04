@@ -14,9 +14,13 @@ on:
         description: Extra dependencies to install via Mise
         required: false
         type: string
+      is-workflow-call:
+        default: true
+        required: false
+        type: boolean
 
 env:
-  EXTRA_INSTALLS: "${{ github.event_name == 'workflow_call' && 'pipx:black pipx:isort pipx:pycln' || inputs.extra-installs }}"
+  EXTRA_INSTALLS: "${{ inputs.is-workflow-call != true && 'pipx:black pipx:isort pipx:pycln' || inputs.extra-installs }}"
 
 jobs:
   reformat:
