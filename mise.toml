@@ -29,4 +29,4 @@ go_skip_checksum = true
 
 [settings.python]
 compile = false
-uv_venv_auto = true
+uv_venv_auto = false
