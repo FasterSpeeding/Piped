@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Run test job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@0166c8951268748da24b7d86ceb58aff200e0cb8 # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
         env:
           TEST_PYTHON_VERSION: "${{ matrix.python-version }}"
         with:
@@ -70,7 +70,7 @@ jobs:
           path: ./artifacts/coverage/
 
       - name: Run combine-coverage job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@0166c8951268748da24b7d86ceb58aff200e0cb8 # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
         with:
           extra-installs: python uv
           task-names: combine-coverage
