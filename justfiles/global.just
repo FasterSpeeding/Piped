@@ -1,6 +1,6 @@
 set unstable := true
-set shell := ["mise", "exec", "--", "bash", "-eu", "-c"]
-set script-interpreter := ["mise", "exec", "--", "bash", "-eu"]
+set shell := ["bash", "-eu", "-c"]
+set script-interpreter := ["bash", "-eu"]
 set allow-duplicate-variables := true
 
 # The directory transient CICD artifacts are saved to
@@ -13,6 +13,8 @@ export JUST_TASKS_VERBOSE := env('JUST_TASKS_VERBOSE', '')
 
 export DIFF_FILE_PATHS := ARTIFACTS_DIR + "/gogo.patch ./gogo.patch"
 export PYTHONUNBUFFERED := "true"
+export BASH_SCRIPTS_DIR := source_directory() + '/bash_scripts'
+export PY_SCRIPTS_DIR := source_directory() + '/py_scripts'
 
 # Check for a saved diff and error if one found
 check-diff-file:
@@ -26,29 +28,14 @@ default:
 # Internal function used for executing bash script tasks
 [private]
 [script]
-execute-bash-script script-name *FLAGS:
-    path="{{ source_directory() }}/bash_scripts/{{ script-name }}.bash"
-
-    if [[ -n "$JUST_TASKS_VERBOSE" ]]
-    then
-        echo "Execution bash script at $path"
-    fi
-
-    bash -eu "$path" {{ FLAGS }}
+execute-bash-script $SCRIPT_NAME *FLAGS:
+    bash -eui "$BASH_SCRIPTS_DIR/execute_bash_script.bash" {{ FLAGS }}
 
 # Internal function used for executing Python script tasks
 [private]
 [script]
-execute-python-script script-name *FLAGS:
-    path="{{ source_directory() }}/py_scripts/{{ script-name }}.py"
-
-
-    if [[ -n "$JUST_TASKS_VERBOSE" ]]
-    then
-        echo "Executing Pythons script at $path"
-    fi
-
-    python "$path" {{ FLAGS }}
+execute-python-script $SCRIPT_NAME *FLAGS:
+    bash -eui "$BASH_SCRIPTS_DIR/execute_py_script.bash" {{ FLAGS }}
 
 # Internal function used to ensure the artifacts directory exists
 [private]

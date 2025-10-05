@@ -26,4 +26,4 @@ type-check-python:
 [group("lint")]
 [group("python")]
 lint-python:
-    just execute-python-script just_call_by_groups lint python --ignore-recipes=freeze-locks
+    just execute-python-script just_call_by_groups lint python --ignore-recipes=lint-python

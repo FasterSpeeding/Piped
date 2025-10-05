@@ -31,30 +31,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 set -eu
 
-function init_mise() {
-    if [[ "${SKIP_MISE_INSTALL:-false}" == 'false' ]]
-    then
-        mise install
-    fi
-}
+source $(dirname "$0")/shared.bash
 
-function debug_echo() {
-    if [[ -n "${JUST_TASKS_VERBOSE:-}" ]]
-    then
-        echo echo $@
-    fi
-}
+init_mise
 
-function decide_exit() {
-    array=($@)
-    final_code=0
-    for exit_code in ${array[@]}
-    do
-        if [[ "$exit_code" -gt "$final_code" ]]
-        then
-            final_code="$exit_code"
-        fi
-    done
+path="$PY_SCRIPTS_DIR/$SCRIPT_NAME.py"
 
-    return $final_code
-}
+debug_echo "Executing Pythons script at $path"
+
+python "$path" "$@"
