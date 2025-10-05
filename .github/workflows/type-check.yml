@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Run type-check-python job
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@5e113e7306f79012ab52d439cdcdb1487bea66aa # 2025.10.05
         with:
           extra-installs: "node python uv npm:pyright pipx:mypy ${{ inputs.extra-installs }}"
           task-names: type-check-python
