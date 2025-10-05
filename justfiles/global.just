@@ -29,13 +29,13 @@ default:
 [private]
 [script]
 execute-bash-script $SCRIPT_NAME *FLAGS:
-    bash -eui "$BASH_SCRIPTS_DIR/execute_bash_script.bash" {{ FLAGS }}
+    bash -eu "$BASH_SCRIPTS_DIR/execute_bash_script.bash" {{ FLAGS }}
 
 # Internal function used for executing Python script tasks
 [private]
 [script]
 execute-python-script $SCRIPT_NAME *FLAGS:
-    bash -eui "$BASH_SCRIPTS_DIR/execute_py_script.bash" {{ FLAGS }}
+    bash -eu "$BASH_SCRIPTS_DIR/execute_py_script.bash" {{ FLAGS }}
 
 # Internal function used to ensure the artifacts directory exists
 [private]
