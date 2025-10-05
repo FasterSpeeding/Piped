@@ -28,10 +28,10 @@ jobs:
 
     steps:
       - name: Run format jobs
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@5e113e7306f79012ab52d439cdcdb1487bea66aa # 2025.10.05
         with:
           extra-installs: python uv pipx:pre-commit-hooks ${{ env.EXTRA_INSTALLS }}
           task-names: format save-diff
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@365e57af53e9829e58c0c3db95674a1f329bc5cd # 2025.10.04
+        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@5e113e7306f79012ab52d439cdcdb1487bea66aa # 2025.10.05
