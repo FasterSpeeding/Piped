@@ -34,7 +34,9 @@ set -eu
 function init_mise() {
     if [[ "${SKIP_MISE_INSTALL:-false}" == 'false' ]]
     then
-        mise install
+        # Assume this is an interactive shell as Just does not tell us this
+        # and this is not running in CICD.
+        bash -ic 'mise install'
     fi
 }
 
