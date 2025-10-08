@@ -5,7 +5,7 @@ python = "3"
 # CLI tools
 # Black has to be installed from PyPi to support their ARM fallback to pure-python.
 "pipx:black" = "25.9.0"
-"cargo-binstall" = "1.15.6"
+cargo-binstall = "1.15.6"
 "pipx:codespell" = "2.4.1"
 "pipx:isort" = "6.1.0"
 "pipx:mypy" = "1.18.2"
