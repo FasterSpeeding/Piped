@@ -39,8 +39,8 @@ black . || EXIT_CODES+=($?)
 echo "Running isort"
 isort . || EXIT_CODES+=($?)
 
-echo "Running Pycln"
-pycln --config pyproject.toml . || EXIT_CODES+=($?)
+#echo "Running Pycln"
+#pycln --config pyproject.toml . || EXIT_CODES+=($?)
 
 echo "Running sort-all"
 sort-all || sort_all_exit_code+=($?)
