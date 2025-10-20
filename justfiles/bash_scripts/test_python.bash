@@ -37,7 +37,7 @@ target_report="$ARTIFACTS_DIR/.coverage"
 
 if [[ -n "${TRACK_COVERAGE:-}" ]]
 then
-    echo "Running pyright with coverage"
+    echo "Running pytest with coverage"
 
     uv run --group=tests pytest \
         -n auto \
@@ -53,6 +53,6 @@ then
     debug_echo "HTML coverage report saved to $target_html"
     debug_echo ".coverage file saved to $target_report"
 else
-    echo "Running pyright"
+    echo "Running pytest"
     uv run --group=tests pytest -n auto --import-mode importlib
 fi
