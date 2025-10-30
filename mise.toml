@@ -14,7 +14,7 @@ python = "3"
 "npm:renovate" = "41.155.2"
 ruff = "0.14.1"
 "pipx:sort-all" = "1.3.0"
-uv = "0.9.4"
+uv = "0.9.7"
 just = "1.43.0"
 
 [settings]
