@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi9/python-312@sha256:e58da77627d3cd889c1fe862bac08f96da1698d0cff8e5e233d67aa9fd0083b5 AS install
+FROM registry.access.redhat.com/ubi9/python-312@sha256:fe1e89ce526b30cd4be26198b2243ef3f708adf3067839fe539e90eee9af1802 AS install
 
 WORKDIR /workspace
 
@@ -8,7 +8,7 @@ COPY ./uv.lock ./
 RUN pip install uv && \
     uv sync --frozen
 
-FROM registry.access.redhat.com/ubi9/python-312@sha256:e58da77627d3cd889c1fe862bac08f96da1698d0cff8e5e233d67aa9fd0083b5
+FROM registry.access.redhat.com/ubi9/python-312@sha256:fe1e89ce526b30cd4be26198b2243ef3f708adf3067839fe539e90eee9af1802
 
 WORKDIR /workspace
 
