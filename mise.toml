@@ -6,7 +6,7 @@ python = "3"
 # Black has to be installed from PyPi to support their ARM fallback to pure-python.
 "pipx:black" = "25.12.0"
 "pipx:codespell" = "2.4.1"
-"pipx:isort" = "7.0.0"
+"pipx:isort" = "8.0.1"
 "pipx:mypy" = "1.19.1"
 "pipx:pre-commit-hooks" = "6.0.0"
 "pipx:pycln" = "2.6.0"
