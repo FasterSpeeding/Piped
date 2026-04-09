@@ -37,7 +37,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
 
       - name: Deploy preview
-        uses: FasterSpeeding/pr-preview-action@task/override-committer
+        uses: FasterSpeeding/pr-preview-action@7e4ef406ef1a835347a646c336d7a3b362e23e3d # task/override-committer
         with:
           git-config-email: "${{ inputs.committer-email }}"
           git-config-name: "${{ inputs.committer-username }}"
