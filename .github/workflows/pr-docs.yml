@@ -29,7 +29,7 @@ jobs:
     steps:
       - name: Run generate-docs job
         if: github.event.action != 'closed'
-        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@52f3085b5624714efc892fab2d486451bd4c1742 # 2026.03.07
+        uses: FasterSpeeding/Piped-actions/.github/actions/just-jobs@475df54c30e176ecd3c102808b10c735f4d50850 # 2026.04.09
         with:
           extra-installs: python uv
           task-names: generate-docs
@@ -45,4 +45,4 @@ jobs:
           source-dir: ./artifacts/site/
 
       - name: Check diff file
-        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@52f3085b5624714efc892fab2d486451bd4c1742 # 2026.03.07
+        uses: FasterSpeeding/Piped-actions/.github/actions/handle-diff-file@475df54c30e176ecd3c102808b10c735f4d50850 # 2026.04.09
