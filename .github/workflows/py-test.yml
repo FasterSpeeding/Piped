@@ -43,7 +43,7 @@ jobs:
           task-names: test-python-cov
 
       - name: Create coverage artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: .coverage.${{ matrix.runner-os }}.${{ matrix.python-version }}
           path: artifacts/.coverage
@@ -76,13 +76,13 @@ jobs:
           task-names: combine-coverage
 
       - name: Upload coverage to codecov
-        uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2 # v6.0.0
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v6.0.2
         with:
           files: ./artifacts/coverage.xml
           use_oidc: true
 
       - name: Create coverage artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: .coverage.combined
           path: |
